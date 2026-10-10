@@ -1,5 +1,19 @@
 # Backlog Studium
 
+## QA-A — актуальное дополнение 2026-10-11
+
+| Задача | Состояние | Следующий результат |
+|---|---|---|
+| B1–B6 product contracts | Согласованы; B4 integer default + fractional 2 digits/OFF, B2 confirmed deadline после семестра | [Технический review contracts/mapping](QA_A_CONTRACTS.md), не повторная продуктовая анкета |
+| Documentation scope QA-A-PR-01 | Документы подготовлены по actual main `b620ef3635c2965ad3630bae15d00d1b7bd9a82d`; implementation/manual NOT RUN | Один docs PR; actual quality/repository-safety на final HEAD, отдельный review/merge владельцем |
+| Ближайший implementation | Не начат; предложен PR-02 directions foundation, 10-PR plan не утверждён | Отдельное задание после technical review; concrete FK/code import, raw preservation, backup/new-head tests |
+| Score foundation/UI | PR-09/10 — предложения, не созданы | Int64 exact cents/range, mode validation/ReviewGrade/rule snapshots; затем сохраняемый Settings toggle/unsaved validation/historical display |
+| B7–B9 | Не решаются в QA-A docs | QA-B queue/summary и QA-C structured answers |
+
+Min уже решён. Исходные 30 требований и их статусы/приоритеты не закрыты;
+порядок QA-A → QA-B → QA-C → QA-D сохраняется. Product agreement не является
+implementation acceptance. История прежнего backlog ниже сохраняется.
+
 ## QA — актуальное дополнение 2026-10-10
 
 [Реестр 30 требований](QA_REGISTER.md) сохраняет номера и приоритеты;

@@ -1,5 +1,30 @@
 # Журнал требований Studium QA
 
+## Актуальное дополнение — 2026-10-11
+
+Контрактная база — актуальный `main`,
+`b620ef3635c2965ad3630bae15d00d1b7bd9a82d`.
+[QA-A contracts и migration mapping](QA_A_CONTRACTS.md) конкретизируют B1–B6;
+продуктовые решения согласованы, техническая схема PROPOSED до review.
+
+| Контракт | Согласованное поведение |
+|---|---|
+| B1 | Одна программа целого курса; freeze назначенной версии; ordinal курса явно сопоставляется с периодом группы; календарь отдельно; без auto merge/auto switch |
+| B2 | Срок ДЗ/РК за модулем и, по дополнительному согласованию, после семестра разрешён с предупреждением и подтверждением; модуль остаётся в семестре; preview/cancel без записи, atomic apply |
+| B3 | Date-only учебный день в explicit offset, default Москва +03; exact precedence/timestamps сохраняются; actual issue отдельно, legacy issued_at ambiguous |
+| B4 | Новые числовые score/min/max по умолчанию целые; сохраняемый переключатель «Дробные баллы (2 знака после запятой)», default OFF; без rounding и изменения истории |
+| B5 | Review привязана к saved submission; повторная review не создаёт Attempt/номер; immutable история и explicit legacy compatibility |
+| B6 | Review фиксирует выбранную rule/snapshot; для сдачи до смены правил явный выбор old/new, новые сдачи используют current; прежние min/max/result неизменны |
+
+Min остаётся минимальным начисляемым баллом, inclusive individual range;
+NULL/pending/revision не превращаются в 0. Product agreement не означает
+implementation acceptance: QA-A implementation и ручная приёмка **не выполнены**;
+application/migration/Windows/manual проверки **NOT RUN**. Все 30 ID, приоритеты,
+матрица реализации по прежнему baseline и порядок QA-A → QA-B → QA-C → QA-D
+сохранены. Разбиение на 10 PR не утверждено; B7–B9 относятся к поздним этапам.
+
+## Сохранённый baseline — 2026-10-10
+
 30 требований, исходные ID/приоритеты; порядок QA-A → QA-B → QA-C → QA-D.
 База аудита: `main` / `ef5414faa594eba0f339d4208d605c92e98de903`. Дата: 2026-10-10.
 [Результаты и предлагаемый план PR](QA_AUDIT.md), [backlog](BACKLOG.md).
@@ -869,6 +894,12 @@ Light/Dark.
 **Подтверждение, изменения, зависимости, риски и приёмка:** [карточка аудита](QA_AUDIT.md#st-qa-026).
 
 ## Ведение журнала
+
+2026-10-11: B1–B6 согласованы; актуальная редакция B4 — integer default и
+fractional toggle, с сохранением legacy REAL. Дополнение B2 разрешает срок после
+семестра с подтверждением. Добавлены конкретные contracts/migration mapping
+на `b620ef3635c2965ad3630bae15d00d1b7bd9a82d`; QA-A implementation и acceptance
+не начаты, исходные замечания не закрыты. Предыдущий baseline сохранён ниже.
 
 2026-10-10: зарегистрированы 30/30 требований, выполнен архитектурный аудит,
 добавлен последовательный план QA-A. Implementation/Windows acceptance не закрыты.

@@ -1,5 +1,12 @@
 # Управление Studium
 
+[QA-A — согласованные контракты и migration mapping](QA_A_CONTRACTS.md),
+[ADR-049](../decisions.md#adr-049--qa-a-product-contracts). Актуально 2026-10-11:
+B1–B6 согласованы продуктово; B4 integer default + fractional 2 digits/OFF,
+B2 разрешает confirmed deadline после семестра. Technical proposals до review;
+implementation/manual acceptance не выполнены. 10-PR plan ещё не утверждён,
+исходные 30 требований и baseline ниже сохранены.
+
 [QA Register — 30 требований](QA_REGISTER.md), [QA Audit и предлагаемый план QA-A](QA_AUDIT.md).
 Актуализация 2026-10-10: аудит завершён как документационная работа;
 реализация QA-A и ручная приёмка не начаты. Исходные ID/приоритеты сохранены,

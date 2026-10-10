@@ -1,5 +1,24 @@
 # Архитектурный аудит Studium QA
 
+## Актуальное дополнение — 2026-10-11
+
+Контракты повторно сверены с актуальным `main`,
+`b620ef3635c2965ad3630bae15d00d1b7bd9a82d`.
+[QA_A_CONTRACTS](QA_A_CONTRACTS.md) содержит evidence SQL/Grade/Attempt/preferences/
+backup, transition tables, date boundaries, migration mapping и ближайший scope.
+B1–B6 согласованы продуктово; B4 — целые по умолчанию с сохраняемым fractional
+toggle (2 знака, OFF), B2 дополнен разрешением срока после семестра с подтверждением.
+Технические модели/хранилище до review остаются PROPOSED. Существующий код и
+статусы исходных 30 требований не изменились; implementation/manual acceptance
+не выполнены, application/migration/Windows/manual checks NOT RUN.
+
+Предыдущий аудит/evidence и числовой baseline ниже сохраняются; его результаты
+CI не являются результатами нового HEAD. Ordinary required quality/safety нового
+документационного PR фиксируются в PR. Ни workflow_dispatch/full_windows, ни
+реализация, ни merge не запускаются. План из 10 PR по-прежнему не утверждён.
+
+## Сохранённый baseline — 2026-10-10
+
 Аудит 30/30 на `main` / `ef5414faa594eba0f339d4208d605c92e98de903`. 2026-10-10.
 **2 реализовано по коду, 22 частично, 6 отсутствует; 0 закрытых manual acceptance.**
 [Требования](QA_REGISTER.md), [предлагаемый план QA-A](#qa-a-pr-plan),
@@ -64,6 +83,11 @@ required checks этого PR; ручной workflow_dispatch/full_windows не 
    KnowledgeWidget уже имеет требуемый порядок и empty/list switch.
 
 ## Предлагаемые границы новых данных
+
+Первоначальные предложения baseline 2026-10-10 ниже сохраняются как история.
+Актуальные детали B1–B6, integer default, ReviewGrade и ограничения legacy
+evidence — в [QA_A_CONTRACTS](QA_A_CONTRACTS.md); при расхождении применяется
+датированное дополнение 2026-10-11. Техническая схема ещё требует review.
 
 Это проектное предложение для последующих PR, не принятая или выполненная миграция.
 В предлагаемом плане сначала фиксируются контракты B1–B6 и mapping/guards
@@ -969,8 +993,24 @@ required checks этого PR; ручной workflow_dispatch/full_windows не 
 
 ## Блокирующие контракты
 
-Это вопросы перед зависимыми implementation PR, не blockers документационного PR.
-Смысл min закрыт; повторное решение о пороге зачёта не требуется.
+Актуально 2026-10-11: B1–B6 согласованы продуктово. Новое поведение и технические
+предложения описаны в [контрактах](QA_A_CONTRACTS.md); review схемы и реализация
+ещё предстоят. Min не переоткрывается. B7–B9 не решаются этим PR.
+
+| ID | Согласованный контракт | Технический proposal / зависимый участок |
+|---|---|---|
+| B1 | Программа целого курса, immutable назначенная версия, calendar отдельно, ordinal явно сопоставлен с AcademicTerm; нет automatic copy/switch/merge | Content/version + offering plan, explicit legacy maps; 003, PR-03/04/05 |
+| B2 | Срок вне модуля и после семестра разрешён при предупреждении/подтверждении; modules внутри semester; no hidden neighbour edits | Atomic PlanRevision/impact preview, outside-semester marker; 011, PR-07 |
+| B3 | Date-only учебный день/explicit offset, Москва +03 default; exact precedence и old timestamps; actual issue отдельно, legacy ambiguous | DATE_EXCLUSIVE next-day start vs legacy EXACT_INCLUSIVE; 013/011, PR-04/08 |
+| B4 | Новые score/min/max integer default; fractional toggle 2 signs/OFF; old fractions visible, no rounding/history mutation | Decimal + int64 cents, lossless REAL compatibility, Settings и unsaved validation; 030, PR-09/10 |
+| B5 | Review на saved submission, no new Attempt/attempt_no, immutable review history | Review/ReviewGrade concrete FK + legacy fold/evidence resolver; 030, PR-09; полный UI QA-B |
+| B6 | До save показать правила; для pre-change submission явный old/new выбор; new submission current rule; result/rule snapshots immutable | Versioned rule binding и pending/resubmission/re-review examples; 030, PR-09/10 |
+
+### История исходных вопросов — 2026-10-10
+
+Ниже сохранена первоначальная постановка B1–B9 до согласования. B1–B6 больше
+не являются открытыми продуктовыми вопросами; технический review не заменяет
+product agreement. B7–B9 остаются соответствующим следующим этапам.
 
 | ID | Конкретный вопрос | Рекомендуемый вариант | Что блокирует |
 |---|---|---|---|
@@ -994,7 +1034,8 @@ schedule-history и date contracts. Sync/ownership, purge/retention, общий 
 ## Предлагаемый план: 10 небольших последовательных PR QA-A
 
 **Разбиение QA-A на 10 PR ещё требует утверждения владельца и не утверждено.**
-Все перечисленные PR будущие, не созданы и не разрешены этим аудитом.
+Документационный scope PR-01 подготовлен в [QA_A_CONTRACTS](QA_A_CONTRACTS.md).
+Implementation PR-02–10 будущие, не созданы и не разрешены этим аудитом.
 Предлагаемая последовательность **01 → 02 → 03 → 04 → 05 → 06 → 07 → 08 → 09 → 10**
 и границы ниже подлежат утверждению вместе; владелец может уточнить их до реализации.
 Порядок этапов QA-A → QA-B → QA-C → QA-D сохраняется.
@@ -1005,16 +1046,16 @@ schedule-history и date contracts. Sync/ownership, purge/retention, общий 
 
 | Предлагаемый PR | Требования и предлагаемый scope | Предлагаемые prerequisites | Проверка и критерий выхода |
 |---|---|---|---|
-| QA-A-PR-01 — Контракты и migration mapping | Только технические ADR/model docs: content version vs plan, legacy mapping, B1–B6, Decimal/rule/Grade truth table, date examples, deletion/backup compatibility; scope следующих PR. Код ещё не меняется. | Этот аудит; ответы B1–B6 до зависимых решений. | Review примеров current/legacy; min закрыт, нет молчаливых изменений ADR-009/010/030/037. Все schema decisions конкретны; нерешённый вопрос блокирует зависимый PR. |
-| QA-A-PR-02 — Направления | 002: Direction/ProgramDirection, ports/repositories, additive revision и explicit code import; legacy raw direction сохранён. Пока без новой большой формы. | 01; code normalization/uniqueness contract. | Multi-code/duplicates/unknown text; populated v9→new, UUID/FK/history/reopen/rollback и existing frozen migration hashes. |
+| QA-A-PR-01 — Контракты и migration mapping | Documentation scope подготовлен: content version vs plan, actual-source mapping, B1–B6, integer default/fractional toggle, Decimal/rule/Grade tables, dates/deletion/backup compatibility и next scope. Код не меняется. | Этот аудит; product B1–B6 согласованы, technical proposals до review. | Review current/legacy examples без изменения смысла B1–B6/ADR; 30 ID/приоритеты/history сохранены; docs-only safety/quality final HEAD. Implementation/manual NOT RUN. |
+| QA-A-PR-02 — Направления | 002 foundation: Direction/ProgramDirection, ports/repositories, additive revision и explicit code import; legacy raw direction сохранён. Без новой большой формы. Ближайший небольшой предложенный implementation scope. | 01 technical review и отдельное задание; trim/code uniqueness, FK bridge, backup support новой schema. | Multi-code/duplicates/unknown text; populated v9→new, UUID/FK/history/reopen/late rollback/frozen hashes и new-head backup/restore. Полный 002 UI/manual остаётся PR-05. |
 | QA-A-PR-03 — Содержание программы и версии | 003: independent content/version, version-module/definition links, explicit legacy map и compatibility read facade. Не объединять одноимённые legacy records. | 02; B1, mapping из 01. | Два content versions без обязательного term; сохранены old programs/modules/topics/definitions IDs и source snapshots, no automatic clones. |
 | QA-A-PR-04 — Отдельный календарь реализации | 003/010 foundation: SemesterPlan/PlanModule/PlannedAssessment на offering, deterministic backfill каждой группы, calendar/analytics readers через план. До UI сохраняется совместимый legacy route. | 03; B3 и calendar-lock decision. | Две группы/два периода с общей версией и разными calendars; старые dates/weeks/offset/lessons/assessments unchanged; fresh/populated/reopen и query budgets. |
 | QA-A-PR-05 — Формы программы и display name | Закрытие пользовательских 002/003/006: multi-code selection, content version и переиспользование между периодами; единый display name во всех tables/selectors, full tooltip. | 04. | Одноимённые программы различимы, source title сохранён; существующая программа назначается новому семестру без копий; keyboard/long names; Help programs обновлён. |
 | QA-A-PR-06 — План семестра группы | 010: отдельный editor, draft/setup-later, 17/18 weeks, произвольные модули/работы, idempotent save/reopen, protected removal с history; журнал читает план. | 05. | No fake attempts/grades; cancel/reopen без новых records; existing work facts не теряются; group→plan→journal synthetic UI. |
-| QA-A-PR-07 — История и подтверждённые переносы | 011: original/current snapshot, immutable changes/reason, impact preview и confirmed atomic batch, самостоятельные deadlines, sync current schedule к выданной работе через adapter. | 06; B2/B3. | 6→7 с конфликтом: preview/cancel no writes, apply final 17-week bounds; stale revision/late error full rollback; Attempt/Grade timestamps/values unchanged. |
+| QA-A-PR-07 — История и подтверждённые переносы | 011: original/current snapshot, immutable changes/reason, impact preview и confirmed atomic batch; deadline вне модуля/после семестра с подтверждением, sync current issued schedule через adapter. | 06; B2/B3 и typed deadlines. | 6→7 с конфликтом: preview/cancel no writes, modules остаются в 17-week bounds, deadline после семестра виден отдельно; stale/late error full rollback; Attempt/Grade timestamps/values unchanged. |
 | QA-A-PR-08 — Плановая/фактическая выдача | 013: issuance event/provenance, Planned/Issued, original/current due display, early issue, Journal homework current-due week; stable IDs при переносе, без полной переработки занятий 012. | 07; B3. | Issue before module start, deadline 6→7 without changing actual issue; legacy ambiguous issuance explicitly unknown; one idempotent issuance; Help homework/journal обновлён. |
-| QA-A-PR-09 — Индивидуальные точные баллы | 030 domain/persistence/application: exact ScoreValue, versioned min/max и result/rule snapshot, legacy compatibility, validation и Grade truth table. Текущий legacy semantic lock сохраняется. | 08; B4/B5/B6 окончательно решены. | Inclusive 18–30, precise roundtrip, pending/revision null, real 0 only in allowed interval; numeric/pass-fail/traditional contracts; new rule не меняет старое 24/30. |
-| QA-A-PR-10 — Ввод/отображение и сквозная приёмка QA-A | 030 UI/DTO: min/max in plan, exact score entry, historical score/max во всех journal/student/history/analytics/reporting views; исправления только по QA-A regression, Help и management statuses. | 09. | Full QA-A synthetic workflow, populated→new/reopen/backup/restore сравнение всех facts/bytes, multi-group performance, Light/Dark/DPI and native Windows acceptance. Ни одного нового QA-B/C/D business workflow. |
+| QA-A-PR-09 — Индивидуальные точные баллы | 030 domain/persistence/application: Decimal/INTEGER cents с int64 overflow guards, versioned min/max/result snapshots, Review/ReviewGrade concrete binding, legacy REAL/evidence resolver; mode-aware validation нового ввода. Legacy semantic lock сохраняется. | 08; B4/B5/B6 согласованы продуктово; technical storage/Grade/mapping review и backup support. | Inclusive 18–30, exact roundtrip/range reject, OFF integer/ON <=2 signs без rounding; legacy >2 signs/huge REAL не теряются. Pending/revision null, 0 только в range; review не создаёт Attempt; явный выбор R1/R2, старое 24/30 immutable. |
+| QA-A-PR-10 — Ввод/отображение и сквозная приёмка QA-A | 030 UI/DTO: min/max in plan, integer default и Settings «Дробные баллы (2 знака после запятой)»/OFF, сохранение preferences, unsaved validation и historical fractional display во всех journal/student/history/analytics/reporting views; Help/management. | 09; B4–B6 согласованы продуктово, technical proposals reviewed до реализации. | OFF reject new fractions, ON reject >2 signs, no silent rounding/unsaved loss; empty integer interval объясняется; toggle не меняет facts/rules/statistics. Full QA-A populated/reopen/backup/multi-group и native Windows acceptance; no QA-B/C/D workflow. |
 
 ### Проверки каждого будущего implementation PR
 
@@ -1047,6 +1088,15 @@ QA-B затем 009→008, 012→015, 027→028→017→029. Перед QA-B rev
 preview в QA-B. QA-D доводит общие стили/interaction и native visual audit.
 
 ## История результата
+
+2026-10-11: B1–B6 согласованы, B4 уточнён как integer default с fractional
+toggle; разрешён подтверждённый deadline после семестра (B2). Технический
+документ и mapping проверены по actual main `b620ef3635c2965ad3630bae15d00d1b7bd9a82d`.
+Documentation scope PR-01 подготовлен; proposal PR-09 требует int64 cents/range,
+mode-aware validation и ReviewGrade/evidence resolver, PR-10 — сохраняемый toggle.
+Ближайший implementation scope предложен как directions foundation PR-02,
+prerequisites/tests/exit — в QA_A_CONTRACTS. 10-PR plan не утверждён; код и исходные
+статусы не изменены, implementation/manual acceptance не выполнены.
 
 2026-10-10: первый архитектурный аудит 30 требований и план QA-A на указанной
 public main базе. Статические evidence/риски/предложения зафиксированы;

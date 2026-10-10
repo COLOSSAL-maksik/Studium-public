@@ -1,5 +1,24 @@
 # Оставшаяся работа
 
+## QA-A — следующие действия 2026-10-11
+
+- Review [технических proposals/migration mapping](management/QA_A_CONTRACTS.md):
+  product B1–B6 уже согласованы, B4 integer default + fractional 2 digits/OFF,
+  B2 допускает confirmed deadline после семестра. Не переоткрывать смысл min.
+- 10-PR plan остаётся предложением. Ближайший предложенный implementation scope
+  — directions foundation PR-02: concrete FK/code import/raw preservation,
+  additive schema и соответствующий backup/new-head tests; prerequisites/exit
+  зафиксированы в contracts. Implementation только отдельной задачей после review.
+- PR-09/10 учесть exact int64 cents/range и mode validation, ReviewGrade/rule
+  snapshots/evidence resolver, сохраняемый Settings toggle и unsaved/historical
+  fractional display. Будущие PR сейчас не созданы.
+- Приёмка всех 30 ID остаётся открытой, порядок QA-A → QA-B → QA-C → QA-D
+  прежний; B7–B9 последующим этапам. Application/migration/Windows/manual NOT RUN.
+
+Ниже сохранена прежняя история до согласования B1–B6; повторно получать
+product agreement для них не требуется. Technical review и отдельное разрешение
+реализации не заменяются этим documentation PR.
+
 ## Актуальное дополнение — 2026-10-10
 
 - Review [реестра 30 требований](management/QA_REGISTER.md) и
