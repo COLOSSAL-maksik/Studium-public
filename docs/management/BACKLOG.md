@@ -14,6 +14,15 @@ Min уже решён. Исходные 30 требований и их стат
 порядок QA-A → QA-B → QA-C → QA-D сохраняется. Product agreement не является
 implementation acceptance. История прежнего backlog ниже сохраняется.
 
+Дополнение review 2026-10-11 после `3649afaee48be28d27f81ac41aff86087d594636`:
+[B2](QA_A_CONTRACTS.md#b2-student-debt) — индивидуальные долги T1 в T2,
+обязательные работы/explicit ACCEPTED и original offering history (011/029).
+Схема required-work/closure и write preconditions ended membership/explicit
+archive требуют technical review; полный доступ/регистрация/queue/summary — QA-B,
+не новый QA-A UI. QA-A-REV-01/02 устраняются в docs; future score checks включают
+reject REVISION_REQUIRED→SCORED и OFF integer score с unchanged fractional bounds.
+Directions foundation по-прежнему следующий proposed scope, не начатая работа.
+
 ## QA — актуальное дополнение 2026-10-10
 
 [Реестр 30 требований](QA_REGISTER.md) сохраняет номера и приоритеты;

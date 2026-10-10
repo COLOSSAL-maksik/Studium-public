@@ -8,6 +8,12 @@
 backup, transition tables, date boundaries, migration mapping и ближайший scope.
 B1–B6 согласованы продуктово; B4 — целые по умолчанию с сохраняемым fractional
 toggle (2 знака, OFF), B2 дополнен разрешением срока после семестра с подтверждением.
+Последующее review HEAD `3649afaee48be28d27f81ac41aff86087d594636` добавляет
+[индивидуальный долг T1 в T2](QA_A_CONTRACTS.md#b2-student-debt): closure только
+по ACCEPTED всех обязательных работ, отдельно от календаря группы. Mandatory
+binding/closure сейчас не реализованы; ended enrollment и explicit archive
+рассмотрены как отдельные существующие write guards. Исправлены QA-A-REV-01/02:
+reject нового REVISION_REQUIRED→SCORED, unchanged bounds snapshot при OFF допустим.
 Технические модели/хранилище до review остаются PROPOSED. Существующий код и
 статусы исходных 30 требований не изменились; implementation/manual acceptance
 не выполнены, application/migration/Windows/manual checks NOT RUN.
@@ -273,6 +279,13 @@ evidence — в [QA_A_CONTRACTS](QA_A_CONTRACTS.md); при расхождени
 <a id="st-qa-011"></a>
 
 #### ST-QA-011 — Гибкое изменение сроков модулей и работ
+
+**Уточнение после review 2026-10-11:** [B2](QA_A_CONTRACTS.md#b2-student-debt)
+различает deadline/late submission/debt/individual module closure. T1 debt
+сдаётся в T2 на том же work/offering; только ACCEPTED всех обязательных работ
+закрывает модуль студента, не переносит календарь группы. Model boundary
+required-work binding и late-debt use case — PROPOSED; прежний статус ниже
+и acceptance не изменены.
 
 **P2 · Частично.** update_program_module/update_program_work и обычный edit Assessment доступны. SQLite защищает пересечения/границы, но нет before/after history, причины, предложения исправления и атомарного подтверждённого переноса нескольких элементов. Правка ProgramWork не обновляет уже выданную Assessment.
 
@@ -555,6 +568,11 @@ evidence — в [QA_A_CONTRACTS](QA_A_CONTRACTS.md); при расхождени
 <a id="st-qa-029"></a>
 
 #### ST-QA-029 — Summary на главном экране прогресса студента
+
+**Уточнение после review 2026-10-11:** будущая QA-B сводка долгов читает исходные
+offering/work/module bindings прошлых периодов при active T2, без копий работ
+и автоматического зачёта по score. [B2](QA_A_CONTRACTS.md#b2-student-debt).
+Полный UI/queue не включён в QA-A; B7–B9 и прежняя acceptance остаются открытыми.
 
 **P1 · Частично.** StudentProgressWidget имеет категории ДЗ/РК/экзамен, generic Сводка/Highlights и фактические DTO, но initial tab ДЗ и highlights скрыты; нет первой отдельной category summary с requested counts/scores и переходами.
 
@@ -1000,10 +1018,10 @@ evidence — в [QA_A_CONTRACTS](QA_A_CONTRACTS.md); при расхождени
 | ID | Согласованный контракт | Технический proposal / зависимый участок |
 |---|---|---|
 | B1 | Программа целого курса, immutable назначенная версия, calendar отдельно, ordinal явно сопоставлен с AcademicTerm; нет automatic copy/switch/merge | Content/version + offering plan, explicit legacy maps; 003, PR-03/04/05 |
-| B2 | Срок вне модуля и после семестра разрешён при предупреждении/подтверждении; modules внутри semester; no hidden neighbour edits | Atomic PlanRevision/impact preview, outside-semester marker; 011, PR-07 |
+| B2 | Подтверждённый срок вне модуля/после семестра; уточнение review 2026-10-11: долг T1 в T2, explicit ACCEPTED всех обязательных работ для индивидуального closure, календарь группы отдельно | Atomic PlanRevision/impact preview; future required-work binding и debt DTO, исходные FK/history; 011, PR-07; QA-B 029/027/017 UI |
 | B3 | Date-only учебный день/explicit offset, Москва +03 default; exact precedence и old timestamps; actual issue отдельно, legacy ambiguous | DATE_EXCLUSIVE next-day start vs legacy EXACT_INCLUSIVE; 013/011, PR-04/08 |
-| B4 | Новые score/min/max integer default; fractional toggle 2 signs/OFF; old fractions visible, no rounding/history mutation | Decimal + int64 cents, lossless REAL compatibility, Settings и unsaved validation; 030, PR-09/10 |
-| B5 | Review на saved submission, no new Attempt/attempt_no, immutable review history | Review/ReviewGrade concrete FK + legacy fold/evidence resolver; 030, PR-09; полный UI QA-B |
+| B4 | Новые/изменяемые teacher inputs integer default/fractional 2 signs; unchanged saved rule bounds snapshot разрешён при OFF с целой новой оценкой; no rounding/history mutation | Decimal + int64 cents, lossless REAL, mode/input vs snapshot validation, Settings/unsaved; 030, PR-09/10 |
+| B5 | Review на saved submission, no new Attempt/attempt_no; новая SCORED из REVISION_REQUIRED запрещена, завершение доработки — explicit ACCEPTED | Review/ReviewGrade concrete FK + guarded new transitions, legacy fold unchanged; 030, PR-09; полный UI QA-B |
 | B6 | До save показать правила; для pre-change submission явный old/new выбор; new submission current rule; result/rule snapshots immutable | Versioned rule binding и pending/resubmission/re-review examples; 030, PR-09/10 |
 
 ### История исходных вопросов — 2026-10-10
@@ -1059,6 +1077,14 @@ Implementation PR-02–10 будущие, не созданы и не разре
 
 ### Проверки каждого будущего implementation PR
 
+Дополнение review 2026-10-11 к score PR-09/10: future scenarios
+QA-A-REV-01/02 — reject SCORED из REVISION_REQUIRED без записи, явный ACCEPTED
+с тем же attempt_no, legacy fold unchanged; OFF score=24 с unchanged exact
+18,25–30 snapshot, reject нового 24,75 и изменения fractional bounds.
+B2 late-debt/mandatory closure contract проверяется отдельно; полный доступ,
+регистрация, сводка/queue долгов прошлых периодов — QA-B. Directions foundation
+остаётся следующим предложенным scope; 10-PR plan не утверждён.
+
 - Relevant pytest и полный regression; Ruff check/format, pip check, repository
   safety worktree/index/history/identity и git diff --check. Historical migration
   hashes, layer boundaries, нет Bender diff/dependency/import.
@@ -1088,6 +1114,13 @@ QA-B затем 009→008, 012→015, 027→028→017→029. Перед QA-B rev
 preview в QA-B. QA-D доводит общие стили/interaction и native visual audit.
 
 ## История результата
+
+2026-10-11, последующее review HEAD `3649afaee48be28d27f81ac41aff86087d594636`:
+новое B2 уточняет индивидуальные долги после T1, связь с 011/029 и закрытие
+по ACCEPTED всех обязательных работ. QA-A-REV-01/02 исправлены в transition/
+Grade/resolver/rules/preferences примерах; legacy output и прежний baseline
+не изменяются. Mandatory/closure и ended-membership/archive write policy ещё
+требуют technical review. Это docs-only revision PR #2, implementation NOT RUN.
 
 2026-10-11: B1–B6 согласованы, B4 уточнён как integer default с fractional
 toggle; разрешён подтверждённый deadline после семестра (B2). Технический

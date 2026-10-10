@@ -20,6 +20,13 @@ B7–B9 и полный review queue остаются своим следующ�
 каждого этапа сохранены. Product agreement не означает implementation/manual PASS;
 application/migration/Windows/manual tests NOT RUN. История roadmap ниже сохранена.
 
+Дополнение review 2026-10-11 после исходного HEAD PR #2:
+[B2](QA_A_CONTRACTS.md#b2-student-debt) фиксирует required-work/individual closure
+границу и долг прошлого семестра, не растягивая calendar группы. Полный доступ
+и регистрация/сводка/queue в active T2 относятся к QA-B (027/029/017);
+ended-enrollment/explicit archive policy требует technical review. Score PR-09/10
+учитывают QA-A-REV-01/02 из contracts; никакого нового implementation PR сейчас.
+
 ## QA — актуальное дополнение 2026-10-10
 
 Архитектурный аудит 30 ST-QA завершён; требования и технические evidence —

@@ -18,6 +18,14 @@ PR-02 с backup support и preservation tests, после отдельного �
 локальные проверки и ordinary required quality/safety **итогового HEAD** публикуются
 в PR/отчёте, отдельно от предыдущих CI результатов ниже. Merge не выполнен.
 
+Последующее documentation review 2026-10-11 на базе HEAD
+`3649afaee48be28d27f81ac41aff86087d594636`: [B2](QA_A_CONTRACTS.md#b2-student-debt)
+добавляет индивидуальный долг T1 при active T2 и закрытие по ACCEPTED всех
+обязательных работ. Исправлены QA-A-REV-01/02 (Review transitions и unchanged
+rule bounds snapshot при OFF). Mandatory/closure модель и запись при ended
+membership/explicit archive не реализованы; полный UI долгов — QA-B. Это новое
+уточнение после первоначальных contracts, не ранее выполненная функция.
+
 ## Актуальное дополнение — 2026-10-10
 
 База архитектурного аудита: public `main`,

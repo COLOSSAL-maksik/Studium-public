@@ -51,6 +51,23 @@ PROPOSED, не утверждено владельцем; следующий н�
 предложен как directions foundation PR-02 после review и отдельного задания.
 30 исходных ST-QA/приоритеты/этапы и baseline ADR-048/аудита сохранены.
 
+**Последующее уточнение 2026-10-11 после review HEAD
+`3649afaee48be28d27f81ac41aff86087d594636`:** [B2 — индивидуальный долг](management/QA_A_CONTRACTS.md#b2-student-debt)
+связывает ST-QA-011/029. H1 из T1 остаётся долгом в T2 до explicit ACCEPTED;
+модуль студента закрывается по ACCEPTED всех обязательных работ, отдельно от
+calendar группы. Поздняя сдача не переносит срок/UUID/offering автоматически.
+Обязательность/individual closure schema и ended-enrollment/archive write policy
+ещё PROPOSED; полный UI сводки/queue — QA-B. Это дополнение ранее не утверждалось
+как часть исходного B2 и не закрывает implementation/manual acceptance.
+
+QA-A-REV-01: новый REVISION_REQUIRED→SCORED запрещён без записи; завершение
+доработки требует явного ACCEPTED, re-review не меняет attempt_no. Допустимый
+SCORED сам не создаёт зачёт, legacy fold не изменяется. QA-A-REV-02: mode
+ограничивает новый/изменённый teacher input; unchanged сохранённые rule bounds
+можно копировать в Review snapshot при OFF с новой целой оценкой. Создание/
+редактирование fractional bounds и новая fractional оценка требуют ON;
+legacy incomplete rule не дополняется выдуманным min. Примеры/таблицы в contracts.
+
 <a id="adr-048--qa-register-и-семантика-min"></a>
 
 ## ADR-048 — QA Register и семантика min

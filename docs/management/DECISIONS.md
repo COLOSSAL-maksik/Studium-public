@@ -26,6 +26,14 @@ compatibility resolver **PROPOSED до review**. Implementation/manual acceptanc
 не утверждает 10-PR plan и не закрывает 30 исходных замечаний. B7–B9 остаются QA-B/C;
 общие остатки OPEN-002/009/011 сохраняются. Ниже прежние решения и их история.
 
+Последующее уточнение review 2026-10-11 после HEAD
+`3649afaee48be28d27f81ac41aff86087d594636`: [индивидуальный долг B2](QA_A_CONTRACTS.md#b2-student-debt)
+сохраняется в T2 на исходной работе T1; только ACCEPTED всех обязательных работ
+закрывает модуль студента, calendar группы прежний. Связь 011/029, полный UI QA-B.
+QA-A-REV-01/02 уточняют запрет новой SCORED из REVISION_REQUIRED и допустимость
+unchanged rule bounds snapshot при OFF; детали — contracts/ADR-049. Legacy fold/
+REAL не меняются; mandatory binding/closure/archive policy требуют review.
+
 ## QA — принятые границы 2026-10-10
 
 - [30 требований](QA_REGISTER.md) сохраняют ID/приоритеты и порядок QA-A/B/C/D.

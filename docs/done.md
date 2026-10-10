@@ -13,6 +13,12 @@ integer default/fractional toggle OFF, confirmed deadline после семес�
 tests NOT RUN; код, SQL/Alembic, зависимости, CI и installer не изменены.
 Actual docs/safety/ordinary required checks нового HEAD — в PR/итоговом отчёте.
 
+Последующее review 2026-10-11 после HEAD `3649afaee48be28d27f81ac41aff86087d594636`:
+документированы [индивидуальные долги B2](management/QA_A_CONTRACTS.md#b2-student-debt),
+исправлены QA-A-REV-01 (новая SCORED из REVISION_REQUIRED reject) и QA-A-REV-02
+(OFF integer score с unchanged saved fractional bounds snapshot). Реализация
+mandatory/closure/debt UI не выполнена; исходные замечания не объявлены закрытыми.
+
 ## Актуальное дополнение — 2026-10-10
 
 Выполнен документационный [аудит 30 ST-QA](management/QA_AUDIT.md),

@@ -19,6 +19,13 @@
 product agreement для них не требуется. Technical review и отдельное разрешение
 реализации не заменяются этим documentation PR.
 
+После review 2026-10-11: [B2 individual debt/closure](management/QA_A_CONTRACTS.md#b2-student-debt)
+требует будущего required-work binding и явных preconditions late-debt записи
+при ended enrollment/explicit archive; не угадывать legacy mandatory/closure.
+QA-A-REV-01/02 включить в future score validation/snapshot сценарии; полный доступ,
+регистрация/summary/queue долгов исходного T1 при active T2 — QA-B. Directions
+foundation остаётся следующим предложенным scope, полный план не утверждён.
+
 ## Актуальное дополнение — 2026-10-10
 
 - Review [реестра 30 требований](management/QA_REGISTER.md) и

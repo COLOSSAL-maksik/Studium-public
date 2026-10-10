@@ -9,6 +9,11 @@
 сохраняемый переключатель дробного ввода с двумя знаками. Дополнение B2:
 владелец разрешил срок ДЗ/РК после окончания семестра при предупреждении
 и явном подтверждении. Это не разрешает выход модулей за семестр.
+**Последующее уточнение 2026-10-11, при review HEAD
+`3649afaee48be28d27f81ac41aff86087d594636`:** долг конкретного студента
+сохраняется в следующих семестрах до явного ACCEPTED; индивидуальное закрытие
+модуля отделено от календаря группы. Это новое уточнение B2/ST-QA-011 и
+будущей сводки ST-QA-029, не ранее известное решение и не закрытие этих ID.
 
 Модель таблиц, алгоритмы и диапазон хранения ниже — **PROPOSED, до технического
 review**, а не реализованная схема. Этот документ выполняет документационный
@@ -27,10 +32,11 @@ implementation, application/migration tests и Windows/manual acceptance **NOT R
 | Назначение | [ProgramService](../../src/studium/application/program_services.py) `set_offering_program` проверяет course/term и блокирует переключение при фактах; [v7 backfill](../../src/studium/infrastructure/database/migrations/versions/v0007.py) создавал программу на offering | Новое назначение версии/плана требует нового контракта; старые программы не сливать по названию |
 | Ограничения плана | [v7 SQL](../../src/studium/infrastructure/database/migrations/versions/v0007.sql) `program_works_program_context_insert/update`: due week внутри модуля, недели внутри программы; guards модулей предотвращают пересечения/выход за duration | B2 с module 1=1–6 и due week=7 сейчас отвергается. Новый offering plan должен разрешать подтверждённое исключение, сохранив legacy guards |
 | Выдача | `issue_program_work` берёт `issued_at` из плановой `issue_date`, иначе clock; `_program_instant(..., end=True)` вычисляет следующий день минус 1 microsecond | Legacy issued_at не всегда actual issuance. Сохранить существующий точный timestamp, новую date-only границу хранить с другим видом сравнения |
-| Deadline | [Analytics snapshot](../../src/studium/application/analytics.py) `_work_facts`: exact `due_at` имеет приоритет над planned week, exact `<=` вовремя и `>` поздно; [journal](../../src/studium/application/journal.py) читает planned due week | Новый typed deadline нужен и аналитике, и журналу; не двигать старое exact значение ради унификации |
+| Deadline | [Analytics snapshot](../../src/studium/application/analytics.py) `_Snapshot.work_facts`: exact `due_at` имеет приоритет над planned week, exact `<=` вовремя и `>` поздно; [journal](../../src/studium/application/journal.py) читает planned due week | Новый typed deadline нужен и аналитике, и журналу; не двигать старое exact значение ради унификации |
 | Attempt/Grade | [entities](../../src/studium/domain/entities/__init__.py), [progress](../../src/studium/domain/services/progress.py), [service](../../src/studium/application/services.py) `add_attempt/_grade`, [v1 SQL](../../src/studium/infrastructure/database/migrations/versions/v0001.sql): immutable facts, monotonic number, Grade UNIQUE attempt | Запись numeric Grade к PRESENTED со score=None сейчас отвергается: Grade должна равняться score/max Attempt. Нельзя менять эту Attempt или создавать фиктивную сдачу для review |
 | Баллы | [ORM core](../../src/studium/infrastructure/database/models/__init__.py), [item results](../../src/studium/infrastructure/database/models/analytics_facts.py): REAL score/max, min отсутствует | Legacy REAL и отсутствие min требуют compatibility, не массового Decimal backfill с округлением |
 | Критерии | [ADR-030](../decisions.md): Assessment max/content/Items/semantic links заблокированы после любой Attempt, включая архивную | Новые ScoringRuleVersion добавляются отдельно; снятие старого lock не реализует B6 безопасно |
+| Индивидуальный долг | В `ProgramModule/ProgramWork` нет обязательности работ или student module closure; analytics `completed` проверяет явный status ACCEPTED. `add_attempt/_context` не проверяют конец календарного периода, но требуют active enrollment и не deleted контекст; SQL `attempts_active_work` требует active Work/Assessment | Future required-work binding и debt/module result нужны отдельно; окончание семестра не является archive. Завершённое enrollment сейчас блокирует запись и требует отдельного late-debt use case, а не выдуманной ACTIVE записи |
 | Preferences | [JsonPreferences](../../src/studium/infrastructure/user_data.py): JSON вне учебной БД, read/merge/temp replace, theme/recent/table widths | Новый bool добавлять без замены других ключей и без изменения учебных фактов |
 | Backup | [adapter](../../src/studium/infrastructure/backup.py) `_supported_schema_hash/_manifest`, [ZIP contract](../iteration5b-backup-recovery.md): exact current revision/schema hash, все FileAsset, preferences исключены | Новая schema обязана обновить поддержку backup; нельзя объявить старый archive уже поддержанным или подменять revision |
 
@@ -112,6 +118,82 @@ program duration не исправляется сокращением; пока�
 AcademicWeekNumber. Отмена/архивирование работы с фактами сохраняет их и связи;
 молчаливое удаление запрещено.
 
+<a id="b2-student-debt"></a>
+
+### B2: индивидуальный долг и закрытие модуля после семестра
+
+**Продуктовое уточнение 2026-10-11 после первоначального HEAD PR #2.** Работа
+остаётся долгом конкретного студента в исходном offering/модуле/семестре.
+Календарное окончание T1, начало T2 и выбор T2 активным периодом не закрывают
+долг, не запрещают позднюю сдачу и не переносят H1 в новый offering.
+UUID Assessment/StudentWork, module binding, Attempt/Review и их история прежние.
+Новая реальная сдача получает следующий attempt_no из всей истории, включая
+архивные записи; проверка/перепроверка сохранённой сдачи меняет лишь review_seq.
+
+Для этого контракта «сдал работу» означает явный **ACCEPTED** преподавателем.
+PRESENTED означает зарегистрированную сдачу, SCORED — числовую проверку без
+автоматического зачёта; сами по себе они долг не закрывают. NEEDS_REVISION
+оставляет долг открытым и в новом Review-контракте не начисляет текущий балл.
+Если прежний ACCEPTED уже существует, допустимый SCORED не создаёт новый зачёт:
+status может сохранить прежний ACCEPTED по resolver, а долг уже закрыт им.
+
+Индивидуальный модуль закрыт, когда в известном назначенном наборе обязательных
+работ **все** работы имеют актуальный результат ACCEPTED. Непринятая обязательная
+работа сохраняет открытый долг. Поздность сдачи и долг различны: поздняя работа
+может быть зачтена, а PRESENTED вовремя может ещё оставаться непринятой.
+Состояние модуля студента не удлиняет PlanModule, не переносит Lesson группы и
+не зависит от переключения активного семестра.
+
+Предлагаемая будущая граница модели: versioned required-work set с concrete
+plan/module/work FK и binding к студенту/исходному назначению; read DTO
+`StudentModuleResult` отдельно от календарного PlanModule. Обязательность
+сохраняется явно с историей набора, не выводится из score/min, типа работы или
+наличия Attempt. Отсутствующий StudentWork не создаётся чтением DTO и не считается
+зачётом. Legacy не хранит required flag/closure: набор неизвестен, до явного
+сопоставления/подтверждения нельзя миграцией объявить все работы обязательными
+или модуль закрытым; неизвестный/ненастроенный набор отображается как unknown.
+Точная схема binding/истории и derived closure — PROPOSED до technical review,
+не существующая реализация и не новый UI этого PR.
+
+| Синтетический пример | Срок и факт сдачи | Индивидуальный долг / модуль | Сохранённый контекст |
+|---|---|---|---|
+| T1 окончен 31.01.2027; M1 требует H1; у A нет зачёта, у B все обязательные работы ACCEPTED | Действующий date-only срок H1: 20.01.2027, +03; наступил T2 | A: H1 долг, M1 открыт; B: M1 закрыт. Календарь группы T2 идёт как запланировано | H1/M1/offering T1, те же UUID |
+| A предъявил H1 10.02.2027 в T2 | Новый PRESENTED позднее excluded boundary 21.01 00:00+03; срок не изменён | Долг открыт, M1 открыт; регистрация не означает ACCEPTED | Новый attempt_no у прежнего StudentWork; никаких копий H1 в T2 |
+| Review1: NEEDS_REVISION | Дата сдачи/срок те же; review не новая сдача | Долг открыт, M1 открыт, current score=NULL | Review1 неизменяемая, attempt_no прежний |
+| После Review1 попытка SCORED(24) | Проверка того же submission в REVISION_REQUIRED | Reject без новой Review/Grade; долг и current score=NULL прежние | Нет нового attempt_no или consumed review_seq |
+| Явная Review2: ACCEPTED(24), rule 18–30 | Срок не переносили: сдача остаётся поздней | Долг H1 закрыт; M1 у A закрыт, если других обязательных долгов нет | ACCEPTED/history остаются H1/M1/T1; только новый review_seq |
+| M1 требует H1 и H2, H1 ACCEPTED, H2 не ACCEPTED | Поздность H1 не подменяет результат H2 | H1 закрыт, H2 долг; M1 открыт до явного ACCEPTED H2 | Оба исходных work/module bindings сохраняются |
+| Отдельный перенос H1 на 15.02.2027 после preview/confirmation | Новая PlanRevision меняет только current deadline; сдача 10.02 может стать вовремя относительно нового срока | Перенос сам по себе не зачёт: долг определяется ACCEPTED, не новой датой | Старый deadline в history; исходные submitted_at/reviewed_at не переписаны |
+
+Каждая новая сдача/пересдача сравнивается с сохранённым **действующим сроком**
+своей H1 по B3; факт сдачи/начала T2 не переносит его автоматически. Legacy
+`_Snapshot.work_facts` использует первое предъявление для своей timeliness
+метрики: его прежний output сохраняется. Future per-submission timeliness нужен
+отдельно, чтобы поздняя пересдача не становилась «вовремя» лишь из-за ранней S1.
+Deadline, late submission, debt и individual closure — разные поля/DTO.
+
+Для QA-B требуется доступ к долгам прошлых offering/периодов из нового активного
+семестра: scope по студенту и исходным work/module bindings, а не только по
+active_term/current roster. Полный UI сводки/очереди/регистрации относится к
+ST-QA-029/027/017 в QA-B. B7–B9 целиком этим уточнением не решаются.
+
+Явное архивирование рассматривается отдельно: `_require(..., historical=False)`
+скрывает deleted контекст, `attempts_active_work` отвергает запись в deleted
+StudentWork/Assessment, `add_attempt` требует active Student/enrollment. Сам
+`AcademicTerm.archived` — отдельный bool, не равен ended date или deleted_at;
+не объявлять его автоматическим запретом, которого эти guards не проверяют.
+Чтение истории с historical=True не даёт права записи. Архивирование не
+превращает незачтённую работу в ACCEPTED и не стирает долг/историю.
+
+Предлагаемый late-debt use case проверяет исходное назначение, student/offering
+scope и evidence прежнего enrollment; поддержка завершённого membership должна
+быть явно спроектирована, без fake re-enrollment, изменения ended_at/status или
+обхода archive guards. Для explicitly deleted контекста нужен отдельный явный
+путь восстановления/разрешения записи с сохранением фактов; его точные
+preconditions ещё требуют technical review. Текущий `add_attempt` этот путь
+не реализует. Это зависимый технический вопрос QA-B регистрации долгов, а не
+повторное согласование разрешённой сдачи в следующем семестре.
+
 ### Deadline kind и приоритет
 
 Предложение: `DeadlineSpec` = `EXACT_INCLUSIVE(instant)` /
@@ -188,14 +270,27 @@ Qt только показывает правила. Хранение всегд
 | Смена ON → OFF при unsaved 24,75 | Текст остаётся; явная ошибка «Дробный ввод выключен», save блокируется до включения или ручного исправления | Никакого truncate/reset/автосохранения |
 | Сохранённое exact 24,75, режим OFF | Просмотр и сохранение другого изменяемого поля формы работы без изменения numeric field допустимы; immutable Review/Grade не редактируются | История показывает `24,75`; новое/изменённое fractional значение отклоняется |
 | Старый диапазон 18,25–18,75, режим OFF | `ceil(min)=19 > floor(max)=18`: допустимых целых нет | Объяснение и действие включить дробный ввод; не менять границы |
-| Диапазон 18,25–30, режим OFF | Новые целые 19–30 допустимы, 18 нет | Исходные fractional bounds видны, не округляются |
+| Сохранённая exact rule 18,25–30, режим OFF | Новые целые 19–30 допустимы, 18 нет; Review с новой оценкой 24 разрешена | Выбор rule и копирование неизменённых min/max 18,25–30 в Review snapshot допустимы при OFF; точные bounds сохраняются |
+| Создать/изменить min=18,25, режим OFF | Reject нового/изменённого fractional bound; требуется ON | Существующая rule не переписывается; unrelated fields её границы не меняют |
+| Новая Review с score=24,75, режим OFF | Reject, даже если прежняя Review имела ровно 24,75 | История прежнего score видна; snapshot copying не разрешает новый fractional score |
 | Mode toggle при сохранённой работе | Только preferences write | Scores/min/max/rules/snapshots/statistics не пересчитываются |
 | Min=18, max=30 | 18 и 30 включительно; 17,99/30,01 reject в ON | Pending и revision без score; ноль не подставляется |
 | Min=0, max=30 | 0 — допустимый реальный балл | Отличим от NULL/нет оценки |
 | Max=int64 limit, следующий cent | Предел допустим в ON; +0,01 reject до SQL write | Нет wraparound или silent float cast |
 
-Сохраняемый неизменённый fractional field не является новым вводом, но копирование
-его в новую rule/review является новым вводом и требует ON. Settings не меняют
+**QA-A-REV-02:** mode ограничивает только новые/изменяемые числа, вводимые
+преподавателем. Выбор уже сохранённой rule и служебное копирование её
+**неизменённых** min/max в immutable Review/result snapshot не являются
+новым вводом границ: разрешены при OFF и ON, точно и без округления. Новая оценка
+в Review всё равно проверяется по текущему mode и inclusive выбранным bounds;
+при OFF score=24 под exact rule 18,25–30 допустим, score=24,75 — нет, даже если
+он совпадает с прежним результатом. Создание самих fractional bounds в новой
+rule или изменение прежних границ требует ON; сохранение unrelated fields
+без изменения границ оставляет их прежними.
+Нельзя прогонять неизменённый rule snapshot через валидатор нового ввода границ
+или включать настройку автоматически ради snapshot.
+Grade numeric score/max согласованы с этим result snapshot; min проверяется
+по выбранной rule, не вводится заново для Grade. Settings не меняют
 TRADITIONAL label и PASS_FAIL. Decimal parsing принимает один comma или dot;
 mixed separators/лишняя точность возвращают validation error. Канонический
 новый display убирает только незначащие нули; historical compatibility display
@@ -221,7 +316,7 @@ Legacy-only stats остаются на прежней семантике и н�
 Для mixed exact/legacy adapter не переводит exact в float: сравнения legacy
 через точный binary rational (`as_integer_ratio`), суммирование с пометкой
 происхождения. Такой результат не называется восстановленной decimal accuracy.
-При создании новой rule преподаватель явно вводит min/max по текущему режиму;
+Новый/изменённый преподавателем min/max при создании rule вводится по текущему режиму;
 legacy max не переписывается и не превращается автоматически в exact bound.
 Legacy min отсутствует: хранить unknown, не выдавать backfill 0 за согласованный
 индивидуальный min. Пока old rule incomplete, новая numeric review требует
@@ -252,17 +347,38 @@ status/score. Review из другой работы/студента и review �
 | Реальная новая сдача PRESENTED | StudentWork сохранён, context/enrollment проверены | SUBMITTED, score=NULL | Следующий attempt_no = max всей legacy/new Attempt history, включая архив, +1 |
 | Review NEEDS_REVISION | Saved submission, score=NULL | REVISION_REQUIRED, score=NULL | Только новый review_seq |
 | Review ACCEPTED | Saved submission; если numeric — inclusive выбранные min/max | ACCEPTED, score выбранной проверки или NULL | Только review_seq |
-| Review SCORED | Saved submission; numeric обязателен | Score заменяется; status сохраняется (при NOT_STARTED → SUBMITTED), не означает зачёт | Только review_seq |
+| Review SCORED | Saved submission; numeric обязателен; состояние этой сдачи перед review по resolver только SUBMITTED или ACCEPTED; при REVISION_REQUIRED reject | Score заменяется; допустимый status сохраняется, нового ACCEPTED не создаётся | Только review_seq; reject не пишет Review/Grade/счётчики |
 | Review REJECTED | Для нового Homework запрещено; для других типов status-neutral по legacy contract | Status/score не меняются; отрицательная review остаётся в истории | Только review_seq |
 | Review COMMENT_ONLY | Saved submission, без нового score | Status/score не меняются | Только review_seq |
 | Повторная review той же сдачи | Тот же submission FK; новые правила показаны | Fold следующей review; прежняя immutable | attempt_no неизменен |
 | Новая пересдача студента | Новый подтверждённый факт сдачи | Новая PRESENTED сбрасывает current score в NULL | Новый attempt_no; Grade не копируется |
 
-PRESENTED относится к submission, не к review. Новые pending/revision состояния
-без начисления; legacy PRESENTED/NEEDS_REVISION с сохранённым score не очищаются.
+PRESENTED относится к submission, не к review. Новая pending сдача без завершённой
+содержательной проверки имеет score=NULL. SUBMITTED после допустимого SCORED
+означает численно проверенную, но ещё не принятую работу: это не pending review
+и не ACCEPTED, долг остаётся открытым. В новом REVISION_REQUIRED current score
+всегда NULL; legacy PRESENTED/NEEDS_REVISION с сохранённым score не очищаются.
 Исходные [ADR-009/010](../decisions.md) и StudentWorkProgress для legacy остаются
 прежними: PRESENTED/NEEDS_REVISION/ACCEPTED заменяют status и score, SCORED меняет
 score без автоматического ACCEPTED, REJECTED/COMMENT_ONLY нейтральны.
+
+**QA-A-REV-01:** новая Review SCORED из REVISION_REQUIRED запрещена, даже при
+score в диапазоне. Для завершения доработки преподаватель явно записывает
+ACCEPTED с подходящим Grade/score и выбранной rule. Также SCORED недопустим для
+NOT_STARTED без saved submission. Preconditions оцениваются на той же сдаче
+перед новой review (по её anchor и предыдущим review_seq), а не по current
+status другой, более новой сдачи. При конфликте ожидаемой review revision
+проверяется fresh state, не создаётся обходной Attempt и нет partial commit.
+
+| Документированный future scenario | Результат нового Review-контракта | История/нумерация |
+|---|---|---|
+| S1 → NEEDS_REVISION → попытка SCORED(24), rule 18–30 | Reject; REVISION_REQUIRED, current score=NULL и долг прежние | Нет новой Review/Grade/Attempt, review_seq не расходуется |
+| S1 → NEEDS_REVISION → явный ACCEPTED(24), rule 18–30 | Разрешён при остальных guards; ACCEPTED, score=24, долг H1 закрыт | Новая immutable review, attempt_no неизменен; module закрывается только при всех обязательных ACCEPTED |
+| S1 → SCORED(24) в SUBMITTED | Разрешён, current score=24, status=SUBMITTED; нового зачёта нет | Только review_seq; долг остаётся |
+| S1 NEEDS_REVISION, затем новый S2 PRESENTED, попытка SCORED(24) для S1 | Reject по state S1, несмотря на SUBMITTED у S2 | Для S2 допустимый SCORED отдельно; никакой подмены target anchor |
+| Legacy-only Attempts NEEDS_REVISION → SCORED(24) | Прежний fold REVISION_REQUIRED/24 сохранён в tagged compatibility | Никакой миграционной очистки/перенумерации или новой записи |
+
+Сценарии — спецификация будущих тестов, не новые исполняемые tests этого PR.
 
 Предлагаемый unified resolver группирует события по существующему attempt_no:
 legacy Attempt применяется как прежде; к явно bound submission применяются
@@ -270,7 +386,12 @@ reviews по review_seq. Группы fold в порядке attempt_no, а не
 occurred_at. Новая проверка старой сдачи после появления новой сдачи меняет историю
 старой группы, но не вытесняет более новую PRESENTED. Backdated timestamp не
 меняет progression. Legacy-only output должен побитно/семантически совпадать
-с прежним status/score/max source/raw attempt_count.
+с прежним status/score/max source/raw attempt_count. Для новых Review resolver
+использует таблицу с запретом REVISION_REQUIRED→SCORED; legacy события применяются
+с прежним fold, не проходят новые ограничения ретроактивно. Запрет проверяется
+атомарно **до append** Review/Grade, а не маскируется преобразованием при чтении.
+Required-work/debt DTO проверяет explicit ACCEPTED текущего результата; наличие
+score или Grade без принятия не закрывает долг/модуль. Детали — [B2](#b2-student-debt).
 
 Новый `submission_count` считает только evidence-backed новые/подтверждённые
 сдачи; `review_count` отдельно. Legacy raw attempt_count не переименовывать
@@ -280,7 +401,7 @@ occurred_at. Новая проверка старой сдачи после по
 
 | Kind | Допустимые поля | Binding / результат |
 |---|---|---|
-| NUMERIC | score и max из snapshot, min<=score<=max; passed/label NULL; новые значения по B4 | Grade.score/max точно равны Review.score/max; SCORED требует numeric; ACCEPTED может иметь numeric |
+| NUMERIC | Новый score по mode B4 и min<=score<=max; max и min взяты точно из выбранной сохранённой rule, неизменённые bounds snapshot разрешены и при OFF; passed/label NULL | Grade.score/max точно равны Review.score/max; SCORED требует numeric и допустимый prior state; NEEDS_REVISION не может иметь numeric score/Grade; ACCEPTED может иметь numeric |
 | PASS_FAIL | passed bool; score/max/label NULL | true только ACCEPTED; false только NEEDS_REVISION/REJECTED, как existing `_grade`/SQL; Homework REJECTED запрещён |
 | TRADITIONAL | Непустая исходная label; numeric/passed NULL | Не вводить новую шкалу/преобразование в баллы; Grade не задаёт зачёт автоматически |
 | Нет Grade | Отдельный допустимый факт, без фиктивного нуля | Current result берётся из Review/legacy Attempt, не из наличия Grade |
@@ -325,6 +446,8 @@ conflict, не скрытый выбор. Точная дата сама не д
 | Pending сдача S1 | S1 записана под R1, review отсутствует | Первая review явно выбирает R1 (18 допустимо) или R2 (18 reject); показать выбор до save | S1/no/time не меняются; snapshot выбранной rule в Review |
 | Пересдача S2 | S1 checked ACCEPTED 24/30 под R1 | Новая реальная S2 после смены имеет R2; новая проверка показывает R2, 32/40 допустимо | S1 Review остаётся 24/30; S2 получает следующий номер только за сдачу |
 | Повторная проверка S1 | S1 Review1 ACCEPTED 24/30 под R1 | После смены явный выбор R1/R2; Review2 ACCEPTED 32/40 под R2 | Review1 immutable; no новых Attempt; если S2 уже есть, Review2 S1 не вытесняет результат S2 |
+| Доработка S1 после смены rule | S1 Review1 NEEDS_REVISION, score=NULL под R1 | Выбор R1/R2 не разрешает SCORED(24) из REVISION_REQUIRED; только явный ACCEPTED(24) по выбранной полной rule и остальным guards | Reject без записи или новая immutable ACCEPTED review; attempt_no прежний, debt только по ACCEPTED |
+| Сохранённая R3 18,25–30, mode OFF | R3 уже exact, S1 ещё SUBMITTED | Новая целая оценка 24 под явно выбранной R3 допустима, min/max копируются без нового fractional input; новая 24,75 reject | Exact snapshot 18,25–30 сохранён независимо от toggle; прежние Review/Grade не меняются |
 
 Новая сдача после изменения использует current R2. Если правила ещё раз меняются
 пока она pending, применяется тот же явный выбор между её binding и новой current.
@@ -361,6 +484,12 @@ New maps имеют concrete FK, UNIQUE source scope, deterministic UUIDv5 из 
 | `preferences.json` (JsonPreferences) → fractional bool default OFF | active_term/theme/recent/sidebar/table widths и unknown keys | Missing key читается false; schema upgrade не пишет JSON; явный toggle atomic merge | Corrupt JSON имеет существующий fallback, не восстанавливать «предпочтение» по fractional history | Reopen default/explicit bool, unrelated keys equality, failed replace no loss |
 
 ### Fresh, populated, повторное открытие и откат
+
+Для дополнительного B2 migration не вычисляет mandatory/closed из даты окончания
+term, наличия Attempt/score или количества ProgramWork: источников обязательности
+и индивидуального закрытия в v9 нет. Future required-work binding создаётся явно;
+legacy unknown сохраняется. Поздние события T2 относятся к source work/offering T1,
+без новой копии Assessment, изменения enrollment history или календаря группы.
 
 1. Fresh: upgrade v1→v9→будущая revision, пустые новые таблицы без fake учебных
    фактов; preference missing=false, первый план только по действию пользователя.
@@ -452,6 +581,26 @@ DTO/journal/student/analytics/reporting views. Полный review queue ост�
 две группы и два семестра с одной V1, content freeze/V2, decimal parse/overflow/
 lossless REAL, NULL vs 0, empty integer interval, pending/resubmission/re-review
 под R1/R2. Никаких новых tests в текущем documentation diff.
+Дополнительно специфицированы future scenarios QA-A-REV-01/02: reject
+REVISION_REQUIRED→SCORED без записи, явный ACCEPTED(24) с прежним attempt_no,
+legacy fold unchanged, OFF integer score с unchanged fractional rule snapshot,
+OFF reject new fractional score/bounds и no-integer interval. B2: долг H1 из T1
+при active T2, два студента с разным closure, несколько обязательных работ,
+late submission без deadline change, отдельный confirmed reschedule, ended
+enrollment и explicitly archived context как разные guards. Полный UI/очередь
+и registration долгов — QA-B; mandatory/closure schema до review PROPOSED.
+
+## 9. История документационного review
+
+2026-10-11, после review `3649afaee48be28d27f81ac41aff86087d594636`:
+добавлено новое продуктовое уточнение B2 об индивидуальном долге T1 в T2 и
+explicit ACCEPTED всех обязательных работ для закрытия модуля. Первоначальное
+согласование срока после семестра сохранено; индивидуальный debt не объявляется
+известным до этого дополнения. QA-A-REV-01 устраняет разрешённое ранее таблицей
+новых Review сочетание REVISION_REQUIRED/числовой score после SCORED;
+QA-A-REV-02 разделяет новый numeric input и копирование unchanged rule bounds.
+Legacy history/REAL/baseline не переписываются. Это исправления контрактов
+документационного PR #2, не реализация и не новые ST-QA ID/закрытые acceptance.
 
 Для текущего PR: сверка B1–B6/Grade examples/source fields, 30 ID/приоритетов/
 порядка матриц с baseline, относительных ссылок, Markdown-only diff,
