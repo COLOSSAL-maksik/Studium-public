@@ -22,10 +22,15 @@ exact текущими SHA-256. Identity approvals — только подтве
 reviewed-history.json содержит пустые legacy contact/raw-log maps; разрешений
 на раскрытие личных контактов нет. Новый artifact/identity требует review.
 Нельзя добавлять исключение, чтобы скрыть leak или пройти CI.
+Владелец подтвердил права на публичное размещение всех 310 перечисленных
+материалов, созданных для проекта с помощью ChatGPT. Это подтверждение прав
+дополняет exact-hash privacy review; лицензии зависимостей сохраняются.
 
 ## Tests и распространение
 
 Только synthetic data и temporary LOCALAPPDATA. Логи не содержат значения
 секретов, контакты или тела реальных сообщений. Installer и bundles сохраняют
-границу данных; native Windows acceptance выполняется отдельно. Source candidate
-пока частный; GitHub settings/CI/публикация не приняты этим документом.
+границу данных; native Windows acceptance выполняется отдельно.
+COLOSSAL-maksik/Studium-public предназначен для публичных исходников:
+All rights reserved, без открытой лицензии. GitHub settings/CI и Windows release
+не считаются проверенными результатом локальной подготовки source bundle.

@@ -1,5 +1,10 @@
 # Studium: Windows beta distribution
 
+Исходники: [COLOSSAL-maksik/Studium-public](https://github.com/COLOSSAL-maksik/Studium-public).
+Source bundle и Linux wheel/sdist checks не являются готовым Windows installer:
+native x64 build, lifecycle и manual acceptance выполняются отдельно.
+Исходный код — All rights reserved; third-party licenses сохраняются при сборке.
+
 > Документ относится к Studium как независимому локальному приложению.
 > Bender — отдельный проект; будущая интеграция использует локальный JSON-RPC
 > 2.0 over stdio. Прямые импорты Bender, API/client, облачный сервер и новые

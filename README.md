@@ -5,9 +5,18 @@
 ручные вопросы/ответы, фактическая аналитика, PDF/CSV отчёты и ZIP backup/recovery.
 SQLite/Alembic и пользовательские файлы находятся вне репозитория.
 
-Это частный source candidate независимого Studium. Лицензия, публичная
-публикация, remote имя и окончательная Windows acceptance ещё не определены.
-Наличие кода не означает выпуск или принятие всех пользовательских сценариев.
+Исходный репозиторий независимого Studium предназначен для публичного размещения
+в [COLOSSAL-maksik/Studium-public](https://github.com/COLOSSAL-maksik/Studium-public).
+Наличие кода не означает готовый Windows-релиз или принятие всех пользовательских
+сценариев: native Windows/manual acceptance выполняется отдельно.
+
+## Права и лицензирование
+
+Исходный код доступен для просмотра. Открытая лицензия не предоставлена:
+**All rights reserved**. Это не меняет лицензии сторонних компонентов,
+включая PySide6/Qt, SQLAlchemy и Alembic; их условия сохраняются.
+Владелец подтвердил право на публичное размещение всех 310 проектных материалов,
+созданных для проекта с помощью ChatGPT. Материалы сохранены без изменений.
 
 ## Архитектура и документы
 
@@ -16,7 +25,7 @@ SQLite/Alembic и пользовательские файлы находятся
 [состояние и backlog](docs/management/README.md), [навигация](docs/ui-navigation.md).
 Приложение сохраняет domain/application/infrastructure/presentation,
 исторические миграции v0001–v0009 и пакетную offline справку.
-Схемы в assets и исходное ТЗ сохранены; их права нужно проверить до публикации.
+Схемы в assets, исходное ТЗ и synthetic screenshots входят в сохранённые материалы.
 
 Bender разрабатывается отдельно Jules. У Studium нет runtime dependency на
 Bender. Будущий клиент использует JSON-RPC 2.0 over stdio; API/client ещё не
@@ -44,6 +53,7 @@ synthetic профиль; production DB и storage не открывать.
 ## Граница приёмки
 
 GitHub Actions не запускались. Native Windows/manual acceptance выполняется
-отдельно. Старые Git-SHA assertions migration tests требуют независимых frozen
-fixtures до готовности новой CI; схема/миграции этим переносом не меняются.
+отдельно. Migration immutability tests используют проверенные frozen SHA-256
+fixtures и raw bytes; все 18 исходных migration payloads сохранены. Тестам не
+нужны commits исходного репозитория; схема/миграции этим переносом не меняются.
 Оставшиеся проверки и публикация перечислены в docs/todo.md.

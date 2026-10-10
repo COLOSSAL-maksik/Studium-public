@@ -16,8 +16,11 @@ tests на Linux имеют явный platform skip; другие skips fail CI
 module получает отдельный процесс, QApplication и временный профиль.
 Выносить bytecode/cache/temp/build outputs за source tree либо отключать caches.
 
-Три historical migration immutability assertions пока читают старые Git SHA.
-В чистой истории этих objects нет; необходим reviewed mapping к frozen fixtures,
-без добавления старых commits. Остальные preservation/backup/recovery сценарии
-проверяют реальные synthetic databases. Недоступные проверки не объявлять PASS.
+Три historical migration immutability assertions используют frozen fixture
+`tests/fixtures/migration_hashes.json`: 10 проверенных SHA-256 сравниваются
+с `SHA-256(read_bytes())`, без CRLF/LF или Unicode-нормализации.
+Fixtures не генерируются во время тестов. Исходная Git history тестам не нужна;
+все 18 migration payloads сохраняются побайтово. Остальные preservation/
+backup/recovery сценарии проверяют реальные synthetic databases.
+Недоступные проверки не объявлять PASS.
 Native Windows installer/manual acceptance выполняются отдельно, не в Linux.

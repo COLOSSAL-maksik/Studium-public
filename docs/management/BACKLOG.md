@@ -2,9 +2,9 @@
 
 | Задача | Состояние | Ответственный |
 | --- | --- | --- |
-| Устранить old Git objects dependency migration tests через reviewed frozen fixtures | Требует mapping review | Codex |
+| Frozen migration fixtures без old Git objects dependency | Выполнено и принято локально | Codex |
 | Native Windows/manual installer, packaged workflow и recovery acceptance | Не проверено здесь | Владелец/Codex |
-| License/material rights и remote names | Решение владельца до public | Владелец |
+| License/material rights и remote name | Решено: All rights reserved; все 310 материалов подтверждены; Studium-public | Владелец |
 | Actual required safety/quality checks | После отдельно разрешённых Actions | Codex/владелец |
 | Second reviewer/CODEOWNERS | Согласуется отдельно | Владелец |
 | Учёт residual unpublished Bender работы до переключения | Отдельный continuity gate | Владелец/Jules |

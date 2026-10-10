@@ -1,10 +1,9 @@
 # Оставшаяся работа
 
-- Reviewed mapping для трёх tests, использующих private historical Git objects:
-  independent frozen migration fixtures; без переноса старых commits.
 - Native Windows/manual acceptance: dialogs, paths/reparse/ACL, packaged Help/PDF,
   installer upgrade/recovery на disposable synthetic account.
-- Выбрать license и remote namespace/name; проверить права материалов до public.
+- Владельцу опубликовать проверенный main bundle в COLOSSAL-maksik/Studium-public;
+  All rights reserved и права на 310 материалов уже подтверждены.
 - После отдельного разрешения GitHub/Actions: actual required safety/quality;
   second reviewer/CODEOWNERS обсудить отдельно.
 - Учесть unpublished работу текущих Bender задач до любого переключения.

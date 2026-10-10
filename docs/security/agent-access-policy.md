@@ -7,4 +7,4 @@ Production profiles, student data, переписка, originals, backups и rec
 
 Private migration evidence и старый Git history не входят в repo/package.
 Новые remote/visibility/Actions/Jules changes требуют отдельного задания.
-Локальный candidate не означает разрешение на передачу private архивов наружу.
+Подготовка публичных исходников не разрешает передачу private архивов наружу.

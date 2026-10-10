@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "review": "2026-10-10: exact target hashes; local English/Russian OCR, PNG metadata and DOCX nested XML/properties/relationships checked; source synthetic/provenance review matched unchanged bytes. Publication rights/license reviewed separately.",
+  "review": "2026-10-10: exact target hashes; local English/Russian OCR, PNG metadata and DOCX nested XML/properties/relationships checked; source synthetic/provenance review matched unchanged bytes. Owner confirmed publication rights for all 310 listed materials, created for this project using ChatGPT without third-party images, designs or separately permissioned materials. All exact material hashes are unchanged.",
   "artifacts": {
     "Studium_TZ_v0.1.docx": {
       "classification": "source-specification",

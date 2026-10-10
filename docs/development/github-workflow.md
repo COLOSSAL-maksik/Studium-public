@@ -1,6 +1,11 @@
 # Разработка Studium
 
 Локальный исходный bootstrap не создаёт remote и не запускает Actions.
+Публичный repository: COLOSSAL-maksik/Studium-public, ветка main.
+Первый push проверенного source bundle выполняет владелец; перед ним Actions
+отключаются. После первого push настроить main: PR required, force-push и
+deletion запрещены. Required checks закрепить после успешных запусков,
+отдельно разрешённых владельцем; отсутствующие checks не требовать.
 После подключения независимого repo: task branch → PR → safety/quality checks
 → review → отдельно разрешённый merge. Force push и deletion main запрещены.
 Второй reviewer/CODEOWNERS обсуждаются отдельно; single-owner проект не должен

@@ -12,12 +12,14 @@
 Датированные фазовые записи сохраняют первоначальный scope; отсутствие
 возможности «в этой фазе» не означает её отсутствия после последующего merge.
 Частичный Dart stack заменён ADR-014. Старые security/history blockers
-и запреты remote относятся к своим этапам; private GitHub существует.
+и запреты remote относятся к своим этапам. Текущий целевой source repository:
+COLOSSAL-maksik/Studium-public; его публикацию выполняет владелец.
 
 ## ADR-047 — Repository isolation и локальная проверка границы данных
 
-**Уточнение актуальности 2026-10-10:** history cleanup завершён в проверенном
-repository baseline, GitHub workflow влит (#1); описание PENDING/BLOCKED ниже
+**Уточнение актуальности 2026-10-10:** независимая чистая source history
+проверена локально; workflows сохранены как конфигурация, Actions
+в новом repository не запускались. Описание PENDING/BLOCKED ниже
 сохранено как исходный security-stage record. Граница runtime/private данных
 [текущее состояние](management/PROJECT_STATUS.md).
 
@@ -401,6 +403,11 @@ Phase 3 реализует AssessmentTopic/Skill, AssessmentItemTopic/Skill, Les
 
 ## OPEN-006 — Лицензия и удалённый репозиторий
 
+**Статус:** RESOLVED решением владельца для независимого Studium-public:
+COLOSSAL-maksik/Studium-public, main; All rights reserved без открытой лицензии,
+с сохранением third-party licenses. Права на все 310 проектных материалов
+подтверждены владельцем. Публикацию source bundle выполняет владелец;
+Windows release/manual acceptance остаётся отдельно. Ниже исходная постановка.
 
 §20 требует определить license/private repo; тип лицензии, remote, владелец и разрешение публикации не заданы. Локальная инициализация не определяет видимость будущего remote. Не добавляем произвольную лицензию и не публикуем материалы.
 
@@ -748,6 +755,6 @@ as_of — cutoff исходных Attempt.occurred_at/Message.sent_at/QuestionCa
 
 ## Остаток OPEN после Phase 6
 
-Это исторический остаток на дату Phase 6. Современная применимость — в [BACKLOG](management/BACKLOG.md): remote создан и local backup реализован, остальные части OPEN не закрыты.
+Это исторический остаток на дату Phase 6. Современная применимость — в [BACKLOG](management/BACKLOG.md): license/target repository решены владельцем, frozen migration tests и local backup реализованы. Публикация Studium-public и Windows acceptance не подтверждаются этой исторической записью.
 
 RESOLVED: **OPEN-001/003/008/012/014**, **OPEN-013** как data contract. **OPEN-002** сохраняется только для manual overrides/correction audit; формулы текущей аналитики определены ADR-031/032. Открыты **004** (прямые LessonSkill/LessonAssessment), **005** (будущие платформы), **006** (license/remote), **007** (другие owners/server files), **009** (учебный timezone/date-only/membership день), **010** (ownership/sync), **011** (audit/purge/backup, в том числе прежние редакции/переносы сроков). Эти остатки не подменяются выводами из текущего каталога и не блокируют согласованную локальную аналитику.
