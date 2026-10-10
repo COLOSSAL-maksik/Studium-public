@@ -1,0 +1,104 @@
+# Build and coverage output
+build/
+coverage/
+*.iml
+
+# Python / tooling
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+*.egg-info/
+.coverage
+.coverage.*
+htmlcov/
+dist/
+
+# IDE / OS / temporary output
+.idea/
+.vscode/
+.vs/
+bin/
+obj/
+node_modules/
+*.log
+*.tmp
+*.temp
+*.bak
+~$*
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Secrets, tokens and signing material
+.env
+.env.*
+!.env.example
+*.local
+config.local.*
+.secrets/
+secrets/
+credentials*.json
+service-account*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Local databases, SQLite sidecars and database dumps
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.dump
+
+# User data, original attachments, caches, exports and backups
+# Project diagrams in assets/ and synthetic fixtures are not ignored.
+/local-data/
+/user-data/
+/data/
+/runtime/
+/storage/
+/files/
+/cache/
+/logs/
+/attachments/
+/backups/
+/exports/
+/tmp/
+/temp/
+*.dmp
+*.mdmp
+*.stackdump
+# Raw test output is local; reviewed documentation summaries remain trackable.
+studium_output.txt
+studium_test_out.txt
+studium_test_output.txt
+studium_tests.txt
+test-out.txt
+test-output.txt
+test_output.txt
+pytest-output.txt
+pytest_output.txt
+pytest-log.txt
+pytest_log.txt
+*backup*.zip
+*backup*.7z
+*.sqlitedb
+**/.local/
+
+# Keep dependency lock files when introduced.
+# Keep generated source decisions phase-specific; do not ignore migrations.
+.pytest_cache
+__pycache__/
+*.pyc
+.pytest_cache

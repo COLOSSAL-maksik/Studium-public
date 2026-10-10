@@ -1,0 +1,213 @@
+name: Quality
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      full_windows:
+        description: Also run every pytest module on Windows (extra runner minutes)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      full: ${{ steps.plan.outputs.full }}
+      installer: ${{ steps.plan.outputs.installer }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Classify the complete PR diff
+        id: plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            python3 scripts/ci_plan.py --manual
+          else
+            python3 scripts/ci_plan.py --base "$BASE_SHA"
+          fi
+  windows-installer:
+    needs: [changes, fast]
+    if: needs.changes.outputs.full == 'true'
+    runs-on: windows-latest
+    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && inputs.full_windows && 60 || 30 }}
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          architecture: x64
+          cache: pip
+          cache-dependency-path: |
+            requirements-dev.lock
+            requirements-build.lock
+            pyproject.toml
+      - name: Install locked Windows test environment
+        run: |
+          python -m venv .venv
+          .\.venv\Scripts\python.exe -m pip install -r requirements-dev.lock
+          .\.venv\Scripts\python.exe -m pip install --no-deps -e .
+          .\.venv\Scripts\python.exe -m pip check
+      - name: Install locked build tools
+        if: needs.changes.outputs.installer == 'true'
+        run: |
+          .\.venv\Scripts\python.exe -m pip install -r requirements-build.lock
+          .\.venv\Scripts\python.exe -m pip check
+      - name: Native Windows pytest contracts
+        if: github.event_name != 'workflow_dispatch' || !inputs.full_windows
+        run: .\.venv\Scripts\python.exe scripts/run_ci_tests.py --phase windows
+      - name: Full Windows regression by module (manual)
+        if: github.event_name == 'workflow_dispatch' && inputs.full_windows
+        run: .\.venv\Scripts\python.exe scripts/run_ci_tests.py --phase all
+      - name: Native synthetic path guards and obsolete-payload upgrade regressions
+        if: needs.changes.outputs.installer == 'true'
+        # Separate fixture AppId/data root; shared shipping safety code, no real profile data.
+        run: |
+          .\.venv\Scripts\python.exe scripts/smoke_installer_security_windows.py --disposable-account
+      - name: Compile native Windows installer and audit payload
+        if: needs.changes.outputs.installer == 'true'
+        run: |
+          try { .\scripts\build_installer_windows.ps1 }
+          catch {
+            # This fresh CI checkout has no user profile or synthetic DB yet.
+            # Print resource names only here; local audit diagnostics stay redacted.
+            $bundle = Join-Path $PWD 'dist/Studium'
+            if (Test-Path $bundle) {
+              Get-ChildItem $bundle -Recurse -File |
+                Where-Object { $_.Extension -notin '.dll', '.pyd', '.qm' } |
+                ForEach-Object { [IO.Path]::GetRelativePath($bundle, $_.FullName) }
+            }
+            throw
+          }
+      - name: Synthetic native installation, launch, repair and uninstall
+        if: needs.changes.outputs.installer == 'true'
+        # Isolated program path, temporary AppPaths profiles; refuse existing registration.
+        # A same-version repair is not a newer-version acceptance result.
+        run: |
+          $version = .\.venv\Scripts\python.exe scripts/check_windows_bundle.py --version
+          .\.venv\Scripts\python.exe scripts/smoke_installer_windows.py --installer "dist/installers/Studium-Setup-$version.exe" --disposable-account
+      - name: Genuine two-version packaged upgrade, repair, downgrade and recovery
+        if: needs.changes.outputs.installer == 'true'
+        # New version in an isolated tracked-source archive; current repository version unchanged.
+        run: |
+          .\.venv\Scripts\python.exe scripts/smoke_installer_upgrade_windows.py --disposable-account
+      # Installers and synthetic runtime files are deliberately not uploaded by PR CI.
+  fast:
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      # actions/checkout v6.1.0 uses Node 24; immutable SHA, no persisted credentials.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          # Fetch full local history for the repository-history safety gate.
+          fetch-depth: 0
+          persist-credentials: false
+      # actions/setup-python v7.0.0, pinned to an immutable commit.
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          architecture: x64
+          cache: pip
+          cache-dependency-path: |
+            requirements-dev.lock
+            pyproject.toml
+      - name: Repository safety
+        run: python scripts/check_repository_safety.py
+      - name: Install locked development dependencies
+        run: python -m pip install -r requirements-dev.lock
+      - name: Install project
+        run: python -m pip install --no-deps -e .
+      - name: Ruff format
+        run: python -m ruff format --check .
+      - name: Ruff lint
+        run: python -m ruff check .
+      - name: Dependency consistency
+        run: python -m pip check
+      - name: Qt runtime libraries
+        if: needs.changes.outputs.full == 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libegl1 libopengl0 fonts-dejavu-core
+      - name: Fast Studium unit and architecture regression
+        if: needs.changes.outputs.full == 'true'
+        run: python scripts/run_ci_tests.py --phase fast
+  full:
+    needs: [changes, fast]
+    if: needs.changes.outputs.full == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          architecture: x64
+          cache: pip
+          cache-dependency-path: |
+            requirements-dev.lock
+            pyproject.toml
+      - name: Install locked regression environment
+        run: |
+          python -m pip install -r requirements-dev.lock
+          python -m pip install --no-deps -e .
+          python -m pip check
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libegl1 libopengl0 fonts-dejavu-core
+      - name: All remaining pytest modules in separate processes
+        run: python scripts/run_ci_tests.py --phase full
+  quality:
+    # Always emit the existing check name. A failed/cancelled dependency is a
+    # failure; expensive jobs may be skipped only by the docs routing decision.
+    needs: [changes, fast, full, windows-installer]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      CHANGES_RESULT: ${{ needs.changes.result }}
+      FAST_RESULT: ${{ needs.fast.result }}
+      FULL_REQUIRED: ${{ needs.changes.outputs.full }}
+      FULL_RESULT: ${{ needs.full.result }}
+      WINDOWS_RESULT: ${{ needs.windows-installer.result }}
+    steps:
+      - name: Require every applicable check to succeed
+        run: |
+          test "$CHANGES_RESULT" = success
+          test "$FAST_RESULT" = success
+          if [ "$FULL_REQUIRED" = true ]; then
+            test "$FULL_RESULT" = success
+            test "$WINDOWS_RESULT" = success
+          elif [ "$FULL_REQUIRED" = false ]; then
+            test "$FULL_RESULT" = skipped
+            test "$WINDOWS_RESULT" = skipped
+          else
+            exit 1
+          fi

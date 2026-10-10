@@ -1,0 +1,1 @@
+"""Immutable released schema revisions."""

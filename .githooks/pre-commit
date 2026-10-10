@@ -1,0 +1,11 @@
+#!/bin/sh
+# Check INDEX bytes. No downloads, dependencies or production data access.
+root=$(git rev-parse --show-toplevel) || exit 2
+cd "$root" || exit 2
+if [ -x .venv/Scripts/python.exe ]; then
+    exec .venv/Scripts/python.exe scripts/check_repository_safety.py --staged --check-identity
+elif [ -x .venv/bin/python ]; then
+    exec .venv/bin/python scripts/check_repository_safety.py --staged --check-identity
+else
+    exec python scripts/check_repository_safety.py --staged --check-identity
+fi

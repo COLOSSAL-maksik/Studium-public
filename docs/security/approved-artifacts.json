@@ -1,0 +1,1868 @@
+{
+  "version": 1,
+  "review": "2026-10-10: exact target hashes; local English/Russian OCR, PNG metadata and DOCX nested XML/properties/relationships checked; source synthetic/provenance review matched unchanged bytes. Publication rights/license reviewed separately.",
+  "artifacts": {
+    "Studium_TZ_v0.1.docx": {
+      "classification": "source-specification",
+      "sha256": [
+        "df0c8e9555601deba395060355440ff107f52eb6f0912226cfd5378580696c90"
+      ]
+    },
+    "assets/architecture.png": {
+      "classification": "source-specification",
+      "sha256": [
+        "a97a37f1cd9e4f9139173c73226809081430e9390564097d3fe72667c4c3aaa5"
+      ]
+    },
+    "assets/er_comms.png": {
+      "classification": "source-specification",
+      "sha256": [
+        "7facac9162fd254d5bd19ed436cbc876d30ccc0fcb778f99a5b022483c28abfe"
+      ]
+    },
+    "assets/er_core.png": {
+      "classification": "source-specification",
+      "sha256": [
+        "290d7ef4144a708c75e4050be1efaa01809456c6301e56951afd47eaf070261a"
+      ]
+    },
+    "assets/navigation.png": {
+      "classification": "source-specification",
+      "sha256": [
+        "eabc2a0c96a1e63fd6132995688058f911621601efa93142d3e1d88c7f159e9e"
+      ]
+    },
+    "docs/design/studium-ui-reference.png": {
+      "classification": "source-specification",
+      "sha256": [
+        "179d05b42c02f0e22af4011ea1a79e4684044693bd28e6e892f27f633427b324"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/00-empty-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "dfbce24ae455d4bfcc63b9cda7f84a7899aec8b8045b293775bb2c603c9f13b1"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/01-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "0175a01bb83d55ab89bcd656bc872d02775d9b42e68528568a03fab74717e9a4"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/02-discipline.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d2f2c753482dcf391a1814c083cbf64b97c5850765487a9e0d8d7e708cb7e109"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/03-program.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "aa1f9cb0c395057ff32bd7f8f3babc4b33dab4bc2483037eb49343a360f91542"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/04-modules.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a1537fda3d1487c66aa7b9b89e4a4e68d437f69b57884ea034023941bba3a9e4"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/04b-program-works.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3e281d70a83a7ce79be1936b8df8e769c9e0a64360359883491b5444135dc3be"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/05-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "23001b6305f8e1476156968f670420017d08ade48d13fe111299d035b7c3d45f"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/06-group-radial.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "444a0a85dfc748a5d7378349d2c6a872d78ecb0ff6221be993f454afd06925d4"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/07-group-line.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "bbf9a33c5701a7d80b92b32b33a9720a436825f262d81a1a11b6db1a520e223b"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/08-student-progress.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "baa46467ba8efff57896e75ec679d840eb2618d7bea0236c3ba36bf3e6b240a5"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/09-homework-structure.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "fd5ef6e6b77584cabd7a1a8aea3f2ff64eb1d938d7a5695ec7742f520572b20a"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/09b-homework-common-pdf.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "0bef2cab7dc6b6196fbe44a7a1b89f2da6348ecad8c3653b7bd77a3d23d4bd11"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/10-control-task-skills.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "02842b931c7cc525ab5ccc3e985352168ae6b9edd6cca8c7ed00203717c492f9"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/11-problem-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b2e30cbaef9dc63ce10d45fccdc7be5cd8ac2a3b56cf1b525b1cd00a0566d7c5"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/12-knowledge-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d4f6bdc376c2106c286898ff4950f934906f14c32a5e5cae734c438be1b00220"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/13-dark-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c8fe350d1cfa422149d8d9092ed659db0004d369f933d8c0837a775c77cc09b1"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/14-dark-calendar.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "9cc36f1b76bede2d8980c7dbf79cbdba5da676376fed121c99ea29f5ddb55780"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/15-attempt-dialog.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3ef54ba06ebf5a13b93eb1316d41e7b3be8d95d125b6ce06decd5292221e10cf"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/16-control-history.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "66041a27ef1d6a3b2cbc323f9f39d3c9ed4c3bd3d0d1a1f19e372f4841018144"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-100/17-program-pdf.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "01dacd23de7e6c3acaa204813305c2929abeaf828311b9228d6f8157ec8a97a8"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/00-empty-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "9e1b7182ba9c234116e2e5887e70d4c267eb0a9eb0ceef09716e7982d2139067"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/01-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "82b0ef2110a86984c5e84ab6a5104a2f80322a250c4bce4d9cd24f4d4be9aa8b"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/02-discipline.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "36ea8297b748e112a9fe487cf61352d7dacb506a456574146c95fd9364a72c9a"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/03-program.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "22c51522652265d6e5c3f6ec7c5462f54c5d7bf567ac7e6bb2fb73b035877c8e"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/04-modules.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "17ff219fbef8db948a1994dc6b660990d988bf90f9d4c26007e62b0bc53f216f"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/04b-program-works.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7ba5f0920fbcc1b6c081333e6a227661737eb6e5e3c5a2e162dfa026fc307056"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/05-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e40e85f9a6b077feda51017cc51bfa1d8c578446836aca463a74d6e3957576a7"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/06-group-radial.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "405469379a025df7406e4ed8313937ac60d2643c376ab533b4072c385d9d140a"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/07-group-line.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "dc9ee0240fef0cc2167359532e43bfaed38342e1c9c54be443c898442d9c564f"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/08-student-progress.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b86eedc22603426db5797a34d3eaeb8fed7a91ebdd59fa226784f09bc13d1a99"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/09-homework-structure.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3d332b24c3b42afc4b211ca671866795d05253dcdf063a962eae1e2c36d82737"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/09b-homework-common-pdf.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4f699912095787e2c543e42bff79bf93ebfc5e088229eb00bb369662ea25d863"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/10-control-task-skills.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a0c709c0ffa4ca9f9d845c7e52ef7cdc89a38353c7b82cc5515ddeae890c9fbd"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/11-problem-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "deb6d7c3826769ec07ff8c2ab9553364024d45d979061e7103786e8bc9948aa9"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/12-knowledge-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "728af5b3f373c32cb1424f96d9934fc751c28ed32664eef5a4287710877b01b9"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/13-dark-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "96a3395e4bcfcda5f9a6b659fddde079b7a9a6156682ab9e38fa59ba5918b5c4"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/14-dark-calendar.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "cb97aec8953ca4d26a9573a8e8a48c0091598f7710aae52acf71b54b18fe0db1"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/15-attempt-dialog.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b524c7e7be52bf2cb2315e4a4e29e149ddaaf8dd5fa157bc49b4a4931c71b5c8"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/16-control-history.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "48a176e962d124562421654f5499eb1f6b8391461356a6f4ffacb8e1e57dd099"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-125/17-program-pdf.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d2f5135dde5847fdaa9687c38ee07cd34211883941bd1005d48e9902209c6432"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/00-empty-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3695748bcbe9e1a35b696b7417573e50630ce1c44796658d8b73d51e1caf602f"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/01-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d72ee16462082694febd0800cfe6c474eb601a5113afe726eff8ccd348648870"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/02-discipline.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "0caa5c9684e3b83ec7e303df602d0a930f23217f15f49d39df68e5ef8b057ce3"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/03-program.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b5341eeb2097d5f8077d3f756d89596cb7815e71e114ae4b11f8d9e6d713c3d0"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/04-modules.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "0220fff734217bec21876a764619de50b59008f36bf6296127576ba5b088e7f8"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/04b-program-works.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4e614873c841413706b526b9b04f0b9fea07ca58baa1d1a779d4323a288af376"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/05-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "92fe4fc0420e5de6b7ac1ebafdad21b70614191a279a7a6b81ce32b4b4cfc6fd"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/06-group-radial.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ee19e81412baac123e04677b7c3ee6805333a7e80a24596ca54d2bd22f464b06"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/07-group-line.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "50629475e7f9c28e6c523698bed9fbab7b5e43e71eb2b7238a4d42b1c74ca803"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/08-student-progress.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c5569719a34740664e0490f6cde56b546c296473f5a7ba6da1aa4e0e0d90521d"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/09-homework-structure.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ffcb9ad3355f088d62e043a8a32ff2c413849f6a6719c2b95ccda3c5227f7f8c"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/09b-homework-common-pdf.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "723183f376f0c624a77369f8a295e18943b40171003654d412fa98c65d0fabe4"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/10-control-task-skills.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ac3937403edceea30fd2286ab07f57af6b7f95683f96df62c8a163158411c6ef"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/11-problem-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e070fc5dd28cff9db0dd1d52d391f3987e92550d168d019898ae4e633a1aafca"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/12-knowledge-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "67e1cd7d99c8a9366b1f6b8e282199599e8185fb89a5172b6c2a2ddb088b5be9"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/13-dark-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "99d60f9cb27c336ff4e838630f45c0379dc065e5ed3916ffbd61af1ddc9f075f"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/14-dark-calendar.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d86223c67237fdb449a83b58ce2e3888731c51800633ffb80ca007e1c9f92e55"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/15-attempt-dialog.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "61d3c85384857ad82066398511dbf67a8aebd924925e1946ecfac50974fbc249"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/16-control-history.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "99bb8944093299f79c228d88cc861e06f454b87ea77985716996c1499603fbbe"
+      ]
+    },
+    "docs/screenshots/iteration2/dpi-150/17-program-pdf.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "69b11187371f7049332cd0fd504e1e40534e0a78656a0752266e2d0de65b37a6"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-charts-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "f945b8959655ca7c92b72a15dbd8eb98d2b1171dc4e01fc610674062ea530f38"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-charts-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "78e8b493bd94a745529a08a806147898f18c1a6d9adbd0dc4f1efae6f61eb527"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-control-task-skill.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "0ce7897c2391f90f32cf7384876907494e6a692eca3c1324ade70ab43244cdd0"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-dark-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "15587ae0672cf0b90591c3ae3cc830d25d8241450fd29c8e78fbd8499f81e252"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-dark-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "89f5efd56ff85b8d916ec5a274e54b55cbb9993b69ce9a7876b15a0a38041360"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-empty-result-validation.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ffc779885045b83d925de2cbd5e4a6856cf12f9f5cee7b6ebf7d07e57ce94e69"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-fresh.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "9060a34d88598dc8deeab3e753c9cfb0d6ee07726d03cabf3da67b73cc77843e"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-home-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ac4a4f297e3d67e401815213e6f521005324e752103edcbca8f2cb19ba93dfe2"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-home-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "82b418b216e1f4da18461df42cc344fcdf6f55498b019262d8274d0f85e91ff4"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-homework-attempt.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "acd70af4a1c2b96c52df41c5ebec068867748f945ae7107554e08eb05d338248"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-image-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3da538f8a19b716534c0b0fcc8468d9a8131ff0b71e24bc85eef44ab079fb1f0"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-image-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "659156095e87afb555f3127d48eeeb808683960a7b2ece2f1a46219c0373a038"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-journal-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a03418bbfb43518a381dc3af97effd8bcb258ebc44f9ffe327971c9336626bb7"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-journal-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "f38ad691b9206f0cd0c19f764a188826b64044732b4db78ad10fb387e4ffb926"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-migration.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "bf1e04cfa0c1a5808192578d841619b9e416865a1d2d24c9d6c60f6fb7438477"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-pdf-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "2259419ea108e66e4882af01abdad770bd93a99aea7b3e4468b34b4a35114463"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-pdf-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e4873d3fb4515a4c9a7e50437026969f057f33c1098204e926fcd9387a0efbac"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-picker-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "070413db29aa5b47abc224174862f98a163d3052fd775e4fe7ce9707342fa6cb"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-program-modules-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "10aa3c61ece4aebba97a0ef69238b8953489ce536794138d03e919be132cf088"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-program-modules-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "dcbe073f234d37b074d6295ad975bcded5247aadaedf2f1200f6ac676f749397"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-radial-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "34de5ba87ce7afca16cf8976cb8f29ed309b58b6af9156ca198bd85407bdd1f5"
+      ]
+    },
+    "docs/screenshots/iteration2/packaged/iteration2-exe-radial-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1da0aeea61ec803e3745c9249eac136181b9f790fbcbc2494c496490093831de"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/00-empty-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "58844ce3fc03ab12027ab455bddf84b8260e092a4da24e90f10a071bb4eeec1a"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/01-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b1a211049ac456acf94e45731791bec0d458ef69e2e39a1ba4d5b6422b52a448"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/01b-home-dark.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "2f3d209c410836d4191bd15145ef8773e593e8f50af75315e2c72a111874f02d"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/02-discipline.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e567d1e6a91fc95a68043c485716f3d0d68a15fd0bb85cf08b98269a74d213d7"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/02b-topics-skills.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "05948d1b1ffad2d0cdeb5a7383ba190a0e15bff4c84e2e1aef63ac95342e0713"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/03-program.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c5b289137b81fabcdc23a721706db89f95d9ffaec720ee99ac8506b492bb4727"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/04-modules.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1c55ec0f9fce2a6d9d8e605cb64bbcd6de490992e503475f9b83940bc2a8be6f"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/04b-program-works.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ee67429953c6f156b3336564df17504551fac4415a9dbc77362a8f26a8e548b7"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/05-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "93b76886ca94f62d319dc95333c7d13570358d534907f49d5c6d0775e3b21415"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/05b-journal-collapsed.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e8a30b5e665eda5a2d2c07f342e5f9299a55894cf7f66a710fdeaa501e957d85"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/06-group-radial.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c5e53dc70dec5d5257acb52f828c2c6d6eaf55fefb45adf8f550ddabbd13bfd7"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/07-group-line.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "caf4828c18817789ce270cb935da172640100be686d6ab873ccbb07fde461a37"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/08-student-progress.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "98f902ca104b0b57d055ede61c0a76064769b00371b0b0147bd150172662a56b"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/09-homework-structure.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c7609a0fd622e6fef3da3c3156106285e01ea6f2a85d9490fe0d6b92a15caefc"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/09b-homework-common-pdf.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7ed7e0a503dfdd6fa00a422a4d51cc164c9864e4fe5e80f2da9b6005b2514883"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/10-control-task-skills.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "fdfb502277d34b320fbd2aca5684d672833cd49d4bb94363b86586736b3fa22e"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/11-problem-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4b19b7f877d0b8a078364b9f5c3a6dfa2d1a41bbf83a60feef2f1ff3577bfaf1"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/11b-problem-detail.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "59bee2f1258023103f06293db9e124d68ad6d8db46d0ba5c67c69c548a159747"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/12-knowledge-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c83d18fb1ff839c2ff54905d094cd9c61cc48674187ec22e68b217ab3ecb6ba8"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/13-dark-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "24fe097b84e8dcbb8f53c64f1f4241ca1f4b9eaf389f18708aab1ea1ef5456bc"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/14-dark-calendar.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "f69df93c2d353c332f90108664f83115a6c0793b81b97d78b59346dbb9d1e65c"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/14b-light-calendar.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3861951bd0c33efa291cfc560e70987c6c0a07a8035ef166cd4cebcca153244f"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/15-attempt-dialog.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "17217bbeb394f7339968cfb0ee59bc4f9d5a5c07812a597f28fbd9ca681d6222"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/15b-attempt-advanced.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "06ed8a98a92258b737dc5828a39e30e80cd5d2520e0f57516d23cfb64590fc66"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/16-control-history.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "80d8c8eef843469c44e4b8bb75c0f07559468050eba1a0cd4692d8b4b8821e81"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/16a-homework-history.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "9bc9999b488d25088bef16df2aa43d8f580abe9862fe5fe244200ff55e647e77"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/16b-homework-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "12c092a676c17c60dd304ba3c0431dc78eb10d78db2d7b4f2a461e4228d57372"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/16c-control-results.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3104bf12a2253617d2587b62dccbb67071381bccddddfb1635d31c54d023394e"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/17-program-pdf.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b2bcd14263f935529c93fd9a40e80668ee2fb238bef635029fe1296810e5a0f6"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/18-library.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "41a8ab88a2018093b312ec26f3bc7efad2f6821dc7411c0d8ba6afea06b8a675"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/19-narrow-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4ca50ef365591d2a8d8c1464182fdaa26bb7983e8f20bd2ab522e225125b7f1f"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/20-maximized-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "fcea5bf0787e319821c596a2915f9940c33f6867087c03cd4aefd0713b10e0b8"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-100/21-narrow-history-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "be8aeaf3aad453494f0954a20549a0a99f71d2fee6c7268af4f682226e1783b3"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-125/01-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "f92431b4d1fc78dc4f9000053df03ca1de62136ebc7f6c47a2ed487956709a2b"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-125/01b-home-dark.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e3acf1a2a24310ac086ec114b0a918b09049ca7ea0c914db96a3f852f74ecf5a"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-125/05-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c9b09e2f38b8cf3e560754bd42d9b42804d6aed28f3e3a311cd5b8e68db8db9b"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-125/10-control-task-skills.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "88477e798b0cad8989aaf8821057533a846d29171ef925142c003431efd33fff"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-125/14-dark-calendar.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3afc287aefd6ea989a1e654bba642f244f7f4a96c8229cfc159edfe85714943f"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-125/21-narrow-history-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b4b9653d1acc7ab20f171375298c9637df37f34c72c81c39275ec373a1a048b4"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-150/01-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e782561be2f160925f9c5b75d3673616963529ef759ebf3337b372f8f682705d"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-150/01b-home-dark.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b656e0780ab9db7431997bad7ab0d7f10ca886035ec2e1b19cc47d9aaca4c58d"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-150/05-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ef9cbaf86a4836a058b85b961029ef493cfb4624d7c56d3f1fe202f941e55c7c"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-150/10-control-task-skills.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "56b47550498594bc00b91638a19b6ea16c95aea755aabf4b5ea27d413986deed"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-150/14-dark-calendar.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ea45a0b1987b40113b2374a8db240e7622ec5e5e6ba7e958696d963dea196875"
+      ]
+    },
+    "docs/screenshots/iteration2_5/dpi-150/21-narrow-history-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "362fa00a7b28e73bef33b38a904f9feea3552f2daae74af3312986154984d6b9"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-calendar-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7c090e2087f2b634f6b778e609e9ed7993fade81eb85badbda03b3889e45b9d9"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-calendar-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7c090e2087f2b634f6b778e609e9ed7993fade81eb85badbda03b3889e45b9d9"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-charts-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4f3baafdc65a9df456a51239f30c6016ee582666635f2978d5f1ac210668b71e"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-charts-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "89ef0282d980a0249934ad175f3d5015e41bde72e7e199fd91a235a9b20ad94c"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-control-task-skill.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "079e2ecb48724eff811bcbfab4c662a607c778f1afcf5373d513587186792fa9"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-dark-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7f9ee670a5beabfe23e1197c19f650c3d80570fb11a7413a71f9ad63efbe3e08"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-dark-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7f9ee670a5beabfe23e1197c19f650c3d80570fb11a7413a71f9ad63efbe3e08"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-empty-result-validation.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4e65e79ce1ef1b6a8dc2c193729fede71642d4e1fa7aae06903b168b2bcde368"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-fresh.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d875e232a2c6ace780ba68af48b4096b5e4ef58e0a413cb2ca7bb231d9d60a0f"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-home-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a2c6d64bb37057de02ab593e805464eca26d8e0c1b9a890c6c21d7412850d7dc"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-home-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a2c6d64bb37057de02ab593e805464eca26d8e0c1b9a890c6c21d7412850d7dc"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-homework-attempt.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "0b0525a9a934dcbf09efce41bf17f7d90105aca94ff007fd3af59eb9a1a7cf21"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-image-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "f648e9a95b864ae26bf559cc1146239016ab6870e960754548e8eeaf7fcb0491"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-image-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7eb395afbfbc48e817bd5d7607fecc8a2559d160175a220c4d0a11df5f009dbe"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-journal-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "86bedff1381fb3a04335c2a5ce5c1f925287338f55af95d251735b97bdcd670c"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-journal-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "daf93030e018c18df4020a9b72b3193c68767975be920e8cdc4377fe70b184b5"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-migration.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "614a35e7dfd000d5a755f802d994183466a11ce459c2fd005cc72c36d17a6793"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-pdf-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c95a3ca24081547e89de4c284f88aaf789fecb2d0d2f80a0a3f11326c673225b"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-pdf-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c95a3ca24081547e89de4c284f88aaf789fecb2d0d2f80a0a3f11326c673225b"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-picker-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "5baa162e5db112feee40c1d46829d1c1f7cc88cd308ad9282a8427ca19d89390"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-program-modules-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4ecee4f65cee0a48dc2f4e49c0312c4177a957fc82f62521dcff8fbe9ebf504a"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-program-modules-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4ecee4f65cee0a48dc2f4e49c0312c4177a957fc82f62521dcff8fbe9ebf504a"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-radial-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b297eadba6dffe38bbe47b1786635d8e32f636510520dce3b96df0d299090fcd"
+      ]
+    },
+    "docs/screenshots/iteration2_5/packaged/iteration2_5-exe-radial-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d9f371d837a48c93355f45a36ce8bc0171ae8e7812c0c89dbcf9b457bd89bd98"
+      ]
+    },
+    "docs/screenshots/iteration3/01-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7f0383767d4009f8e3c2f6388d83a010bc62b93898cd9c8191a3d5869bc4513a"
+      ]
+    },
+    "docs/screenshots/iteration3/02-sidebar-work.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "2860fb3287b688ee242fe9e9937b7f38c7c938138f486533eac7c7d838921c16"
+      ]
+    },
+    "docs/screenshots/iteration3/03-sidebar-library.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "47936e1551f47363683db672ea4b80b0862384dd5dc6ba17098d6e61e8f37749"
+      ]
+    },
+    "docs/screenshots/iteration3/04-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "70f745c025b01f0770768383b22ba9a67f670bdca6df01df64e6f00d3a3a4a22"
+      ]
+    },
+    "docs/screenshots/iteration3/05-journal-scrolled.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d8a6058de8ba98e24bb958e8ff29f9399e639d1ade49f2825077baad145f373b"
+      ]
+    },
+    "docs/screenshots/iteration3/06-homework.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1a713dc0c690af3387690973dec6d659394dbeee5c40e119f87fe06a1f80193c"
+      ]
+    },
+    "docs/screenshots/iteration3/07-problem-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ff6f052284c2c74dff773bcd82127136f2afa9e2848d37d57bbc7e5c456b7829"
+      ]
+    },
+    "docs/screenshots/iteration3/08-problem-family.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "cd5be239a55fdf7784a01b6c782e91236dcb4fe992b68d7210785759737d7b63"
+      ]
+    },
+    "docs/screenshots/iteration3/09-control-sets.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "24da477e144a7a7117dd015e5bee53a4972aa8ea8358244df80aed251eb1859e"
+      ]
+    },
+    "docs/screenshots/iteration3/10-seminars.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3e51537f86b6f1ab9ae9c2f9be616010c16efbd001aa31848886416bc851701e"
+      ]
+    },
+    "docs/screenshots/iteration3/11-lectures.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "40178260de58bb1f13f77b7c2139f4c4ef346857cc86179c451253280c0cd69a"
+      ]
+    },
+    "docs/screenshots/iteration3/12-new-material.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b6da63370fcfdb2af45c65da940f9117acdee82cec47fa4affa96b8586003fc7"
+      ]
+    },
+    "docs/screenshots/iteration3/13-new-material-advanced.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d2f024384568f4f17c405b7d6253df09adb3fe26b033a7dce7367489ffbe0cc7"
+      ]
+    },
+    "docs/screenshots/iteration3/14-dark-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "774c37cd5681c7852083bb62476ad703782e8a9c33119ae7a3e4599040b1f879"
+      ]
+    },
+    "docs/screenshots/iteration3/15-dark-library.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "465047def8f25cd15c852f7a194619c08af4d6c409fd2f8f08d16360198fb430"
+      ]
+    },
+    "docs/screenshots/iteration3/16-narrow-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "031a7711644760ce6177ab9d782f42ccb441e13a92076e7968017cc84e792eb7"
+      ]
+    },
+    "docs/screenshots/iteration4/01-sidebar-selected.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7c279f77dc12eef661d5452660798b3e4e4d51479240edf1ef40dfd7823b4be8"
+      ]
+    },
+    "docs/screenshots/iteration4/02-period-dropdown.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "9dab69ba0cec7921851b52ece7b1376f13be4fa1f8a641f540cbcfe3d1a82415"
+      ]
+    },
+    "docs/screenshots/iteration4/03-topic-hierarchy.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7c02f965df714e2bb0e1b9b868e1d7fe00c6b548b92fa107295f6912b7ead1a4"
+      ]
+    },
+    "docs/screenshots/iteration4/04-students-columns.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "bdcb2fd84920f823a974e2788b8c174cc61191f799ae82cd60fa5349d33e3b44"
+      ]
+    },
+    "docs/screenshots/iteration4/05-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c4cfa7a071cc28d2480942a034d018ee09abf2dece455918b7ad036f0bcfa851"
+      ]
+    },
+    "docs/screenshots/iteration4/06-attendance-selection.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "2de4faba834f7ff7246ff4c2c2dec2fcd671d17fdcbb5ce0793bfbe99799772b"
+      ]
+    },
+    "docs/screenshots/iteration4/07-bank-preview.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "f1cafc7763d2b5827518067f16a11e6b6022f9d54fb79157202cf38fe7cad89b"
+      ]
+    },
+    "docs/screenshots/iteration4/08-seminar-problems.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "281a3cfb8c66665f609f14799f2c374395ca51a81c9ccf2a613604908ecc643d"
+      ]
+    },
+    "docs/screenshots/iteration4/09-seminar-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7b9a7a554d09e7da03488cc824be5e8e1f0d440db0c93123d708bd0652b34848"
+      ]
+    },
+    "docs/screenshots/iteration4/10-file-drop-zone.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ec7f4c7932a734c421385f432689603566f8d5c12be91b03bbb81850a7578618"
+      ]
+    },
+    "docs/screenshots/iteration4/11-student-works.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a0eb0d5c3586077dd7a17ae1be4fbc1296a07a6bc977e4ffaa292dbd70b8768a"
+      ]
+    },
+    "docs/screenshots/iteration4/12-student-attempts.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "74688d9c2919fd6355e974ab00a70220fe6667d2489bdd6edc9399153afd8869"
+      ]
+    },
+    "docs/screenshots/iteration4/13-progress-homework.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "8b72b695170c1d13d4b0bacf9ebdf21c1a482e39bfb66c842a8ebbd3fea9a9b2"
+      ]
+    },
+    "docs/screenshots/iteration4/14-progress-control.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "bbde077bfac975f09af6f83c423c0267e2293248a3146698d1fc1ae464cb4b48"
+      ]
+    },
+    "docs/screenshots/iteration4/15-delete-confirmation.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "675387736ed4b5e0a653dbfc579ea861ba4cde077d44799980b57552dee188f0"
+      ]
+    },
+    "docs/screenshots/iteration4/16-help-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a98d07e20db6f79c803751fc22a62dcd1efb8d2b89917318c8b99658e16a06f9"
+      ]
+    },
+    "docs/screenshots/iteration4/17-help-article.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "34f5953f281f2f04ce004f1c969d65db763e9a039af40519ef92fe4c1aa70297"
+      ]
+    },
+    "docs/screenshots/iteration4/18-help-search.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1ec0674871770a4dc9cc4976f5cb1c0eb28f05bf88f4be010933d8783f1080fc"
+      ]
+    },
+    "docs/screenshots/iteration4/19-help-dark.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1fd2b9128b13b9a9a7239bd96b23bf85e171fdff7309c8e2758377817b438103"
+      ]
+    },
+    "docs/screenshots/iteration4/20-bank-narrow-dark.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4770ba801715f88a672149ed366d07fc0bde42a9548d4610c43025c95bdaa5f9"
+      ]
+    },
+    "docs/screenshots/phase2-attempts.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1e846a2b18733414b4719e843c40c591efb72b921c17ee2c657d5839170c1b8d"
+      ]
+    },
+    "docs/screenshots/phase2-first-run.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "f6749699220fb296da4c55848fef8ca40509d7058629234357c67d1b84305199"
+      ]
+    },
+    "docs/screenshots/phase2-matrix.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "9e1b3af0bc16d2e6c0bd3f8762a370bbd6509a088c39d42f0f8a50c7c8f02bbb"
+      ]
+    },
+    "docs/screenshots/phase2-student-card.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "fa4ce9f3b460b35b87ed2904b96046c5e2b08ae44bb6be65b69120fa52ea245c"
+      ]
+    },
+    "docs/screenshots/phase2-students.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "8256240da6d57a47382242ad0b710c20b461b17f5860c73a32dda9d1a241b1d9"
+      ]
+    },
+    "docs/screenshots/phase3-assessment.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e43b2db37cab397f555678451d99e6928cdb97a49b691795220d16e2292f4404"
+      ]
+    },
+    "docs/screenshots/phase3-catalogue.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "f7415447df98e8a08e6bd6cdf8e421cc3a990968f5cfa431ae236ba616295f2b"
+      ]
+    },
+    "docs/screenshots/phase3-lesson-form.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "9950d75d15edc8a1b5f0409fb01188e288155049d54d215f2e59e8482ebc8551"
+      ]
+    },
+    "docs/screenshots/phase3-lesson.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "fa4088d8d308a98f2fd400c8364aa70421d7f7183735c9554a053818a09a34fc"
+      ]
+    },
+    "docs/screenshots/phase3-lessons.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "8989a50a08a9c2cd5be95d04b3ab6c7bd3cc7ad91de3c5554a2521636038259f"
+      ]
+    },
+    "docs/screenshots/phase4-attempt-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "49f8035f10dc34af1567fcf889c5c216acf05d252cefb242763ddaa1792699e7"
+      ]
+    },
+    "docs/screenshots/phase4-image-preview.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "13e6aa5514268afcbc01786c36e7d6ff5e18a03b809a5bd46802b9df6c020278"
+      ]
+    },
+    "docs/screenshots/phase4-missing-file.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "2732dab47292251aaa9278ad8f6366f3616b8864af78dd67921208d8a4de273f"
+      ]
+    },
+    "docs/screenshots/phase4-student-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "dfd088866ed500a3f5e9e4e895916e4a7304805d3b505e4121fb699384d74a2b"
+      ]
+    },
+    "docs/screenshots/phase5-correspondence.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1967b8104c951a9c5a88e9f286ec2d53d44b1a37ab02ea256d14cbeb737d17f0"
+      ]
+    },
+    "docs/screenshots/phase5-image-preview.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "9236dc9374208566a599db24a02652b6e9851f393b08da79cd331a1786574e00"
+      ]
+    },
+    "docs/screenshots/phase5-message-attachment.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "52dd53da404e61016a6ebc5aabfce251768b305f5be6718ffac20095f8791fc4"
+      ]
+    },
+    "docs/screenshots/phase5-questions.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "573821dbcd90b44ba35ef963ea002e7e062864143ef1ccdce53b9a2a52c29847"
+      ]
+    },
+    "docs/screenshots/phase5-student-questions.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "2369d5adcf610302cd5637290d4bade2e17371a300a3564a7a4d918702747eeb"
+      ]
+    },
+    "docs/screenshots/phase5-waiting.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "acba8502d213376efa155eecfc07ddea86dd7169e5d447c6cf1a1e4cde886575"
+      ]
+    },
+    "docs/screenshots/phase6-assessment-analytics.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "8516f8c4fdb4dc110d61df4034d6e9d32c15328e8aaad14cef5be9fa64698a57"
+      ]
+    },
+    "docs/screenshots/phase6-attempt-item-results.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a060cae1580c6395e614566b366bee485a8a998c8a92d76f09cd52da7e92bd65"
+      ]
+    },
+    "docs/screenshots/phase6-group-analytics.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "f560a98fdc55d4350698604482f881ac4133700084aaf970fd196990409b0c86"
+      ]
+    },
+    "docs/screenshots/phase6-skill-evidence.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "5dbc5e3a1373316e4446a364c358d17361115604dea654a11c825ef608905c4d"
+      ]
+    },
+    "docs/screenshots/phase6-student-progress.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "6fa9ee4cc56caa474e52194b1c72aca373024007cc10899e9cad4613a2fa5ab1"
+      ]
+    },
+    "docs/screenshots/phase6-topic-evidence.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "2f2b261069e35327650def021ec3a1a830fa6171ccde12c04f4d6b0622e50dbe"
+      ]
+    },
+    "docs/screenshots/phase65-file-preview.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "cc7fa73282b9177d58646cad9c6920b5ab7bf0b94918ae6e7f0cf6cf08183f84"
+      ]
+    },
+    "docs/screenshots/phase65-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7ea01cdd0c4a33ec0d00d19a695fe1853142ed64401ccd4669f778909f5caa45"
+      ]
+    },
+    "docs/screenshots/phase65-first-run.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4972391eee807af7e82d5bbb3c2e82dd93ed53aeb0455cd175da7aa141779b2a"
+      ]
+    },
+    "docs/screenshots/phase65-group-analytics.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a3a302bd759e8f213ec96cb425f272e1f901fed94caa76caf3b7718d09b27391"
+      ]
+    },
+    "docs/screenshots/phase65-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e38b0617f883ee37f9c24b1e82e8b3d9425a3434d1e9294f68e70dbafb4f9d2f"
+      ]
+    },
+    "docs/screenshots/phase65-lesson.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "01e3e665d69c7431857d082564da95b0960d244a16cb4e4dc98516644d2e5bc2"
+      ]
+    },
+    "docs/screenshots/phase65-long-names.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "9259571a579107c4daa830cbf8b971465ad2e99389f732d80815b45e2b9672cf"
+      ]
+    },
+    "docs/screenshots/phase65-questions.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d12613d5d50edf14ff38dd70bd04704f3ee94274861d152a8b65f25e35586753"
+      ]
+    },
+    "docs/screenshots/phase65-quick-attempt.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "44bf2f83cdb0dc0b895ada386a6c42ca0c1408f99a22ef330b5c0950f1a4ada8"
+      ]
+    },
+    "docs/screenshots/phase65-student-card.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "fe6cc86bb346a650752b8fbc23a20c671ad1b0e5bc28f3890d6d29ba93d65d61"
+      ]
+    },
+    "docs/screenshots/phase65-student-progress.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "303307cfb0186a89eee1919bee6da854f5a81c6445179ea5b2755272df0ca1d0"
+      ]
+    },
+    "docs/screenshots/phase65-student-questions.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "0a3a10020f7b586c00f86d95f8f15aeae02f547d24efcd8ea94a6e736605ca1e"
+      ]
+    },
+    "docs/screenshots/phase65-students.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3b21ac17b10f88a6f0dff06063f9292fd596252d0755582ad76d817bd526f494"
+      ]
+    },
+    "docs/screenshots/phase66-01-navigation.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "6ad1577aa0b4d1000370355a6506afecdffebb5d36e85dba4d389e5f21ce311b"
+      ]
+    },
+    "docs/screenshots/phase66-02-sidebar-groups.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1d7b669d3b6c9ad2ca027ed744b4fe78af6bce4658140f8646a0552565480b62"
+      ]
+    },
+    "docs/screenshots/phase66-03-student-back.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "758794188815acfb990b37987da8625a3c7b0c2a1b79b7a4d8f3d7fbd92b7b3b"
+      ]
+    },
+    "docs/screenshots/phase66-04-add.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3e4af15f2014a582db0a3ca192b6646dd681ce3d47690a4bb539255ca5b9f22b"
+      ]
+    },
+    "docs/screenshots/phase66-05-homework.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "5145323be9d5a35cf4eed0e11ee652a6c9230201a5871000f5cfbf80a3adc85a"
+      ]
+    },
+    "docs/screenshots/phase66-06-problem-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1105e4f83cd717a8f46e63bc7702d43007c6d57770e8b0b2bc1de2285e1350f0"
+      ]
+    },
+    "docs/screenshots/phase66-07-problem-answer.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ce9458a90c0e2442cfa584971ee739f0734dfbef54b44c7a6036c0c807f50f12"
+      ]
+    },
+    "docs/screenshots/phase66-07b-problem-epures.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "bb45018d4718ca68ad27d22a199bab44cb011022d1f28c3da3fef61a963ca9a2"
+      ]
+    },
+    "docs/screenshots/phase66-07c-image-preview.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "8f5f9bc85fac9f20c798820851c74760cae4af701698d4a79f09a7802eb62663"
+      ]
+    },
+    "docs/screenshots/phase66-07d-pdf-preview.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "ecf5ac6ccebfce5c26f9ae4f8104494bd067280832d5362873aaa3648129df39"
+      ]
+    },
+    "docs/screenshots/phase66-08-ticket-criteria.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a567138ff67d6250b9fb109c7823500ecb53cd0dfc1650b95720a3a1740fe99e"
+      ]
+    },
+    "docs/screenshots/phase66-09-generated-20.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "552b8aa39a5e5749445b5197d25c3501f5e09bcc2af0a85ed9badcf034e1d413"
+      ]
+    },
+    "docs/screenshots/phase66-09b-saved-assignments.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "22deda7be9859bc3190faa1a29f77488c6a582bc9850d303b36308a247a3268c"
+      ]
+    },
+    "docs/screenshots/phase66-10-seminars.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c7aa3c00b8532bd5bb19c98c57ba258c0d1fee2b9611e999d0e8009cb75c6b1a"
+      ]
+    },
+    "docs/screenshots/phase66-11-literature.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3baa2ddfa69fee75402674cd191d1972cb81d6fc3ee2a1c2a65060eda40f74c4"
+      ]
+    },
+    "docs/screenshots/phase66-12-drag-drop.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "795f3153814b94136b4a3f74043c8a21ea4f5ec255f5fd12d24738abbf35c34b"
+      ]
+    },
+    "docs/screenshots/phase66-13-week-selector.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "45ae80546180653856f5c72f07572569c09bc6a736612aa94331c904f8f1c103"
+      ]
+    },
+    "docs/screenshots/phase66-13b-combo-popup.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d58f1012da1c5c65da767a88dd101eaee613999d76e2edca97127153d0f10417"
+      ]
+    },
+    "docs/screenshots/phase66-14-lecture-attendance.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1f5186a1eb0afa74be72666e6f3c87cb6021306f6770afc49fdb5ee304c3da3d"
+      ]
+    },
+    "docs/screenshots/phase66-15-student-charts.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "07077235a4cf737866681573511a6f6691ee4e2d3331e1d8cc0bb84cbd5ab531"
+      ]
+    },
+    "docs/screenshots/phase66-16-group-charts.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d4ff3d1f9ded08608e6c8692c8c2a57fb331000eab5a9c78792f4acd926676c8"
+      ]
+    },
+    "docs/screenshots/phase66-16b-lecture-seminar-charts.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "78d39b59b55029081fce10fbca639e579509a69b13307685b03cfda9a1e2924d"
+      ]
+    },
+    "docs/screenshots/phase66-17-long-names.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1879928c8372d6d7d91f4affc14c079606fe15ef8ce1febb557101c2b98c4478"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/01-home.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4c25f3cea89ed13dd3c750f4919e2aa8338208e35b091a9265d60171b5ce68e4"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/01b-home-dark.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "733ff10e0263efe4af32e3b4c653cb09055765f873b53b1b99536a6d5a2273b0"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/02-discipline.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "2a1204fe0fe0e79bd7aa1712524961ff6e7bb107e0b11f22607d674c8f092d8d"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/03-program.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "5c4049d9cc0db9f5b1edb9728efef4d018cf6d54fa3f43f396167cfc9d035409"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/05-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "75172ec9fa355c87aee25aec5470703ad77b3720519fbbf01a5b3a8b1ac7ba9d"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/06-group-radial.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "23874dccc4350ff8f93a5e8fdcfb4791bb7f3b2fc413f605b8dcccbc399a7a07"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/09-homework-structure.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e1b20c966ad58d96b69d03f9ad89e640277fb1f8262a3ee430b006acfc5cf75f"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/11-problem-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "4268c0d22cf7d3d0d10b83edd0d9e11aceeeccabeb230145182c78bfc9c2b9fb"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/12-knowledge-bank.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "93c892f17ebd6ad444cebdd1a99427bf2adfdfa386c2edfc5ee84c15a4f10435"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/13-dark-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a448e6475956597eb97383b4eb8c51e01b56a8acc703c9606e255a661f849725"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/14-dark-calendar.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c75496c93fa206fd17c968a81121416d19f45423e273b9d941b694405a0c3762"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/14b-light-calendar.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "336361121789b58bdc26395b4ddccfcf77b7fffa4e4b7b972c0a2d3911b3ea5b"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/15-attempt-dialog.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "88e3032ecd84fd56586aad1d0a0a4ceaf1351919f4050d74f0eb992da0b9d3fd"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/16a-homework-history.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "7192a488fb9f86e868b016d28da99dc39674c279916fe95428d812312ced7f91"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/18-library.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "0443755ee8867440ed87941c37b1fae691c2b193fcc874dd871023104d2c81bc"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/19-narrow-journal.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1209f94e207d4a6c131a07ca49ab97330a953e23c36d77089f0a275995985b2a"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/dpi-100/21-narrow-history-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3c331c1808961c2763777db13f1434ed91296bcb53e48f7819faf27409b6f056"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-calendar-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3a27c862c049f9f7006c113a4fcce14b2bbbff5b2f921935287fef2aec0944ae"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-calendar-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "3a27c862c049f9f7006c113a4fcce14b2bbbff5b2f921935287fef2aec0944ae"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-charts-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "bf811f3fb42958267abee52da5044da7d435e0531637250b008bbaf9a8d31eba"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-charts-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e2e7971af949db271761efe04c1cac2af7e2a7ae21a98344052677b5d1616d73"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-control-task-skill.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "93d9ec56d3abcdc0496d3e489877f16c676aa5a0ebca3e4d7791266fb5ebcc6a"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-dark-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e9e537d2f7203d921c9c032324ed46c5a95ddc28760fc96406fb57ee432416b8"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-dark-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "f8e40eceb2eaa7e69254fc118eba45f1bac6e9af9a64a878aacb6c55a7858c8b"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-discipline-dark-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c00c0d039f535eb137bfd9a0309a2730e75a1cbe821a6e7eb61175e9acd40659"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-discipline-dark-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "40e57b9a0ea5733acf0e498b2f3ea6a40fc1c354f3772f1a559138b0f642bfe8"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-discipline-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c00c0d039f535eb137bfd9a0309a2730e75a1cbe821a6e7eb61175e9acd40659"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-discipline-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "fea20b5d7d0a3f3a4d7ae90f5c8c5d430e73451f74a52851b55024a508fa9e57"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-empty-result-validation.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "2886313826cae435f1727bb6faa5743898753a04fb4bd9e1628dd79c997899d9"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-fresh.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "971a809b85ad5ed2bb94dd34f7e5204461fa0341260bac5dda25a1e5f85335a4"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-home-dark-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d077fd0dc1e97555480a9e1df0535ec8d454c96db96f703b15287fb4c1529a46"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-home-dark-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "0fe9bd370ed1486f6a10581c2f359003ed883a38e9de4722799954db5254b769"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-home-launch-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "d077fd0dc1e97555480a9e1df0535ec8d454c96db96f703b15287fb4c1529a46"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-home-launch-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "42f2a2d809b4e726dfb8abdff5509af8a238215d4011027cf2bcb733241adebf"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-home-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "9700062f0ca4ef6ca9a12a998bf62bdad3f96238fdfa856b8f4a373df35f11f2"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-home-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "42f2a2d809b4e726dfb8abdff5509af8a238215d4011027cf2bcb733241adebf"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-homework-attempt.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "32f7621ad377fb95ebed0db0f4ad2fba753f2ad43daa3dbfb7f78d4e6ebf6b6d"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-image-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e0832b2ebbefa83767481a2426e6b0b1d0249b7baa7b0708beba34e11c1a9260"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-image-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "e540dc2a300f49609d8b35ed5e16733bbd5705ff0170ce8053b75a0cbe892107"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-journal-dark-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "26198b5169da883a669a2412b3586056a7bfdc456824186f4f870a900002e85c"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-journal-dark-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b9e5512adc8ce67f54d8e260c8c8d37bc0ebabaa085eacc64d41714000e44bbf"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-journal-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "a9892be4a706c3af125f9ed486340dbfa5eb8b4985f0fabcac0d6b7b83d093f5"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-journal-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "098b323290c4ba1a7f67cbd0da8bdde98f0aa6f2ac2b3bc4ea75288e87efa3f5"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-migration.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "1cb04b67f06d6f3881f8ee5baccc9f102a95f7bd5bc4d79056943e8a813bf704"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-pdf-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "145349875540a005011435d6c22c4d145145d8b3374b4985692b51fc0ef54611"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-pdf-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "fb944db2ef27a4176f9875f534c1841f6f5aaf0f9480a426bcd20e0121af50de"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-picker-files.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "456bc0e0b25e191620c3186e60b8b7eb2b68f6e24b75a61d975ec3b2b648dbed"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-program-dark-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c10cd03067e955d5a2dada1b5f823164e578a984c191822f78e82d0f912f136d"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-program-dark-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "dc5c0d6a6f87414022c67548a0beb7db222ecea0b1ff86b1e1ca11f67ea5ca50"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-program-modules-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "b30e5c451453725e11f298a0c182bb0dd231952b60fc3e0653f9dee90a06c10f"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-program-modules-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "452176ee266ac0a827ac88846cd0f9ace819ff971be5cf9d1ca798dbb3403de1"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-program-overview-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "c10cd03067e955d5a2dada1b5f823164e578a984c191822f78e82d0f912f136d"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-program-overview-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "8f42b67cf4031b3c7ada9d68c9354ed9b4eab243b1411c297fecc5ebe0cad268"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-radial-reopen.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "6b65b43d0296055dc9c6787fddeedae228c82f684168af7da75c8d7dd1526e2a"
+      ]
+    },
+    "docs/screenshots/visual_match_pass/packaged/iteration2_5-exe-radial-workflow.png": {
+      "classification": "synthetic-screenshot",
+      "sha256": [
+        "2d5b06c6ecedb1be78125ce8ec881da4db4445060710a02892cba0390699c4b1"
+      ]
+    }
+  },
+  "blocked_sha256": {},
+  "redactions": {}
+}

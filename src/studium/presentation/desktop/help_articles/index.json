@@ -1,0 +1,128 @@
+[
+  {
+    "id": "getting-started",
+    "title": "Начало работы",
+    "section": "Быстрый старт",
+    "file": "getting-started.md"
+  },
+  {
+    "id": "periods",
+    "title": "Учебные периоды",
+    "section": "Организация",
+    "file": "periods.md"
+  },
+  {
+    "id": "courses",
+    "title": "Создать дисциплину",
+    "section": "Организация",
+    "file": "courses.md"
+  },
+  {
+    "id": "programs",
+    "title": "Рабочая программа",
+    "section": "Организация",
+    "file": "programs.md"
+  },
+  {
+    "id": "groups",
+    "title": "Добавить группу",
+    "section": "Организация",
+    "file": "groups.md"
+  },
+  {
+    "id": "students",
+    "title": "Студенты и состав группы",
+    "section": "Работа",
+    "file": "students.md"
+  },
+  {
+    "id": "journal",
+    "title": "Работать с журналом",
+    "section": "Работа",
+    "file": "journal.md"
+  },
+  {
+    "id": "attendance",
+    "title": "Отметить посещаемость",
+    "section": "Работа",
+    "file": "attendance.md"
+  },
+  {
+    "id": "homework",
+    "title": "Домашнее задание",
+    "section": "Работа",
+    "file": "homework.md"
+  },
+  {
+    "id": "control",
+    "title": "Рубежный контроль из банка",
+    "section": "Работа",
+    "file": "control.md"
+  },
+  {
+    "id": "problem-bank",
+    "title": "Банк задач и предпросмотр",
+    "section": "Библиотека",
+    "file": "problem-bank.md"
+  },
+  {
+    "id": "families",
+    "title": "Задача с вариантами схем",
+    "section": "Библиотека",
+    "file": "families.md"
+  },
+  {
+    "id": "seminars",
+    "title": "План семинара и задачи",
+    "section": "Библиотека",
+    "file": "seminars.md"
+  },
+  {
+    "id": "materials",
+    "title": "Лекции, литература и материалы",
+    "section": "Библиотека",
+    "file": "materials.md"
+  },
+  {
+    "id": "topics",
+    "title": "Темы, подтемы и навыки",
+    "section": "Содержание",
+    "file": "topics.md"
+  },
+  {
+    "id": "attempts",
+    "title": "История попыток и файлы",
+    "section": "Студент",
+    "file": "attempts.md"
+  },
+  {
+    "id": "progress",
+    "title": "Прогресс студента",
+    "section": "Студент",
+    "file": "progress.md"
+  },
+  {
+    "id": "reporting",
+    "title": "Отчёты и экспорт",
+    "section": "Работа",
+    "file": "reporting.md"
+  },
+  {
+    "id": "files",
+    "title": "Как хранятся файлы",
+    "section": "Данные",
+    "file": "files.md"
+  },
+  {
+    "id": "deletion",
+    "title": "Удаление и сохранность истории",
+    "section": "Данные",
+    "file": "deletion.md"
+  },
+  {
+    "id": "settings",
+    "title": "Настройки и резервная копия",
+    "section": "Данные",
+    "file": "settings.md"
+  }
+]

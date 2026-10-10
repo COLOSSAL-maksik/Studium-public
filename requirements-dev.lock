@@ -1,0 +1,20 @@
+# Verified Windows x64 / Python 3.12.10 development environment, 2026-09-30.
+# Install these pins, then: python -m pip install --no-deps -e .
+Mako==1.4.3
+MarkupSafe==3.0.3
+PySide6==6.11.2
+PySide6_Addons==6.11.2
+PySide6_Essentials==6.11.2
+Pygments==2.21.0
+SQLAlchemy==2.1.1
+alembic==1.20.0
+colorama==0.4.6
+coverage==7.16.2
+iniconfig==2.3.0
+packaging==26.3
+pluggy==1.6.0
+pytest==9.1.1
+pytest-cov==7.1.0
+ruff==0.16.9
+shiboken6==6.11.2
+typing_extensions==4.16.0
