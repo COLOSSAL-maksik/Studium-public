@@ -1,5 +1,28 @@
 # Backlog Studium
 
+## QA-A — актуальное дополнение 2026-10-11
+
+| Задача | Состояние | Следующий результат |
+|---|---|---|
+| B1–B6 product contracts | Согласованы; B4 integer default + fractional 2 digits/OFF, B2 confirmed deadline после семестра | [Технический review contracts/mapping](QA_A_CONTRACTS.md), не повторная продуктовая анкета |
+| Documentation scope QA-A-PR-01 | Документы подготовлены по actual main `b620ef3635c2965ad3630bae15d00d1b7bd9a82d`; implementation/manual NOT RUN | Один docs PR; actual quality/repository-safety на final HEAD, отдельный review/merge владельцем |
+| Ближайший implementation | Не начат; предложен PR-02 directions foundation, 10-PR plan не утверждён | Отдельное задание после technical review; concrete FK/code import, raw preservation, backup/new-head tests |
+| Score foundation/UI | PR-09/10 — предложения, не созданы | Int64 exact cents/range, mode validation/ReviewGrade/rule snapshots; затем сохраняемый Settings toggle/unsaved validation/historical display |
+| B7–B9 | Не решаются в QA-A docs | QA-B queue/summary и QA-C structured answers |
+
+Min уже решён. Исходные 30 требований и их статусы/приоритеты не закрыты;
+порядок QA-A → QA-B → QA-C → QA-D сохраняется. Product agreement не является
+implementation acceptance. История прежнего backlog ниже сохраняется.
+
+Дополнение review 2026-10-11 после `3649afaee48be28d27f81ac41aff86087d594636`:
+[B2](QA_A_CONTRACTS.md#b2-student-debt) — индивидуальные долги T1 в T2,
+обязательные работы/explicit ACCEPTED и original offering history (011/029).
+Схема required-work/closure и write preconditions ended membership/explicit
+archive требуют technical review; полный доступ/регистрация/queue/summary — QA-B,
+не новый QA-A UI. QA-A-REV-01/02 устраняются в docs; future score checks включают
+reject REVISION_REQUIRED→SCORED и OFF integer score с unchanged fractional bounds.
+Directions foundation по-прежнему следующий proposed scope, не начатая работа.
+
 ## QA — актуальное дополнение 2026-10-10
 
 [Реестр 30 требований](QA_REGISTER.md) сохраняет номера и приоритеты;

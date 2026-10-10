@@ -1,5 +1,32 @@
 # Этапы Studium
 
+## QA-A — актуальное дополнение 2026-10-11
+
+[Контракты/migration mapping](QA_A_CONTRACTS.md) документируют согласованные
+B1–B6 на actual main `b620ef3635c2965ad3630bae15d00d1b7bd9a82d`:
+content freeze/ordinal→period, confirmed deadlines вне module/semester,
+typed date-only/exact, integer default + fractional toggle 2 digits/OFF,
+submission/review/Grade и выбранные rules. Technical proposals ещё требуют review.
+
+Документационный scope PR-01 подготовлен; implementation не начат. План из 10 PR
+не утверждён. Предлагаемый следующий небольшой PR-02 — directions foundation
+и schema/backup compatibility с сохранением raw legacy text, без большой формы;
+prerequisites/tests/exit указаны в контрактном документе. PR-09 должен включить
+точное storage/range/validation и ReviewGrade/rule/evidence основу, PR-10 — UI
+сохраняемого fractional toggle, unsaved validation и историческое отображение.
+B7–B9 и полный review queue остаются своим следующим этапам.
+
+Порядок QA-A → QA-B → QA-C → QA-D, ID/приоритеты и отдельная приёмка/merge
+каждого этапа сохранены. Product agreement не означает implementation/manual PASS;
+application/migration/Windows/manual tests NOT RUN. История roadmap ниже сохранена.
+
+Дополнение review 2026-10-11 после исходного HEAD PR #2:
+[B2](QA_A_CONTRACTS.md#b2-student-debt) фиксирует required-work/individual closure
+границу и долг прошлого семестра, не растягивая calendar группы. Полный доступ
+и регистрация/сводка/queue в active T2 относятся к QA-B (027/029/017);
+ended-enrollment/explicit archive policy требует technical review. Score PR-09/10
+учитывают QA-A-REV-01/02 из contracts; никакого нового implementation PR сейчас.
+
 ## QA — актуальное дополнение 2026-10-10
 
 Архитектурный аудит 30 ST-QA завершён; требования и технические evidence —

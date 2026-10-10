@@ -1,5 +1,31 @@
 # Состояние Studium
 
+## Актуальное дополнение — 2026-10-11
+
+Actual main перед работой: `b620ef3635c2965ad3630bae15d00d1b7bd9a82d`.
+Отдельно подготовлены [QA-A contracts/migration mapping](QA_A_CONTRACTS.md) и
+[ADR-049](../decisions.md#adr-049--qa-a-product-contracts). B1–B6 согласованы
+продуктово; B4 — integer default + сохраняемый fractional toggle 2 digits/OFF,
+B2 разрешает подтверждённый deadline после семестра, но не module за семестром.
+Technical schema/storage/Grade proposals ожидают review. Разбиение на 10 PR
+не утверждено; ближайший предложенный implementation — directions foundation
+PR-02 с backup support и preservation tests, после отдельного задания.
+
+Все 30 ID/приоритеты и QA-A → QA-B → QA-C → QA-D сохранены. Исходные статусы
+2/22/6 — прежняя статическая оценка, не исправленные замечания. Код приложения,
+миграции, dependencies, CI и installer не изменены; implementation/manual acceptance
+не выполнены. Application/migration/Windows/manual tests NOT RUN. Документационные
+локальные проверки и ordinary required quality/safety **итогового HEAD** публикуются
+в PR/отчёте, отдельно от предыдущих CI результатов ниже. Merge не выполнен.
+
+Последующее documentation review 2026-10-11 на базе HEAD
+`3649afaee48be28d27f81ac41aff86087d594636`: [B2](QA_A_CONTRACTS.md#b2-student-debt)
+добавляет индивидуальный долг T1 при active T2 и закрытие по ACCEPTED всех
+обязательных работ. Исправлены QA-A-REV-01/02 (Review transitions и unchanged
+rule bounds snapshot при OFF). Mandatory/closure модель и запись при ended
+membership/explicit archive не реализованы; полный UI долгов — QA-B. Это новое
+уточнение после первоначальных contracts, не ранее выполненная функция.
+
 ## Актуальное дополнение — 2026-10-10
 
 База архитектурного аудита: public `main`,
