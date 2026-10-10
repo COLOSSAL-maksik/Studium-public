@@ -1,8 +1,6 @@
 """Upgrade populated historical copies; no production database or originals touched."""
 
-import hashlib
 import shutil
-import subprocess
 from datetime import timedelta
 from pathlib import Path
 
@@ -179,12 +177,15 @@ def test_fresh_analytics_database_reopens_with_unchanged_schema(tmp_path):
 
 
 def test_all_four_historical_migration_snapshots_unchanged():
+    import hashlib
+    import json
+
     root = Path(__file__).resolve().parents[2]
+    expected = json.loads((root / "tests/fixtures/migration_hashes.json").read_text())
     for version in range(1, 6):
         for suffix in ("py", "sql"):
             relative = (
                 f"src/studium/infrastructure/database/migrations/versions/v000{version}.{suffix}"
             )
-            before = subprocess.check_output(["git", "show", "02eaeac:" + relative], cwd=root)
-            after = (root / relative).read_bytes().replace(b"\r\n", b"\n")
-            assert hashlib.sha256(after).digest() == hashlib.sha256(before).digest()
+            current = (root / relative).read_bytes()
+            assert hashlib.sha256(current).hexdigest() == expected[relative]

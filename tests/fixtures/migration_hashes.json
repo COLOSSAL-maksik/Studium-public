@@ -1,0 +1,12 @@
+{
+  "src/studium/infrastructure/database/migrations/versions/v0001.py": "c892fbf76b173b31c464d63a8db0aa3866c92d7f8a78f2cdd8f3965bbc6b9837",
+  "src/studium/infrastructure/database/migrations/versions/v0001.sql": "59590101ef4d81ac85cf2e9ba1ccf3a943093fb3f94354c2af944bfb7b7d2123",
+  "src/studium/infrastructure/database/migrations/versions/v0002.py": "90fadc849571b832f78d127aee86f027fd967bf5d41aacee985583a259ba7404",
+  "src/studium/infrastructure/database/migrations/versions/v0002.sql": "b78cd78e84f9b1ebd8e45384f1d5a81fa0e222b9eb0b245e9eb1a48aab717b26",
+  "src/studium/infrastructure/database/migrations/versions/v0003.py": "77e11f918b2b26dae3a88a0372f25cc85d40e815c87e007dd708a4fad8893859",
+  "src/studium/infrastructure/database/migrations/versions/v0003.sql": "fcfcab12c769cdb9f552ee5c9294f53d998b295798f9b444460e9e06c5082d8f",
+  "src/studium/infrastructure/database/migrations/versions/v0004.py": "52d4a9e3c0503d1a02ffe77e4af3bb118159d4b59a1f0eabad1150f9608579b4",
+  "src/studium/infrastructure/database/migrations/versions/v0004.sql": "7beae8f7b8de0a284697a7d3f64f5ac87255818b057d5881944a4724b5cf7e39",
+  "src/studium/infrastructure/database/migrations/versions/v0005.py": "cacafdc40cdab2330e532f113fbba7f0abf41fa23fdaf638bf37cf523f816473",
+  "src/studium/infrastructure/database/migrations/versions/v0005.sql": "9ff6fa13f76e8cf3214c94f24d838c7334614bec1e2db27cba642bf5d8a5dc60"
+}

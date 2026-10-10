@@ -1,8 +1,6 @@
 """Upgrade actual copies of populated historical databases, preserving facts."""
 
-import hashlib
 import shutil
-import subprocess
 from pathlib import Path
 
 import pytest
@@ -86,12 +84,15 @@ def test_populated_historical_copy_to_v4_preserves_all_data_schema_and_original(
 
 
 def test_historical_v1_v2_v3_snapshots_unchanged():
+    import hashlib
+    import json
+
     root = Path(__file__).resolve().parents[2]
-    for version in (1, 2, 3):
+    expected = json.loads((root / "tests/fixtures/migration_hashes.json").read_text())
+    for version in range(1, 4):
         for suffix in ("py", "sql"):
             relative = (
                 f"src/studium/infrastructure/database/migrations/versions/v000{version}.{suffix}"
             )
-            original = subprocess.check_output(["git", "show", "fd307f7:" + relative], cwd=root)
-            current = (root / relative).read_bytes().replace(b"\r\n", b"\n")
-            assert hashlib.sha256(current).digest() == hashlib.sha256(original).digest()
+            current = (root / relative).read_bytes()
+            assert hashlib.sha256(current).hexdigest() == expected[relative]

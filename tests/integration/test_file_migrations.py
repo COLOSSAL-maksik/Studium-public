@@ -120,13 +120,15 @@ def test_populated_phase3_v2_copy_upgrade_preserves_every_fact_and_schema(tmp_pa
 
 
 def test_historical_migrations_unchanged_in_git():
-    # SHA-256 from accepted Phase 3, independent of new v3 schema.
     import hashlib
-    import subprocess
+    import json
 
     root = Path(__file__).resolve().parents[2]
-    for name in ("v0001.py", "v0001.sql", "v0002.py", "v0002.sql"):
-        relative = "src/studium/infrastructure/database/migrations/versions/" + name
-        original = subprocess.check_output(["git", "show", "2033b89:" + relative], cwd=root)
-        current = (root / relative).read_bytes().replace(b"\r\n", b"\n")
-        assert hashlib.sha256(current).digest() == hashlib.sha256(original).digest()
+    expected = json.loads((root / "tests/fixtures/migration_hashes.json").read_text())
+    for version in range(1, 3):
+        for suffix in ("py", "sql"):
+            relative = (
+                f"src/studium/infrastructure/database/migrations/versions/v000{version}.{suffix}"
+            )
+            current = (root / relative).read_bytes()
+            assert hashlib.sha256(current).hexdigest() == expected[relative]
