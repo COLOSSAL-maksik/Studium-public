@@ -1,5 +1,32 @@
 # Решения и открытые вопросы
 
+<a id="adr-048--qa-register-и-семантика-min"></a>
+
+## ADR-048 — QA Register и семантика min
+
+**Дата:** 2026-10-10. **Статус:** ACCEPTED для требований и смысла min;
+implementation schema/Grade lifecycle остаются предметом последующих решений.
+
+[QA Register](management/QA_REGISTER.md) содержит 30 исходных ST-QA,
+[QA Audit](management/QA_AUDIT.md) — evidence и последовательный план.
+Порядок QA-A → QA-B → QA-C → QA-D, исходные ID/приоритеты неизменны.
+Аудит документационный: не начинает QA-A и не закрывает manual acceptance.
+
+ST-QA-030: min — минимальный начисляемый балл, не порог зачёта. Для min=18,
+max=30 начисление допускает только 18–30 включительно; отсутствие оценки и
+доработка — отдельные состояния без автоматического нуля. Exact decimal values
+и immutable история отдельных попыток обязательны. Ноль может быть реальным
+баллом лишь в допустимом индивидуальном диапазоне, а не заменой отсутствия.
+
+ADR-009/010/018/030 описывают действующие legacy Grade/projection/semantic lock;
+этим решением их реализация не меняется. Для новых scoring rules требуются
+explicit version/snapshot и compatibility resolver, сохранение old REAL facts
+и historical max. Precision, review→submission/Grade binding и применение
+новых критериев к будущим проверкам — B4–B6 аудита, смысл min уже закрыт.
+ADR-039 остаётся описанием текущей семестровой модели до implementation 003;
+proposed независимые content/version и offering plan не объявлены реализованными.
+OPEN-002/009/011 сохраняют прежнюю историю и открытые остатки.
+
 > Документ относится к Studium как независимому локальному приложению.
 > Bender — отдельный проект; будущая интеграция использует локальный JSON-RPC
 > 2.0 over stdio. Прямые импорты Bender, API/client, облачный сервер и новые

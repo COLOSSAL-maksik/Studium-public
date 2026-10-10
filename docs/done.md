@@ -1,5 +1,20 @@
 # Реализованные компоненты Studium
 
+## Актуальное дополнение — 2026-10-10
+
+Выполнен документационный [аудит 30 ST-QA](management/QA_AUDIT.md),
+создан [реестр](management/QA_REGISTER.md), записан последовательный план QA-A.
+Файлы/functions/tests, delta модели/сервисов/UI/миграций, зависимости,
+риски сохранности и acceptance зафиксированы для каждого исходного ID.
+По коду: 2 реализованы, 22 частично, 6 отсутствуют; manual 30/30 NOT RUN.
+QA-A не реализуется в этой работе. Новые схемы и scoring contracts — предложения.
+
+Публичная база и existing Quality/safety success актуализированы в
+[PROJECT_STATUS](management/PROJECT_STATUS.md); это прежние проверки базы,
+не evidence закрытия QA. Локальные documentation/safety проверки — в PR.
+
+## История — сохранённые компоненты и подготовка исходников
+
 Самостоятельный source repository сохраняет локальное приложение, domain/application contracts,
 SQLite/Alembic v0001–v0009, группы/студентов/программы, попытки/оценки,
 immutable file storage, Q&A, factual analytics, отчёты и backup/recovery.

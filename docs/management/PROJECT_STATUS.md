@@ -1,5 +1,28 @@
 # Состояние Studium
 
+## Актуальное дополнение — 2026-10-10
+
+База архитектурного аудита: public `main`,
+`ef5414faa594eba0f339d4208d605c92e98de903`. Проверено по исходникам:
+30/30 ST-QA; 2 реализованы, 22 частично, 6 отсутствуют. Это статусы реализации,
+не закрытие ручной приёмки. [Матрица и evidence](QA_AUDIT.md),
+[реестр](QA_REGISTER.md), [последовательные PR QA-A](QA_AUDIT.md#qa-a-pr-plan).
+Программа связана с периодом; normalized directions, schedule history,
+exact min/max, review/return lifecycle требуют расширений. Min уже решён:
+минимальный начисляемый балл; отсутствие оценки и доработка без автоматического 0.
+
+Для указанной базы прочитаны существующие публичные результаты
+[Quality](https://github.com/COLOSSAL-maksik/Studium-public/actions/runs/38081188251)
+и [Repository safety](https://github.com/COLOSSAL-maksik/Studium-public/actions/runs/38081144482)
+— success; main защищён с required quality/repository-safety.
+Это актуализирует прежнюю запись о локальной подготовке ниже. Результаты базы
+не являются evidence исправления ST-QA или native Windows/manual PASS.
+В документационном аудите Actions не запускались, pytest/Ruff/package/manual
+NOT RUN; приложение, миграции, зависимости, CI и установщик не менялись.
+Implementation QA-A ожидает отдельной задачи и решения зависимых контрактов.
+
+## История состояния — подготовка самостоятельных исходников
+
 Studium — самостоятельное локальное приложение преподавателя с PySide6,
 SQLAlchemy/Alembic и SQLite. Source содержит учебные программы, группы/студентов,
 работы/попытки/оценки, immutable attachments, Q&A, factual analytics,
