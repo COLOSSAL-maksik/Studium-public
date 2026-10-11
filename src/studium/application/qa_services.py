@@ -8,6 +8,8 @@ from datetime import date, timedelta, timezone
 from pathlib import Path
 
 from studium.application.errors import ApplicationError
+from studium.application.qa_content_sources import QAContentSources
+from studium.application.qa_summary import QASummary
 from studium.domain import entities as e
 from studium.domain import qa as q
 from studium.domain.enums import AssessmentType, AttemptResult, GradeKind, StudentWorkStatus
@@ -88,7 +90,7 @@ class StudentModuleResult:
     offering_id: EntityId | None = None
 
 
-class QAPackageService:
+class QAPackageService(QAContentSources, QASummary):
     def find_student_work(self, student_id, assessment_id):
         return self._r.works.find_for_student(student_id, assessment_id, include_deleted=True)
 
@@ -193,6 +195,13 @@ class QAPackageService:
                 for link in getattr(r, name).list()
                 if link.definition_id in definition_ids
             ]
+        data["problem_snapshots"] = [
+            self._problem_snapshot(r, EntityId(id))
+            for id in sorted({str(v["problem_id"]) for v in data["definition_problems"]})
+        ]
+        data["definition_files"] = {
+            str(id): self._definition_files_snapshot(r, id) for id in definition_ids
+        }
         for field, repository in (
             ("topic_ids", r.topics),
             ("skill_ids", r.skills),
@@ -206,6 +215,31 @@ class QAPackageService:
                     raise ApplicationError("learning_course_mismatch")
                 snapshots.append(record(value))
             data[field + "_snapshots"] = snapshots
+        data["material_files"] = {
+            name: {
+                str(v["id"]): [record(link) for link in getattr(r, attachments).for_owner(v["id"])]
+                for v in data.get(field + "_snapshots", [])
+            }
+            for field, name, attachments in (
+                ("seminar_material_ids", "seminars", "seminar_attachments"),
+                ("literature_item_ids", "literature", "literature_attachments"),
+            )
+        }
+        data["file_asset_ids"] = sorted(
+            {
+                str(v["file_asset_id"])
+                for files in [
+                    *data["definition_files"].values(),
+                    *(p["files"] for p in data["problem_snapshots"]),
+                    *(
+                        files
+                        for materials in data["material_files"].values()
+                        for files in materials.values()
+                    ),
+                ]
+                for v in files
+            }
+        )
         data["provenance"] = "explicit"
         return document(data)
 
@@ -217,6 +251,7 @@ class QAPackageService:
             "definition_id": [w["definition_id"] for w in data.get("works", [])],
             "seminar_material_id": data.get("seminar_material_ids", []),
             "literature_item_id": data.get("literature_item_ids", []),
+            "file_asset_id": data.get("file_asset_ids", []),
         }
         for field, ids in fields.items():
             for id in set(ids):
@@ -402,6 +437,7 @@ class QAPackageService:
                 sort_order=source.get("sort_order", 0),
             )
             r.plan_modules.insert(value)
+            self._save_content_source(r, plan, module=value, content={"module": source})
             modules[source.get("key", source.get("id"))] = value.id
         definitions = {str(d["id"]): d for d in data.get("definitions", [])}
         for source in data.get("works", []):
@@ -418,6 +454,7 @@ class QAPackageService:
                 number=definition.get("label", ""),
             )
             r.planned_works.insert(value)
+            self._save_content_source(r, plan, work=value, content=data)
 
     def semester_plan(self, offering_id):
         with self._transaction() as r:
@@ -444,6 +481,7 @@ class QAPackageService:
             "plan": record(plan),
             "modules": [record(m) for m in snapshot.modules],
             "works": [record(w) for w in snapshot.works],
+            "content_sources": [record(v) for v in r.plan_content_sources.for_owner(plan.id)],
         }
         r.plan_history.insert(
             q.PlanHistory(
@@ -618,6 +656,7 @@ class QAPackageService:
             if conflicts:
                 raise ValueError("; ".join(conflicts))
             r.plan_modules.insert(value)
+            self._save_content_source(r, plan, module=value)
             plan = self._update(r.semester_plans, plan, configured=True)
             self._capture_plan(r, plan, "Добавлен модуль")
             return value
@@ -661,6 +700,7 @@ class QAPackageService:
             if conflicts or warnings and not confirmed:
                 raise ValueError("; ".join(conflicts or warnings))
             r.planned_works.insert(value)
+            self._save_content_source(r, plan, work=value)
             plan = self._update(r.semester_plans, plan, configured=True)
             self._capture_plan(r, plan, "Добавлена работа")
             return value
@@ -678,12 +718,18 @@ class QAPackageService:
             issued_at = actual_issued_at or self._clock()
             if issued_at > self._clock():
                 raise ValueError("Фактическая выдача не может быть в будущем")
+            content = self._work_content(r, work)
+            definition = next(
+                (d for d in content.get("definitions", []) if d["id"] == str(work.definition_id)),
+                {},
+            )
             assessment = e.Assessment(
                 metadata=self._meta(),
                 offering_id=plan.offering_id,
                 type=work.type,
                 title=work.title,
                 number=work.number,
+                description=definition.get("description", ""),
                 issued_at=issued_at,
                 due_at=None,
                 homework_definition_id=work.definition_id,
@@ -698,62 +744,51 @@ class QAPackageService:
                 )
             )
             if work.definition_id:
-                frozen = {}
-                if plan.program_version_id:
-                    version = self._require(
-                        r.program_versions, plan.program_version_id, historical=True
-                    )
-                    content = json.loads(version.content_json)
-                    if any(
-                        str(d["id"]) == str(work.definition_id)
-                        for d in content.get("definitions", [])
-                    ):
-                        frozen = {
-                            name: [
-                                link
-                                for link in content.get(name, [])
-                                if link["definition_id"] == str(work.definition_id)
-                            ]
-                            for name in (
-                                "definition_topics",
-                                "definition_skills",
-                                "definition_problems",
-                            )
-                        }
+                frozen = content
                 for links_name, targets_name, cls, target in (
                     ("definition_topics", "assessment_topics", e.AssessmentTopic, "topic_id"),
                     ("definition_skills", "assessment_skills", e.AssessmentSkill, "skill_id"),
                 ):
-                    sources = frozen.get(
-                        links_name, getattr(r, links_name).for_owner(work.definition_id)
-                    )
-                    for source in sources:
-                        getattr(r, targets_name).insert(
-                            cls(
-                                metadata=self._meta(),
-                                assessment_id=assessment.id,
-                                **{
-                                    target: EntityId(source[target])
-                                    if isinstance(source, dict)
-                                    else getattr(source, target)
-                                },
+                    for source in frozen.get(links_name, []):
+                        if source["definition_id"] == str(work.definition_id):
+                            getattr(r, targets_name).insert(
+                                cls(
+                                    metadata=self._meta(),
+                                    assessment_id=assessment.id,
+                                    **{target: EntityId(source[target])},
+                                )
                             )
-                        )
+                problems = {v["source"]["id"]: v for v in frozen.get("problem_snapshots", [])}
                 for source in sorted(
-                    frozen.get(
-                        "definition_problems", r.definition_problems.for_owner(work.definition_id)
-                    ),
-                    key=lambda v: (
-                        (v["sort_order"], v["id"]) if isinstance(v, dict) else (v.sort_order, v.id)
-                    ),
+                    frozen.get("definition_problems", []), key=lambda v: (v["sort_order"], v["id"])
                 ):
+                    if source["definition_id"] != str(work.definition_id):
+                        continue
+                    snapshot = problems.get(source["problem_id"])
+                    if snapshot is None:
+                        raise ValueError(
+                            "Нет сохранённого содержания задачи; создайте новую явную версию"
+                        )
                     self._add_assessment_problem(
                         r,
                         assessment,
-                        EntityId(source["problem_id"])
-                        if isinstance(source, dict)
-                        else source.problem_id,
-                        source["sort_order"] if isinstance(source, dict) else source.sort_order,
+                        EntityId(source["problem_id"]),
+                        source["sort_order"],
+                        snapshot=snapshot,
+                    )
+                from studium.domain import content as c
+                from studium.domain import program as p
+
+                for source in frozen.get("definition_files", {}).get(str(work.definition_id), []):
+                    r.assessment_attachments.insert(
+                        p.AssessmentAttachment(
+                            metadata=self._meta(),
+                            assessment_id=assessment.id,
+                            file_asset_id=EntityId(source["file_asset_id"]),
+                            role=c.MaterialFileRole(source["role"]),
+                            sort_order=source["sort_order"],
+                            caption=source.get("caption", ""),
+                        )
                     )
             if work.min_cents is not None:
                 r.scoring_rules.insert(
@@ -803,6 +838,26 @@ class QAPackageService:
             raise ApplicationError("active_enrollment_required")
         return work, assessment
 
+    def _insert_submission_work(self, r, proposed):
+        _, context_assessment = self._submission_context(r, proposed.id, proposed)
+        memberships = [
+            en
+            for en in r.enrollments.for_offering(context_assessment.offering_id)
+            if en.student_id == proposed.student_id and en.deleted_at is None
+        ]
+        if not any(en.status.value == "ACTIVE" for en in memberships):
+            enrollment = max(memberships, key=lambda en: (en.ended_at, en.id))
+            r.late_work_authorizations.insert(
+                q.LateWorkAuthorization(
+                    metadata=self._meta(),
+                    student_work_id=proposed.id,
+                    enrollment_id=enrollment.id,
+                    student_id=proposed.student_id,
+                    assessment_id=proposed.assessment_id,
+                )
+            )
+        r.works.insert(proposed)
+
     def register_submission(
         self, work_id, received_at, *, comment="", paths=(), offset=180, _proposed=None
     ):
@@ -820,7 +875,7 @@ class QAPackageService:
         with manager as imported:
             with self._transaction() as r:
                 if _proposed:
-                    r.works.insert(_proposed)
+                    self._insert_submission_work(r, _proposed)
                 work, assessment = self._submission_context(r, work_id)
                 history = r.attempts.history(work_id, include_deleted=True)
                 attempt = e.Attempt(
@@ -1239,12 +1294,27 @@ class QAPackageService:
         self._r.answer_templates.insert(value)
         return value
 
-    def restore_debt_context(self, work_id, *, confirmed=False, reason=""):
+    def restore_student_submission_context(
+        self, student_id, assessment_id, *, confirmed=False, reason=""
+    ):
+        existing = self.find_student_work(student_id, assessment_id)
+        proposed = (
+            None
+            if existing
+            else e.StudentWork(
+                metadata=self._meta(), student_id=student_id, assessment_id=assessment_id
+            )
+        )
+        return self.restore_debt_context(
+            (existing or proposed).id, confirmed=confirmed, reason=reason, _proposed=proposed
+        )
+
+    def restore_debt_context(self, work_id, *, confirmed=False, reason="", _proposed=None):
         """Explicit restoration of mutable context; immutable facts stay untouched."""
         if not confirmed or not reason.strip():
             raise ValueError("Подтвердите восстановление исходного контекста и укажите причину")
         with self._transaction() as r:
-            work = self._require(r.works, work_id, historical=True)
+            work = _proposed or self._require(r.works, work_id, historical=True)
             assessment = self._require(r.assessments, work.assessment_id, historical=True)
             context = self._context(r, assessment.offering_id, historical=True)
             student = self._require(r.students, work.student_id, historical=True)
@@ -1266,11 +1336,15 @@ class QAPackageService:
                 ("assessments", assessment),
                 ("works", work),
             ]
+            if _proposed:
+                targets = targets[:-1]
             before = {
                 name: record(value)
                 | {"deleted_at": value.deleted_at, "active": getattr(value, "active", None)}
                 for name, value in targets
             }
+            if _proposed:
+                before["work_absent"] = True
             changed = False
             for name, original in targets:
                 if original.deleted_at is None and (name != "students" or original.active):
@@ -1285,6 +1359,9 @@ class QAPackageService:
                     )
                 else:
                     getattr(r, name).update(restored, expected_revision=original.revision)
+                changed = True
+            if _proposed:
+                self._insert_submission_work(r, _proposed)
                 changed = True
             if changed:
                 r.debt_restorations.insert(
@@ -1425,157 +1502,14 @@ class QAPackageService:
             }
             return tuple(a for a in r.assessments.list() if a.id in assessment_ids), selected
 
-    def student_package_summary(self, student_id):
-        """Bulk progress for each original period; cancelled work is outside totals."""
-        with self._transaction() as r:
-            memberships = [
-                en for en in r.enrollments.list(include_deleted=True) if en.student_id == student_id
-            ]
-            offerings = {
-                o.id: o
-                for o in r.offerings.list(include_deleted=True)
-                if o.id in {en.offering_id for en in memberships}
-            }
-            courses = {c.id: c for c in r.courses.list(include_deleted=True)}
-            groups = {g.id: g for g in r.groups.list(include_deleted=True)}
-            terms = {t.id: t for t in r.terms.list(include_deleted=True)}
-            plans = {
-                p.id: p
-                for p in r.semester_plans.list(include_deleted=True)
-                if p.offering_id in offerings
-            }
-            planned = {
-                w.id: w
-                for w in r.planned_works.list(include_deleted=True)
-                if w.semester_plan_id in plans
-            }
-            issued = {
-                i.assessment_id: planned[i.planned_work_id]
-                for i in r.issued_works.list(include_deleted=True)
-                if i.planned_work_id in planned
-            }
-            issued_ids = {w.id for w in issued.values()}
-            works = {
-                w.assessment_id: w
-                for w in r.works.list(include_deleted=True)
-                if w.student_id == student_id
-            }
-            histories = defaultdict(list)
-            for attempt in r.attempts.list(include_deleted=True):
-                histories[attempt.student_work_id].append(attempt)
-            submissions, reviews = (
-                r.submissions.list(include_deleted=True),
-                r.reviews.list(include_deleted=True),
-            )
-            all_assessments = r.assessments.list(include_deleted=True)
-            rows = []
-            for offering in offerings.values():
-                caption = f"{terms[offering.term_id].name} · {groups[offering.group_id].number} · {courses[offering.course_id].name}"
-                for kind in (
-                    AssessmentType.HOMEWORK,
-                    AssessmentType.CONTROL_WORK,
-                    AssessmentType.EXAM,
-                ):
-                    assessments = [
-                        a
-                        for a in all_assessments
-                        if a.offering_id == offering.id and a.type == kind
-                    ]
-                    active = [
-                        a for a in assessments if not (issued.get(a.id) and issued[a.id].cancelled)
-                    ]
-                    completed, accepted = 0, 0
-                    for assessment in active:
-                        work = works.get(assessment.id)
-                        history = histories[work.id] if work else []
-                        completed += any(
-                            a.result
-                            in {
-                                AttemptResult.PRESENTED,
-                                AttemptResult.NEEDS_REVISION,
-                                AttemptResult.ACCEPTED,
-                                AttemptResult.SCORED,
-                                AttemptResult.REJECTED,
-                            }
-                            and a.deleted_at is None
-                            for a in history
-                        )
-                        accepted += (
-                            self._result_from_events(history, submissions, reviews).status
-                            == StudentWorkStatus.ACCEPTED
-                        )
-                    waiting = sum(
-                        w.type == kind
-                        and plans[w.semester_plan_id].offering_id == offering.id
-                        and w.id not in issued_ids
-                        and not w.cancelled
-                        for w in planned.values()
-                    )
-                    rows.append(
-                        (
-                            offering.id,
-                            caption,
-                            kind,
-                            completed,
-                            accepted,
-                            len(active),
-                            waiting,
-                            len(assessments) - len(active),
-                        )
-                    )
-            enrollment_ids = {en.id for en in memberships}
-            lesson_ids = {lesson.id for lesson in r.lessons.list() if not lesson.cancelled}
-            attendance = [
-                v
-                for v in r.attendance.list()
-                if v.enrollment_id in enrollment_ids and v.lesson_id in lesson_ids
-            ]
-            from studium.domain.enums import AttendanceStatus
-
-            counts = {
-                status: sum(v.status == status for v in attendance) for status in AttendanceStatus
-            }
-            denominator = sum(
-                counts[v]
-                for v in (AttendanceStatus.PRESENT, AttendanceStatus.LATE, AttendanceStatus.ABSENT)
-            )
-            return tuple(rows), (
-                counts[AttendanceStatus.PRESENT] + counts[AttendanceStatus.LATE],
-                denominator,
-            )
-
     def select_plan_content(self, offering_id, version_id, course_semester, *, expected_revision):
-        with self._transaction() as r:
-            plans = r.semester_plans.for_owner(offering_id)
-            if not plans:
-                raise ValueError("Сначала сохраните план семестра")
-            snapshot = self._plan_snapshot(r, plans[0])
-            if snapshot.plan.revision != expected_revision:
-                raise RepositoryError(RepositoryFailure.REVISION_CONFLICT, "План уже изменился")
-            version = self._require(r.program_versions, version_id)
-            program = self._require(r.course_programs, version.course_program_id)
-            context = self._context(r, offering_id)
-            if program.course_id != context.course.id or course_semester < 1:
-                raise ValueError("Выберите программу этой дисциплины и номер семестра")
-            plan = self._update(
-                r.semester_plans,
-                snapshot.plan,
-                program_version_id=version_id,
-                course_semester=course_semester,
-                configured=True,
-            )
-            if not snapshot.modules and not snapshot.works:
-                self._populate_content_plan(r, plan)
-                current = self._plan_snapshot(r, plan)
-                conflicts, _, _ = self._validate_calendar(plan, current.modules, current.works)
-                if conflicts:
-                    raise ValueError("; ".join(conflicts))
-            self._capture_plan(
-                r,
-                plan,
-                "Выбрана версия содержания и явный номер семестра; существующие работы сохранены",
-            )
-            return plan
+        snapshot = self.semester_plan(offering_id)
+        if snapshot and (snapshot.modules or snapshot.works):
+            raise ValueError("Непустой план требует preview и подтверждённого переназначения")
+        preview = self.preview_plan_content(
+            offering_id, version_id, course_semester, expected_revision=expected_revision
+        )
+        return self.apply_plan_content(preview, confirmed=True)
 
     def preview_new_planned_work(self, offering_id, title, type, **values):
         with self._transaction() as r:

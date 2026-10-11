@@ -91,7 +91,8 @@ class SubmissionForm(AsyncForm):
                 (
                     "История выбранной работы / восстановление",
                     lambda: run_action(self, self.open_history),
-                )
+                ),
+                ("Восстановить исходный контекст", lambda: run_action(self, self.restore_context)),
             ],
         )
         self.received = self.timestamp("occurred_at")
@@ -128,6 +129,24 @@ class SubmissionForm(AsyncForm):
 
     def save_submission(self, values):
         return self.service.register_student_submission(self.student_id, **values)
+
+    def restore_context(self):
+        from studium.presentation.desktop.components import confirm
+
+        if (
+            not self.busy
+            and self.work.currentData()
+            and confirm(
+                self,
+                "Восстановить исходный контекст выбранной работы? Завершённое участие и факты сохраняются; сдача будет зарегистрирована только отдельно.",
+            )
+        ):
+            self.service.restore_student_submission_context(
+                self.student_id,
+                self.work.currentData(),
+                confirmed=True,
+                reason="Явное восстановление исходного контекста из регистрации сдачи",
+            )
 
 
 class RuleForm(FormDialog):
@@ -576,7 +595,7 @@ class RequiredWorksForm(FormDialog):
 
 
 class PackageSummary(QWidget):
-    def __init__(self, service, student_id, parent=None):
+    def __init__(self, service, student_id, parent=None, *, on_section=None):
         super().__init__(parent)
         self.service, self.student_id = service, student_id
         layout = QVBoxLayout(self)
@@ -587,10 +606,18 @@ class PackageSummary(QWidget):
             [
                 ("Период / группа / дисциплина", lambda r: r[1]),
                 ("Категория", lambda r: ASSESSMENT_LABELS[r[2]]),
+                ("Всего выдано (активных)", lambda r: r.total),
                 ("Выполнено / выдано", lambda r: f"{r[3]} / {r[5]}"),
                 ("Зачтено / выдано", lambda r: f"{r[4]} / {r[5]}"),
                 ("Не выдано", lambda r: r[6]),
                 ("Отменено", lambda r: r[7]),
+                ("На доработке", lambda r: r.revision_required),
+                ("Ожидают проверки", lambda r: r.awaiting_review),
+                ("Не сдано в срок", lambda r: r.not_submitted_in_time),
+                (
+                    "Фактические баллы",
+                    lambda r: "; ".join(f"{title}: {score}" for _, title, score in r.scores) or "—",
+                ),
             ]
         )
         self.view = table(self.model)
@@ -603,6 +630,14 @@ class PackageSummary(QWidget):
                 ("+ Зарегистрировать сдачу", self.submission),
             ],
         )
+        if on_section:
+            toolbar(
+                layout,
+                [
+                    ("Факты тем и навыков", lambda: on_section("evidence")),
+                    ("Графики", lambda: on_section("charts")),
+                ],
+            )
         hint(layout, "Долги модулей всех периодов")
         self.debts = TableModel(
             [
@@ -637,8 +672,14 @@ class PackageSummary(QWidget):
         self.context_names = {row[0]: row[1] for row in rows}
         self.model.replace_rows(rows)
         self.caption.setText(
-            f"Посещаемость: {attendance[0]} / {attendance[1]} отмеченных занятий"
-            + (" · нет данных" if not attendance[1] else "")
+            f"Занятий: {attendance.lessons} · Посещено: {attendance.attended} · Пропущено: {attendance.absent}"
+            f" · Опоздания: {attendance.late} · Уважительные причины: {attendance.excused}"
+            f" · Неизвестно: {attendance.unknown} · Без отметки: {attendance.unmarked}\n"
+            + (
+                f"Доля посещённых: {attendance.attended} / {attendance.denominator} = {attendance.rate:.1%}"
+                if attendance.rate is not None
+                else "Доля посещённых: нет данных"
+            )
         )
         self.debts.replace_rows(self.service.student_module_results(self.student_id))
 

@@ -13,6 +13,7 @@ from studium.presentation.desktop.library import ContentEditor
 from studium.presentation.desktop.qa_content import TopicTreePicker
 from studium.presentation.desktop.qa_plans import (
     CourseVersionForm,
+    PlanContentForm,
     PlanSetupForm,
     SemesterPlanWidget,
 )
@@ -22,6 +23,7 @@ from studium.presentation.desktop.qa_workflow import (
     SubmissionForm,
     SubmissionHistory,
 )
+from studium.presentation.desktop.workflow_widgets import data_index
 from tests.integration.test_desktop import desktop as desktop
 from tests.integration.test_desktop import qt_app as qt_app
 
@@ -89,6 +91,86 @@ def test_course_version_plan_defer_independent_groups_and_required_ui(desktop, q
     for widget in (form, setup, required, page):
         widget.close()
         widget.deleteLater()
+
+
+def test_reassignment_ui_preview_cancel_and_confirm(desktop, qt_app):
+    window, runtime, _, offering, _, _ = desktop
+    s = runtime.service
+    course = s.list_courses()[0]
+    version = s.create_course_program(
+        course.id,
+        "Preview program",
+        content={
+            "modules": [
+                {
+                    "key": "m",
+                    "title": "Incoming",
+                    "course_semester": 1,
+                    "start_week": 1,
+                    "end_week": 3,
+                }
+            ]
+        },
+    )
+    s.create_semester_plan(offering.id)
+    before = s.semester_plan(offering.id)
+    context = s._context(s._r, offering.id)
+    form = PlanContentForm(s, context, before, window)
+    form.version.setCurrentIndex(data_index(form.version, version.id))
+    form.submit()
+    assert "Incoming: 1–3" in form.preview_text.toPlainText(), form.error_label.text()
+    assert form.confirmed.isEnabled()
+    assert s.semester_plan(offering.id) == before
+    form.reject()
+    assert s.semester_plan(offering.id) == before
+    form = PlanContentForm(s, context, before, window)
+    form.version.setCurrentIndex(data_index(form.version, version.id))
+    form.submit()
+    form.confirmed.setChecked(True)
+    form.submit()
+    assert form.result() == QDialog.DialogCode.Accepted, form.error_label.text()
+    assert s.semester_plan(offering.id).modules[0].title == "Incoming"
+    form.close()
+
+
+def test_first_summary_ui_has_full_metrics_and_navigation(desktop, qt_app):
+    from studium.presentation.desktop.analytics import StudentProgressWidget
+
+    window, runtime, _, offering, student, _ = desktop
+    page = StudentProgressWidget(runtime.service, student.id, offering.id, window)
+    page.show()
+    page.refresh()
+    summary = page.package_summary
+    assert page.tabs.currentWidget() is summary
+    headings = [
+        summary.model.headerData(i, Qt.Orientation.Horizontal)
+        for i in range(summary.model.columnCount())
+    ]
+    for name in (
+        "Всего выдано (активных)",
+        "На доработке",
+        "Ожидают проверки",
+        "Не сдано в срок",
+        "Фактические баллы",
+    ):
+        assert name in headings
+    for name in (
+        "Занятий:",
+        "Посещено:",
+        "Пропущено:",
+        "Опоздания:",
+        "Уважительные причины:",
+        "Доля посещённых:",
+    ):
+        assert name in summary.caption.text()
+    from PySide6.QtWidgets import QPushButton
+
+    buttons = {button.text(): button for button in summary.findChildren(QPushButton)}
+    buttons["Факты тем и навыков"].click()
+    assert page.tabs.tabText(page.tabs.currentIndex()) == "Факты по темам и навыкам"
+    buttons["Графики"].click()
+    assert page.tabs.currentWidget() is page.charts
+    page.close()
 
 
 def test_submission_review_files_and_immutable_return_ui(desktop, qt_app, tmp_path):

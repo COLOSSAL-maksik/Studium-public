@@ -6,7 +6,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, inspect
 
-SCHEMA_REVISION = "0010_qa_package"
+SCHEMA_REVISION = "0011_qa_review_fixes"
 
 
 def migration_config() -> Config:

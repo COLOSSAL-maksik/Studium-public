@@ -2,14 +2,14 @@
 
 import json
 from collections import defaultdict
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, fields, replace
 from datetime import UTC, datetime, timedelta, timezone
 
 from studium.application.errors import ApplicationError
 from studium.domain import entities as e
 from studium.domain import program as p
 from studium.domain.enums import AssessmentType
-from studium.domain.value_objects import LocalDate, UtcInstant
+from studium.domain.value_objects import EntityId, LocalDate, UtcInstant
 
 
 @dataclass(frozen=True)
@@ -527,6 +527,25 @@ class ProgramService:
         return tuple({entry.asset.id: entry for entry in entries}.values())
 
     def definition_for_assessment(self, assessment):
+        data = self._assessment_content(self._r, assessment.id)
+        if data and assessment.homework_definition_id:
+            source = next(
+                (
+                    d
+                    for d in data.get("definitions", [])
+                    if d["id"] == str(assessment.homework_definition_id)
+                ),
+                None,
+            )
+            if source:
+                current = self._require(
+                    self._r.homework_definitions, assessment.homework_definition_id, historical=True
+                )
+                content_fields = {f.name for f in fields(current) if f.name != "metadata"}
+                values = {name: value for name, value in source.items() if name in content_fields}
+                values["course_id"] = EntityId(values["course_id"])
+                values["type"] = AssessmentType(values["type"])
+                return replace(current, **values)
         if assessment.homework_definition_id:
             return self.get_material("homework", assessment.homework_definition_id, historical=True)
         if assessment.program_work_id:
@@ -535,6 +554,11 @@ class ProgramService:
         return None
 
     def assessment_shared_files(self, assessment):
+        data = self._assessment_content(self._r, assessment.id)
+        if data is not None and "definition_files" in data:
+            return self.list_material_files("assessment_files", assessment.id)
+        # Pre-v11 shared files had no historical snapshot. Preserve their tagged
+        # compatibility view; do not reinterpret an empty snapshot as lost files.
         definition = self.definition_for_assessment(assessment)
         return self.homework_files(definition.id) if definition else ()
 
@@ -621,18 +645,22 @@ class ProgramService:
             len(cases), min(dates) if dates else None, max(dates) if dates else None, cases
         )
 
-    def _add_assessment_problem(self, r, assessment, problem_id, order=0):
-        problem = self._effective_problem(r, self._require(r.problems, problem_id))
+    def _add_assessment_problem(self, r, assessment, problem_id, order=0, *, snapshot=None):
+        problem = (
+            None if snapshot else self._effective_problem(r, self._require(r.problems, problem_id))
+        )
         offering = self._require(r.offerings, assessment.offering_id)
-        if problem.course_id != offering.course_id:
+        if (
+            EntityId(snapshot["source"]["course_id"]) if snapshot else problem.course_id
+        ) != offering.course_id:
             raise ApplicationError("learning_course_mismatch")
         if r.content_locks.assessment_locked(assessment.id):
             raise ApplicationError("assessment_content_locked")
         item = e.AssessmentItem(
             metadata=self._meta(),
             assessment_id=assessment.id,
-            title=problem.title,
-            description=problem.statement,
+            title=snapshot["title"] if snapshot else problem.title,
+            description=snapshot["statement"] if snapshot else problem.statement,
             sort_order=order,
         )
         r.items.insert(item)
@@ -640,21 +668,29 @@ class ProgramService:
             p.AssessmentProblem(
                 metadata=self._meta(),
                 assessment_item_id=item.id,
-                problem_id=problem.id,
-                source_revision=problem.revision,
-                statement_snapshot=problem.statement,
+                problem_id=problem_id,
+                source_revision=snapshot["source"]["revision"] if snapshot else problem.revision,
+                statement_snapshot=snapshot["statement"] if snapshot else problem.statement,
             )
         )
         for name, dest, cls, target in (
             ("problem_topics", "item_topics", e.AssessmentItemTopic, "topic_id"),
             ("problem_skills", "item_skills", e.AssessmentItemSkill, "skill_id"),
         ):
-            for source in getattr(r, name).for_owner(problem.family_id or problem.id):
+            targets = (
+                [EntityId(id) for id in snapshot.get(target.replace("_id", "_ids"), [])]
+                if snapshot
+                else [
+                    getattr(v, target)
+                    for v in getattr(r, name).for_owner(problem.family_id or problem.id)
+                ]
+            )
+            for target_id in targets:
                 getattr(r, dest).insert(
                     cls(
                         metadata=self._meta(),
                         assessment_item_id=item.id,
-                        **{target: getattr(source, target)},
+                        **{target: target_id},
                     )
                 )
         return item
@@ -672,8 +708,15 @@ class ProgramService:
         with self._transaction() as r:
             assessment = self._require(r.assessments, item.assessment_id)
             offering = self._require(r.offerings, assessment.offering_id)
-            problem = self._effective_problem(r, self._require(r.problems, problem_id))
-            if problem.course_id != offering.course_id:
+            frozen = self._frozen_assessment_problem(r, assessment.id, problem_id)
+            problem = (
+                None
+                if frozen
+                else self._effective_problem(r, self._require(r.problems, problem_id))
+            )
+            if (
+                EntityId(frozen["source"]["course_id"]) if frozen else problem.course_id
+            ) != offering.course_id:
                 raise ApplicationError("learning_course_mismatch")
             previous = r.student_problem_assignments.find_pair(work.id, item.id)
             if previous:
@@ -686,16 +729,22 @@ class ProgramService:
                 metadata=self._meta(),
                 student_work_id=work.id,
                 assessment_item_id=item.id,
-                problem_id=problem.id,
-                source_revision=problem.revision,
-                title_snapshot=problem.title,
-                statement_snapshot=problem.statement,
+                problem_id=problem_id,
+                source_revision=frozen["source"]["revision"] if frozen else problem.revision,
+                title_snapshot=frozen["title"] if frozen else problem.title,
+                statement_snapshot=frozen["statement"] if frozen else problem.statement,
                 teacher_snapshot_json=json.dumps(
                     dict(
-                        answer=problem.correct_answer,
-                        solution=problem.solution,
-                        answer_schema=json.loads(problem.details_json),
-                        skill_ids=[
+                        answer=frozen["correct_answer"] if frozen else problem.correct_answer,
+                        solution=frozen["solution"] if frozen else problem.solution,
+                        answer_schema=json.loads(
+                            frozen["details_json"] if frozen else problem.details_json
+                        ),
+                        source_snapshot=frozen["source"] if frozen else None,
+                        family_snapshot=frozen["family"] if frozen else None,
+                        skill_ids=frozen["skill_ids"]
+                        if frozen
+                        else [
                             str(link.skill_id)
                             for link in r.problem_skills.for_owner(problem.family_id or problem.id)
                         ],
@@ -704,19 +753,31 @@ class ProgramService:
                 ),
             )
             r.student_problem_assignments.insert(value)
-            self._copy_assignment_files(r, value, self._problem_files(r, problem))
+            self._copy_assignment_files(
+                r, value, frozen["files"] if frozen else self._problem_files(r, problem)
+            )
             return value
 
     def _copy_assignment_files(self, repositories, assignment, sources):
+        from studium.domain.content import MaterialFileRole
+
         for source in sources:
             repositories.student_problem_files.insert(
                 p.StudentProblemFile(
                     metadata=self._meta(),
                     student_problem_assignment_id=assignment.id,
-                    file_asset_id=source.file_asset_id,
-                    role=source.role,
-                    sort_order=source.sort_order,
-                    caption=getattr(source, "caption", ""),
+                    file_asset_id=EntityId(source["file_asset_id"])
+                    if isinstance(source, dict)
+                    else source.file_asset_id,
+                    role=MaterialFileRole(source["role"])
+                    if isinstance(source, dict)
+                    else source.role,
+                    sort_order=source["sort_order"]
+                    if isinstance(source, dict)
+                    else source.sort_order,
+                    caption=source.get("caption", "")
+                    if isinstance(source, dict)
+                    else getattr(source, "caption", ""),
                 )
             )
 

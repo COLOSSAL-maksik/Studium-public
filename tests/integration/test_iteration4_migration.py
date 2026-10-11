@@ -10,12 +10,13 @@ from studium.composition import create_runtime
 from studium.domain.content import GenerationCriteria
 from studium.domain.enums import AssessmentType, AttemptResult
 from studium.domain.value_objects import LocalDate, UtcInstant
-from studium.infrastructure.database.migrations import migration_config
+from studium.infrastructure.database.migrations import SCHEMA_REVISION, migration_config
 from studium.infrastructure.database.session import create_database_engine, create_session_factory
 from studium.infrastructure.database.unit_of_work import repository_set, transaction_factory
 from studium.infrastructure.file_storage import LocalFileStorage
 from studium.infrastructure.user_data import JsonPreferences
 from tests.integration.test_file_migrations import snapshot
+from tests.legacy_schema import expected_schema_sql
 
 
 def test_populated_v8_upgrade_preserves_every_old_row_and_guard(tmp_path):
@@ -83,11 +84,11 @@ def test_populated_v8_upgrade_preserves_every_old_row_and_guard(tmp_path):
                     expected = (
                         sql.replace("'docx'", "'doc','docx'") if name == "file_assets" else sql
                     )
-                    assert object_map[name] == expected, name
+                    assert object_map[name] == expected_schema_sql(name, expected), name
                 assert connection.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
                 assert not connection.exec_driver_sql("PRAGMA foreign_key_check").all()
                 assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
-            assert runtime.diagnostics.schema_version == "0010_qa_package"
+            assert runtime.diagnostics.schema_version == SCHEMA_REVISION
             assert runtime.service.ticket_set_details(saved.id)[0].assignments
             for link in links:
                 assert (

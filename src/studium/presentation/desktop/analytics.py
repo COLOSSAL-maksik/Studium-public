@@ -277,7 +277,14 @@ class StudentProgressWidget(QWidget):
         self.tabs.addTab(self.metrics, "Показатели")
         from studium.presentation.desktop.qa_workflow import PackageSummary
 
-        self.package_summary = PackageSummary(service, student_id, self)
+        self.package_summary = PackageSummary(
+            service,
+            student_id,
+            self,
+            on_section=lambda section: self.tabs.setCurrentWidget(
+                evidence if section == "evidence" else self.charts
+            ),
+        )
         self.tabs.insertTab(0, self.package_summary, "Сводка")
         self.tabs.setCurrentIndex(0)
         evidence = QWidget()

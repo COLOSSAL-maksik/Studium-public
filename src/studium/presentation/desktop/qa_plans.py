@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QLineEdit,
     QMenu,
+    QPlainTextEdit,
     QSpinBox,
     QTableWidget,
     QTableWidgetItem,
@@ -373,6 +374,90 @@ class PlanSetupForm(FormDialog):
         }
 
 
+class PlanContentForm(PlanSetupForm):
+    def __init__(self, service, context, snapshot, parent=None):
+        super().__init__(service, context, parent)
+        self.service, self.context, self.snapshot = service, context, snapshot
+        self.setWindowTitle("Переназначение содержания плана")
+        for field in (self.first, self.weeks, self.offset):
+            self.form.setRowVisible(field, False)
+        self.mode = choose(
+            [
+                ("Сохранить все назначения и добавить содержание", "retain"),
+                ("Заменить невыданные работы; выданные сохранить", "replace_unissued"),
+            ]
+        )
+        self.form.addRow("Существующий план", self.mode)
+        self.preview_text = QPlainTextEdit()
+        self.preview_text.setReadOnly(True)
+        self.preview_text.setMinimumHeight(180)
+        self.body_layout.addWidget(self.preview_text)
+        self.confirmed = QCheckBox(
+            "Подтверждаю перечисленные изменения и сохранение прежних фактов"
+        )
+        self.confirmed.setEnabled(False)
+        self.body_layout.addWidget(self.confirmed)
+        self.preview = None
+        self.save_button.setText("Показать последствия")
+        self.version.currentIndexChanged.connect(self.clear_preview)
+        self.ordinal.valueChanged.connect(self.clear_preview)
+        self.mode.currentIndexChanged.connect(self.clear_preview)
+
+    def clear_preview(self, *_):
+        self.preview = None
+        self.confirmed.setChecked(False)
+        self.confirmed.setEnabled(False)
+        self.preview_text.clear()
+        self.save_button.setText("Показать последствия")
+
+    def submit(self):
+        from studium.presentation.desktop.components import error_message
+
+        try:
+            if self.preview is None:
+                self.preview = self.service.preview_plan_content(
+                    self.context.offering.id,
+                    self.version.currentData(),
+                    self.ordinal.value(),
+                    expected_revision=self.snapshot.plan.revision,
+                    mode=self.mode.currentData(),
+                )
+                p = self.preview
+                lines = ["Сохранённые модули:"] + [
+                    f"{m.title}: {m.start_week}–{m.end_week}" for m in p.retained_modules
+                ]
+                lines += ["Сохранённые работы:"] + [w.title for w in p.retained_works]
+                lines += ["Архивируемые невыданные работы:"] + [w.title for w in p.retired_works]
+                lines += ["Новые модули:"] + [
+                    f"{m['title']}: {m['start_week']}–{m['end_week']}" for m in p.incoming_modules
+                ]
+                lines += [
+                    f"Новых работ: {len(p.incoming_works)}",
+                    f"Выдачи / попытки / сдачи / проверки / наборы обязательности: {' / '.join(map(str, p.facts))}",
+                ]
+                definition_names = {
+                    d["id"]: d["title"]
+                    for d in json.loads(
+                        self.service.get_program_version(p.version_id).content_json
+                    ).get("definitions", [])
+                }
+                lines += [
+                    f"{definition_names.get(w['definition_id'], w.get('title', 'Работа'))} → модуль {w.get('module_key') or 'без модуля'}"
+                    for w in p.incoming_works
+                ]
+                lines += list(p.warnings) + list(p.conflicts)
+                self.preview_text.setPlainText("\n".join(lines))
+                self.confirmed.setEnabled(not p.conflicts)
+                self.save_button.setText("Применить подтверждённый пакет")
+                return
+            self.service.apply_plan_content(self.preview, confirmed=self.confirmed.isChecked())
+            self.accept()
+        except Exception as error:
+            self.error_label.setText(
+                str(error) if isinstance(error, ValueError) else error_message(error)
+            )
+
+
 class CalendarChangeForm(FormDialog):
     def __init__(self, service, context, snapshot, parent=None):
         self.service, self.context, self.snapshot = service, context, snapshot
@@ -565,6 +650,7 @@ class SemesterPlanWidget(QWidget):
             [
                 ("Работа", lambda w: w.title),
                 ("Тип", lambda w: ASSESSMENT_LABELS[w.type]),
+                ("Содержание назначения", lambda w: self.source_names.get(w.id, "Неизвестно")),
                 ("Плановая выдача", lambda w: str(w.issue_date or "—")),
                 (
                     "Фактическая выдача",
@@ -606,6 +692,7 @@ class SemesterPlanWidget(QWidget):
         self.view.doubleClicked.connect(lambda _: run_action(self, self.edit_work))
         self.snapshot = None
         self.issued = {}
+        self.source_names = {}
 
     def original_due(self, work):
         for history in self.snapshot.history if self.snapshot else ():
@@ -625,6 +712,17 @@ class SemesterPlanWidget(QWidget):
         context = self.context()
         self.snapshot = self.window.service.semester_plan(context.offering.id) if context else None
         self.issued = {i.planned_work_id: i for i in self.snapshot.issued} if self.snapshot else {}
+        bindings = self.window.service.plan_content_bindings(context.offering.id) if context else ()
+        self.source_names = {
+            v.planned_work_id: (
+                f"Версия {self.window.service.get_program_version(v.program_version_id).version_no}"
+                if v.program_version_id
+                else "Отдельное назначение"
+            )
+            + f" · семестр курса {v.course_semester or 'неизвестен'}"
+            for v in bindings
+            if v.planned_work_id
+        }
         self.model.replace_rows(self.snapshot.works if self.snapshot else [])
         self.caption.setText(
             "Настройте план семестра или отложите настройку. Открытие не создаёт записей."
@@ -682,21 +780,7 @@ class SemesterPlanWidget(QWidget):
         if not self.snapshot:
             self.configure()
             return
-        snapshot, service, context = self.snapshot, self.window.service, self.context()
-        form = PlanSetupForm(service, context, self)
-        form.setWindowTitle("Версия содержания плана")
-        for field in (form.first, form.weeks, form.offset):
-            form.form.setRowVisible(field, False)
-        hint(
-            form.body_layout,
-            "Существующие модули и работы сохранятся. Содержание версии копируется автоматически только в пустой план.",
-        )
-        form.on_save = lambda values: service.select_plan_content(
-            context.offering.id,
-            values["version_id"],
-            values["course_semester"],
-            expected_revision=snapshot.plan.revision,
-        )
+        form = PlanContentForm(self.window.service, self.context(), self.snapshot, self)
         if form.exec():
             self.refresh()
 

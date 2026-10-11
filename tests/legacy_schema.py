@@ -5,8 +5,10 @@ original populated-copy scenarios after additive v6 columns, without changing
 old migrations or pretending a fresh v6 database is a historical database.
 """
 
+import sqlite3
 from contextlib import contextmanager
 from dataclasses import MISSING, fields, replace
+from pathlib import Path
 from types import SimpleNamespace
 from weakref import WeakKeyDictionary
 
@@ -163,5 +165,27 @@ def preserved_objects(before, after):
         "problems",
         "seminar_materials",
     }
-    old = [normalize(obj) for obj in before if not (obj[0] == "table" and obj[1] in altered)]
+    old = [
+        normalize((obj[0], obj[1], expected_schema_sql(obj[1], obj[2])))
+        for obj in before
+        if not (obj[0] == "table" and obj[1] in altered)
+    ]
     return set(old).issubset({normalize(obj) for obj in after})
+
+
+def expected_schema_sql(name, sql):
+    """Only the documented v11 trigger replacement; its full SQL remains checked."""
+    if name != "student_works_active_membership":
+        return sql
+    path = (
+        Path(__file__).parents[1]
+        / "src/studium/infrastructure/database/migrations/versions/v0011.sql"
+    )
+    statement = ""
+    for line in path.read_text(encoding="utf8").splitlines(True):
+        statement += line
+        if sqlite3.complete_statement(statement):
+            if statement.lstrip().startswith("CREATE TRIGGER student_works_active_membership "):
+                return statement.strip().removesuffix(";")
+            statement = ""
+    raise AssertionError("Expected frozen membership trigger missing")

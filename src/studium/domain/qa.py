@@ -15,6 +15,18 @@ from studium.domain.value_objects import EntityId, LocalDate, UtcInstant, requir
 MAX_CENTS = 9223372036854775807
 
 
+def snapshot_file_ids(value):
+    if isinstance(value, dict):
+        return (
+            {str(value["file_asset_id"])}
+            if "file_asset_id" in value
+            else set().union(*(snapshot_file_ids(v) for v in value.values()))
+        )
+    if isinstance(value, list):
+        return set().union(*(snapshot_file_ids(v) for v in value))
+    return set()
+
+
 def score_cents(text, *, fractional=False):
     """Parse teacher input without a float conversion, rounding or truncation."""
     if not isinstance(text, (str, Decimal)):
@@ -253,6 +265,33 @@ class PlanHistory(StudiumEntity):
     snapshot_json: str
     reason: str
     provenance: str = "explicit"
+
+
+@dataclass(frozen=True, kw_only=True)
+class PlanContentSource(StudiumEntity):
+    semester_plan_id: EntityId
+    plan_module_id: EntityId | None = None
+    planned_work_id: EntityId | None = None
+    program_version_id: EntityId | None = None
+    course_semester: int | None = None
+    snapshot_json: str = "{}"
+    provenance: str = "explicit"
+
+    def __post_init__(self):
+        if (self.plan_module_id is None) == (self.planned_work_id is None):
+            raise ValueError("Укажите одну конкретную привязку содержания")
+        if self.course_semester is not None and self.course_semester < 1:
+            raise ValueError("Некорректный номер семестра содержания")
+        if not isinstance(json.loads(self.snapshot_json), dict):
+            raise ValueError("Ожидается снимок содержания назначения")
+
+
+@dataclass(frozen=True, kw_only=True)
+class LateWorkAuthorization(StudiumEntity):
+    student_work_id: EntityId
+    enrollment_id: EntityId
+    student_id: EntityId
+    assessment_id: EntityId
 
 
 @dataclass(frozen=True, kw_only=True)

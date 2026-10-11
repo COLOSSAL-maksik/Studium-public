@@ -8,12 +8,17 @@ from studium.application.services import StudiumService
 from studium.composition import create_runtime
 from studium.domain.enums import AssessmentType, AttemptResult
 from studium.domain.value_objects import AcademicWeekNumber, LocalDate, UtcInstant
-from studium.infrastructure.database.migrations import migration_config, upgrade_database
+from studium.infrastructure.database.migrations import (
+    SCHEMA_REVISION,
+    migration_config,
+    upgrade_database,
+)
 from studium.infrastructure.database.session import create_database_engine, create_session_factory
 from studium.infrastructure.database.unit_of_work import repository_set, transaction_factory
 from studium.infrastructure.file_storage import LocalFileStorage
 from studium.infrastructure.user_data import JsonPreferences
 from tests.integration.test_file_migrations import snapshot
+from tests.legacy_schema import preserved_objects
 
 
 def legacy(tmp_path):
@@ -79,7 +84,7 @@ def test_populated_legacy_maps_preserve_every_row_object_real_and_reopen(tmp_pat
         after, new_objects = snapshot(connection)
         for table, rows in before.items():
             assert after[table] == rows, table
-        assert set(objects).issubset(set(new_objects))
+        assert preserved_objects(objects, new_objects)
         assert len(after["course_programs"]) == 1
         assert len(after["semester_plans"]) == 2
         assert len(after["plan_modules"]) == 2
@@ -101,7 +106,7 @@ def test_populated_legacy_maps_preserve_every_row_object_real_and_reopen(tmp_pat
             result = runtime.service.work_result(work.id)
             assert result.score.hex() == (24.123456789).hex()
             assert not result.exact
-        assert runtime.diagnostics.schema_version == "0010_qa_package"
+        assert runtime.diagnostics.schema_version == SCHEMA_REVISION
     finally:
         runtime.close()
 
@@ -172,3 +177,53 @@ def test_new_head_backup_restore_roundtrip_with_exact_reviews_and_files(tmp_path
             )
     finally:
         restored.close()
+
+
+def test_populated_v10_corrective_upgrade_failure_and_reopen(tmp_path):
+    from studium.infrastructure.database.models import Base
+
+    root, engine, _, _ = legacy(tmp_path)
+    with engine.begin() as connection:
+        config = migration_config()
+        config.attributes["connection"] = connection
+        command.upgrade(config, "0010_qa_package")
+    with engine.connect() as connection:
+        before, objects = snapshot(connection)
+    count = 0
+
+    def fail(connection, cursor, statement, parameters, context, many):
+        nonlocal count
+        if statement.startswith("INSERT INTO plan_content_sources"):
+            count += 1
+            if count == 2:
+                raise RuntimeError("synthetic v11 late failure")
+
+    event.listen(engine, "after_cursor_execute", fail)
+    with pytest.raises(RuntimeError, match="v11 late failure"):
+        upgrade_database(engine)
+    with engine.connect() as connection:
+        assert snapshot(connection) == (before, objects)
+        assert (
+            connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
+            == "0010_qa_package"
+        )
+    event.remove(engine, "after_cursor_execute", fail)
+    upgrade_database(engine)
+    with engine.connect() as connection:
+        after, new_objects = snapshot(connection)
+        assert preserved_objects(objects, new_objects)
+        assert all(after[table] == rows for table, rows in before.items())
+        assert len(after["plan_content_sources"]) == len(after["plan_modules"]) + len(
+            after["planned_works"]
+        )
+        assert not after["late_work_authorizations"]
+        assert set(after) == set(Base.metadata.tables)
+    upgrade_database(engine)
+    engine.dispose()
+    runtime = create_runtime(root)
+    try:
+        with runtime._engine.connect() as connection:
+            assert snapshot(connection) == (after, new_objects)
+        assert runtime.diagnostics.schema_version == SCHEMA_REVISION
+    finally:
+        runtime.close()

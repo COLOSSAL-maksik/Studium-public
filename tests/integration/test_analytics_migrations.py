@@ -12,7 +12,12 @@ from studium.application.errors import ApplicationError
 from studium.application.services import GradeInput
 from studium.domain.enums import AssessmentType, AttemptResult, AttendanceStatus, GradeKind
 from studium.domain.value_objects import LocalDate, UtcInstant
-from studium.infrastructure.database.migrations import migration_config, upgrade_database
+from studium.infrastructure.database.migrations import (
+    SCHEMA_REVISION,
+    migration_config,
+    upgrade_database,
+)
+from studium.infrastructure.database.models import Base
 from studium.infrastructure.database.session import create_database_engine, create_session_factory
 from studium.infrastructure.file_storage import LocalFileStorage
 from studium.infrastructure.user_data import JsonPreferences
@@ -126,16 +131,16 @@ def test_populated_v1_v2_v3_v4_copies_to_analytics_preserve_rows_schema_and_file
         upgrade_database(migrated)
         with migrated.connect() as connection:
             after, new_objects = snapshot(connection)
-            assert (
-                len(after) == 100
-            )  # v10 adds 21 concrete QA tables; every old row is compared below.
+            assert set(after) == set(
+                Base.metadata.tables
+            )  # Current head includes v11; every old row is compared below.
             assert preserved_rows(before, after)
             assert preserved_objects(objects, new_objects)
             assert after["attempt_item_results"] == []
             assert connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall() == []
             assert (
                 connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
-                == "0010_qa_package"
+                == SCHEMA_REVISION
             )
         repositories = repository_set(create_session_factory(migrated))
         assert repositories.content_locks.assessment_locked(assessment.id)
@@ -166,13 +171,15 @@ def test_fresh_analytics_database_reopens_with_unchanged_schema(tmp_path):
         try:
             upgrade_database(engine)
             with engine.connect() as connection:
-                assert len(inspect(connection).get_table_names()) == 101
+                assert set(inspect(connection).get_table_names()) == set(Base.metadata.tables) | {
+                    "alembic_version"
+                }
                 assert connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall() == []
                 assert (
                     connection.exec_driver_sql(
                         "SELECT version_num FROM alembic_version"
                     ).scalar_one()
-                    == "0010_qa_package"
+                    == SCHEMA_REVISION
                 )
         finally:
             engine.dispose()

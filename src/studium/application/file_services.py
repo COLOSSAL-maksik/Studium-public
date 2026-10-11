@@ -166,6 +166,20 @@ class AttachmentService:
 
     def archive_file_asset(self, file_asset_id, *, expected_revision):
         with self._transaction() as r:
+            import json
+
+            from studium.domain.qa import snapshot_file_ids
+
+            if r.version_references and any(
+                v.file_asset_id == file_asset_id
+                for v in r.version_references.list(include_deleted=True)
+            ):
+                raise ApplicationError("file_asset_in_use")
+            if r.plan_content_sources and any(
+                str(file_asset_id) in snapshot_file_ids(json.loads(v.snapshot_json))
+                for v in r.plan_content_sources.list(include_deleted=True)
+            ):
+                raise ApplicationError("file_asset_in_use")
             for name in (
                 "homework_attachments",
                 "problem_attachments",

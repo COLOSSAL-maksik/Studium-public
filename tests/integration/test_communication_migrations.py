@@ -8,7 +8,12 @@ from alembic import command
 
 from studium.domain.enums import AssessmentType, AttemptResult
 from studium.domain.value_objects import LocalDate, UtcInstant
-from studium.infrastructure.database.migrations import migration_config, upgrade_database
+from studium.infrastructure.database.migrations import (
+    SCHEMA_REVISION,
+    migration_config,
+    upgrade_database,
+)
+from studium.infrastructure.database.models import Base
 from studium.infrastructure.database.session import create_database_engine, create_session_factory
 from studium.infrastructure.file_storage import LocalFileStorage
 from studium.infrastructure.user_data import JsonPreferences
@@ -68,14 +73,14 @@ def test_populated_historical_copy_to_v4_preserves_all_data_schema_and_original(
         upgrade_database(migrated)
         with migrated.connect() as conn:
             after, new_objects = snapshot(conn)
-            assert (
-                len(after) == 100
-            )  # v10 adds 21 concrete QA tables; every old row is compared below.
+            assert set(after) == set(
+                Base.metadata.tables
+            )  # Current head includes v11; every old row is compared below.
             assert preserved_rows(before, after)
             assert preserved_objects(objects, new_objects)
             assert (
                 conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
-                == "0010_qa_package"
+                == SCHEMA_REVISION
             )
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").fetchall() == []
     finally:

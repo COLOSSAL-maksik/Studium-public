@@ -1,6 +1,6 @@
 """Explicit mappings for additive QA package schema; migration owns production DDL."""
 
-from sqlalchemy import CheckConstraint, Column, Index, Integer, Text, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, ForeignKey, Index, Integer, Text, UniqueConstraint
 
 from studium.domain import qa as e
 from studium.infrastructure.database.models.base import Base
@@ -37,6 +37,43 @@ def mapping(name, entity, owner, target, *columns, immutable=False):
     SPECS[name] = (entity, row, owner, target)
     if immutable:
         IMMUTABLE.add(name)
+
+
+mapping(
+    "plan_content_sources",
+    e.PlanContentSource,
+    "semester_plan_id",
+    "id",
+    reference("semester_plan_id", "semester_plans"),
+    reference("plan_module_id", "plan_modules", nullable=True),
+    reference("planned_work_id", "planned_works", nullable=True),
+    reference("program_version_id", "program_versions", nullable=True),
+    *integer("course_semester", True),
+    *document("snapshot_json"),
+    prose("provenance"),
+    UniqueConstraint("plan_module_id"),
+    UniqueConstraint("planned_work_id"),
+    CheckConstraint("(plan_module_id IS NOT NULL)+(planned_work_id IS NOT NULL)=1"),
+    CheckConstraint("course_semester IS NULL OR course_semester>=1"),
+    immutable=True,
+)
+mapping(
+    "late_work_authorizations",
+    e.LateWorkAuthorization,
+    "student_work_id",
+    "id",
+    Column(
+        "student_work_id",
+        Text,
+        ForeignKey("student_works.id", ondelete="RESTRICT", deferrable=True, initially="DEFERRED"),
+        nullable=False,
+    ),
+    reference("enrollment_id", "enrollments"),
+    reference("student_id", "students"),
+    reference("assessment_id", "assessments"),
+    UniqueConstraint("student_work_id"),
+    immutable=True,
+)
 
 
 mapping(

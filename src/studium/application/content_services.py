@@ -701,6 +701,24 @@ class ContentService:
                 for p in facts
             )
 
+    def student_assignment_content(self, assignment_id):
+        """Public assignment DTO uses saved text and statement files only."""
+        with self._transaction() as r:
+            assignment = self._require(
+                r.student_problem_assignments, assignment_id, historical=True
+            )
+            return StudentTicketProblem(
+                assignment.title_snapshot,
+                assignment.statement_snapshot,
+                tuple(
+                    v.file_asset_id
+                    for v in sorted(
+                        r.student_problem_files.for_owner(assignment_id), key=lambda v: v.sort_order
+                    )
+                    if v.role == c.MaterialFileRole.STATEMENT
+                ),
+            )
+
     def save_content_package(
         self, kind, original, values, *, links=None, packs=None, collections=None, files=()
     ):

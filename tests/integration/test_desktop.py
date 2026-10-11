@@ -14,6 +14,7 @@ from studium.application.services import GradeInput
 from studium.composition import create_runtime
 from studium.domain.enums import AssessmentType, AttemptResult, GradeKind
 from studium.domain.value_objects import LocalDate, UtcInstant
+from studium.infrastructure.database.migrations import SCHEMA_REVISION
 from studium.presentation.desktop.dialogs import (
     AssessmentDialog,
     AttemptDialog,
@@ -72,7 +73,7 @@ def test_mainwindow_navigation_and_settings(desktop):
         assert window.pages.currentIndex() == index
     QTest.mouseClick(window.settings_button, Qt.MouseButton.LeftButton)
     assert window.pages.currentWidget() is window.settings_page
-    assert runtime.diagnostics.schema_version == "0010_qa_package"
+    assert runtime.diagnostics.schema_version == SCHEMA_REVISION
     assert str(runtime.diagnostics.database_path).endswith("studium.sqlite")
 
 

@@ -160,6 +160,8 @@ class Repositories:
     answer_templates: ContentRepository[q.AnswerTemplate] | None = None
     debt_restorations: ContentRepository[q.DebtRestoration] | None = None
     version_references: ContentRepository[q.VersionReference] | None = None
+    plan_content_sources: ContentRepository[q.PlanContentSource] | None = None
+    late_work_authorizations: ContentRepository[q.LateWorkAuthorization] | None = None
 
 
 Transaction = Callable[[], AbstractContextManager[Repositories]]
