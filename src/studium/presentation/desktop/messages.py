@@ -1,5 +1,6 @@
 """Russian desktop copy and enum translations, independent of persisted values."""
 
+from studium.application.errors import FrozenTaxonomyDependencyError
 from studium.application.file_ports import FileIntegrity
 from studium.application.services import ApplicationError
 from studium.domain.communication import AuthorRole, CommunicationChannel, CommunicationState
@@ -326,6 +327,21 @@ DOMAIN_ERRORS = {
 
 
 def error_message(error):
+    if isinstance(error, FrozenTaxonomyDependencyError):
+        kinds = {
+            "version": "Версия программы",
+            "planned_work": "Работа плана",
+            "student_assignment": "Назначение студенту",
+        }
+        lines = [
+            f"{kinds[v.kind]}: {v.title} · {' · '.join(v.context)} · {v.id}"
+            for v in error.dependencies
+        ]
+        return (
+            "Архивирование отменено: тема или навык используются в сохранённом содержании. "
+            "Они нужны для выдачи и сохранения классификации прежних назначений.\n\n"
+            + "\n".join(lines)
+        )
     if isinstance(error, RepositoryError):
         return REPOSITORY_ERRORS[error.failure]
     if isinstance(error, ApplicationError):
@@ -443,6 +459,7 @@ ITEM_OUTCOME_LABELS = {
 APPLICATION_ERRORS.update(
     {
         "content_semantic_locked": TEXT["content_locked_hint"],
+        "frozen_taxonomy_archived": "Сохранённая классификация содержит архивную или отсутствующую тему/навык. Назначьте новое согласованное содержание. Прежняя версия и её связи не изменяются.",
         "insufficient_problem_pool": "Недостаточно подходящих задач для указанного числа различных вариантов. Добавьте задачи, уменьшите число вариантов или измените критерии.",
         "duplicate_variant": "Такой состав уже есть в другом варианте. Выберите другую задачу.",
         "problem_not_eligible": "Задача не подходит под критерии или уже включена в этот вариант.",

@@ -704,10 +704,21 @@ class ProgramService:
 
     def assign_student_problem(self, student_id, assessment_item_id, problem_id):
         item = self._require(self._r.items, assessment_item_id)
-        work = self.get_or_create_work(student_id, item.assessment_id)
         with self._transaction() as r:
             assessment = self._require(r.assessments, item.assessment_id)
             offering = self._require(r.offerings, assessment.offering_id)
+            work = r.works.find_for_student(student_id, item.assessment_id, include_deleted=True)
+            create_work = work is None
+            if create_work:
+                self._context(r, assessment.offering_id)
+                student = self._require(r.students, student_id)
+                if not student.active:
+                    raise ApplicationError("inactive_student")
+                work = e.StudentWork(
+                    metadata=self._meta(), student_id=student_id, assessment_id=item.assessment_id
+                )
+            elif work.deleted_at is not None:
+                raise ApplicationError("hidden_work")
             frozen = self._frozen_assessment_problem(r, assessment.id, problem_id)
             problem = (
                 None
@@ -742,6 +753,12 @@ class ProgramService:
                         ),
                         source_snapshot=frozen["source"] if frozen else None,
                         family_snapshot=frozen["family"] if frozen else None,
+                        topic_ids=frozen["topic_ids"]
+                        if frozen
+                        else [
+                            str(link.topic_id)
+                            for link in r.problem_topics.for_owner(problem.family_id or problem.id)
+                        ],
                         skill_ids=frozen["skill_ids"]
                         if frozen
                         else [
@@ -752,6 +769,9 @@ class ProgramService:
                     ensure_ascii=False,
                 ),
             )
+            self._assert_saved_taxonomy_live(r, json.loads(value.teacher_snapshot_json))
+            if create_work:
+                r.works.insert(work)
             r.student_problem_assignments.insert(value)
             self._copy_assignment_files(
                 r, value, frozen["files"] if frozen else self._problem_files(r, problem)

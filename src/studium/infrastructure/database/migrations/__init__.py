@@ -6,7 +6,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, inspect
 
-SCHEMA_REVISION = "0011_qa_review_fixes"
+SCHEMA_REVISION = "0012_frozen_taxonomy"
 
 
 def migration_config() -> Config:

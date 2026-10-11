@@ -3,6 +3,7 @@
 import json
 from dataclasses import dataclass
 
+from studium.application.errors import ApplicationError, FrozenTaxonomyDependencyError
 from studium.domain import qa as q
 from studium.domain.repositories import RepositoryError, RepositoryFailure
 from studium.domain.value_objects import EntityId
@@ -27,7 +28,100 @@ class PlanContentPreview:
     warnings: tuple
 
 
+@dataclass(frozen=True)
+class FrozenTaxonomyDependency:
+    kind: str
+    id: EntityId
+    title: str
+    context: tuple[str, ...] = ()
+
+
+def saved_taxonomy_ids(data, kind):
+    """Only recorded semantic fields; never infer links from mutable sources."""
+    ids = set(data.get(kind + "_ids", []))
+    ids.update(v[kind + "_id"] for v in data.get("definition_" + kind + "s", []))
+    for problem in data.get("problem_snapshots", []):
+        ids.update(problem.get(kind + "_ids", []))
+    return {str(id) for id in ids}
+
+
 class QAContentSources:
+    @staticmethod
+    def _assert_saved_taxonomy_live(r, data):
+        for kind in ("topic", "skill"):
+            for id in saved_taxonomy_ids(data, kind):
+                if getattr(r, kind + "s").find_by_id(EntityId(id)) is None:
+                    raise ApplicationError("frozen_taxonomy_archived")
+
+    def _assert_frozen_taxonomy_archive(self, r, kind, ids):
+        targets = {str(id) for id in ids}
+        dependencies = []
+        versions = {}
+        if r.program_versions is not None:
+            versions = {v.id: v for v in r.program_versions.list(include_deleted=True)}
+            dependent = {
+                v.id
+                for v in versions.values()
+                if targets & saved_taxonomy_ids(json.loads(v.content_json), kind)
+            }
+            dependent.update(
+                v.program_version_id
+                for v in r.version_references.list(include_deleted=True)
+                if str(getattr(v, kind + "_id")) in targets
+            )
+            for id in dependent:
+                version = versions[id]
+                program = self._require(
+                    r.course_programs, version.course_program_id, historical=True
+                )
+                dependencies.append(
+                    FrozenTaxonomyDependency(
+                        "version", id, program.title, (str(version.version_no),)
+                    )
+                )
+        else:
+            dependent = set()
+        if r.plan_content_sources is not None:
+            for source in r.plan_content_sources.list(include_deleted=True):
+                if not source.planned_work_id or not (
+                    source.program_version_id in dependent
+                    or targets & saved_taxonomy_ids(json.loads(source.snapshot_json), kind)
+                ):
+                    continue
+                work = self._require(r.planned_works, source.planned_work_id, historical=True)
+                plan = self._require(r.semester_plans, source.semester_plan_id, historical=True)
+                offering = self._require(r.offerings, plan.offering_id, historical=True)
+                group = self._require(r.groups, offering.group_id, historical=True)
+                term = self._require(r.terms, offering.term_id, historical=True)
+                dependencies.append(
+                    FrozenTaxonomyDependency(
+                        "planned_work", work.id, work.title, (group.number, term.name)
+                    )
+                )
+        assignments = (
+            r.student_problem_assignments.list(include_deleted=True)
+            if r.student_problem_assignments is not None
+            else ()
+        )
+        for assignment in assignments:
+            if not targets & saved_taxonomy_ids(json.loads(assignment.teacher_snapshot_json), kind):
+                continue
+            work = self._require(r.works, assignment.student_work_id, historical=True)
+            assessment = self._require(r.assessments, work.assessment_id, historical=True)
+            student = self._require(r.students, work.student_id, historical=True)
+            dependencies.append(
+                FrozenTaxonomyDependency(
+                    "student_assignment",
+                    assignment.id,
+                    assignment.title_snapshot,
+                    (student.full_name, assessment.title),
+                )
+            )
+        if dependencies:
+            raise FrozenTaxonomyDependencyError(
+                sorted(set(dependencies), key=lambda v: (v.kind, v.title, str(v.id)))
+            )
+
     def _problem_snapshot(self, r, problem_id):
         from studium.application.qa_services import record
 
@@ -129,6 +223,7 @@ class QAContentSources:
             raise ValueError(
                 "Прежняя версия не содержит снимков задач; явно назначьте новую версию с preview"
             )
+        self._assert_saved_taxonomy_live(r, data)
         return data
 
     def _assessment_content(self, r, assessment_id):

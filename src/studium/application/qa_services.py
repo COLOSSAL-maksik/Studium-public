@@ -241,6 +241,7 @@ class QAPackageService(QAContentSources, QASummary):
             }
         )
         data["provenance"] = "explicit"
+        self._assert_saved_taxonomy_live(r, data)
         return document(data)
 
     def _version_references(self, r, version):

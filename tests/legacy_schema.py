@@ -115,7 +115,7 @@ def repository_set(sessions):
         present = set(inspect(connection).get_table_names())
     unavailable = {
         name: None
-        for name in ADAPTERS
+        for name in (*ADAPTERS, "student_problem_assignments")
         if getattr(result, name).row_type.__table__.name not in present
     }
     return replace(
