@@ -1,5 +1,18 @@
 # Управление Studium
 
+## Единый пакет ST-QA-001–030
+
+Все 30 требований реализованы в прежней ветке `agent/codex/qa-a-contracts`;
+PR #2/B1–B6 и QA-A-REV-01/02 сохранены. QA-A → QA-B → QA-C → QA-D выполнены
+как внутренние этапы одного пакета, без промежуточной ручной приёмки и merge.
+[Актуальная матрица реализации и проверок](QA_ALL_30_IMPLEMENTATION.md),
+[ADR-050](../decisions.md#adr-050--qa-all-30-implementation),
+[единый manual checklist и Windows candidate](../qa-all-30-manual.md).
+Общая ручная приёмка всех ID — PENDING. Ниже сохранена история подготовки
+контрактов; её прежние implementation/10-PR gates заменены пакетным заданием.
+
+## Предыдущие документационные этапы
+
 [QA-A — согласованные контракты и migration mapping](QA_A_CONTRACTS.md),
 [ADR-049](../decisions.md#adr-049--qa-a-product-contracts). Актуально 2026-10-11:
 B1–B6 согласованы продуктово; B4 integer default + fractional 2 digits/OFF,

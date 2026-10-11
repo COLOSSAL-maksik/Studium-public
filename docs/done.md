@@ -8,8 +8,10 @@ submission/teacher files/return, queue/summary/debt, topic tree/structured answe
 staged picker и общий GUI включены одним пакетом. Additive v10, v1–v9 unchanged.
 [Матрица actual source/evidence](management/QA_ALL_30_IMPLEMENTATION.md),
 [ADR-050](decisions.md#adr-050--qa-all-30-implementation).
-Target checks и synthetic scale прошли; full final regression/CI фиксируются в
-матрице по завершении. Общая [manual acceptance](qa-all-30-manual.md) PENDING.
+Full local regression: 1080 PASS / 3 предусмотренных Windows SKIP, 58 modules;
+synthetic scale, Ruff/dependencies/safety и isolated wheel/GUI smoke прошли.
+Exact code candidate и evidence — в матрице, CI конкретного PR HEAD — в PR.
+Общая [manual acceptance](qa-all-30-manual.md) PENDING.
 Ниже — история предыдущего документационного этапа.
 
 ## Документационные контракты QA-A — 2026-10-11

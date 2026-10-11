@@ -24,7 +24,7 @@ Fixture installers не заменяют acceptance настоящей ново�
 
 ## Данные и preview
 
-migrate.py требует explicit DB path; production schema Alembic v0001–v0009,
+migrate.py требует explicit DB path; production schema Alembic v0001–v0010,
 без reset/create_all. create_demo_data.py требует новую synthetic directory.
 Preview/scenario/smoke scripts создают данные только в temporary profiles;
 новые images требуют metadata/OCR/provenance review и material manifest.

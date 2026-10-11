@@ -3,7 +3,10 @@
 База: `d23eee39fcb0f3bd463c2868459fa48d0778925a`. Ветка:
 `agent/codex/qa-a-contracts`. PR #2/B1–B6/QA-A-REV-01/02 сохранены.
 Один пакет/PR, без промежуточной manual acceptance и без merge.
-Implementation QA-A–D выполнена; итоговая автоматическая регрессия продолжается.
+Implementation QA-A–D выполнена; полная локальная регрессия прошла.
+Проверенный code candidate: `0ace4f8b33af0a0f0e083596ba5c90bda14d49d5`;
+последующее дополнение изменяет только документы. Точный PR HEAD и результаты
+его required checks указываются в итоговом PR.
 Manual acceptance всех 30 ID — PENDING.
 
 Имена UI файлов ниже относятся к `src/studium/presentation/desktop/`,
@@ -51,15 +54,32 @@ application/domain/infrastructure явно указаны. Базовые ссы
 
 ## Проверки и совместимость
 
-- Target DB/repositories/reporting/migration: 50 PASS.
+- Полный module-isolated runner на code candidate: **1080 PASS, 3 SKIP**, 1083
+  collected tests / 58 modules, 695.83 s. Пропуски только предусмотренные Windows
+  sharing lock и два junction contracts; unexpected/collection skips запрещены.
+- Target DB/repositories/reporting/migration: 50 PASS; финальные GUI формы и
+  редактор: 35 PASS; отдельная строгая ORM/DDL comparison: PASS.
 - Synthetic scale: две группы, 60 студентов, 18 недель, 72 работы,
   120 submissions, 60 reviews, 300 files; FIFO/bulk budget/hash/debt T1→T2: PASS.
 - Новые review/rule/bounds, stale/cancel/late failure, material batch rollback,
   working-copy preservation и new-head restore — actual real DB/file tests.
-- Full final regression/Ruff/dependency/package/safety: RUNNING; результаты
-  и точный final HEAD/CI будут дополнены перед передачей.
-- Windows native/DPI installer: NOT RUN locally (Linux); одна финальная
-  разрешённая full_windows CI попытка после final fast checks.
+- Ruff check/format (291 files), pip check, git diff --check: PASS.
+- Repository safety worktree/identity/history: 0 errors, 0 manual-review signals;
+  все 18 migration payloads v1–v9 совпадают с base raw bytes.
+- Wheel 0.2.0: isolated install, synthetic fresh/reopen/GUI, Help и четыре
+  встроенных SVG ресурса: PASS; 128 Python files совпадают с source, DB/logs
+  отсутствуют. SHA-256:
+  `8b1ae57eedf75699f7eb2edf6511024bf990b6cf10bd329bca57e0e6485acd88`.
+- Developer Qt offscreen осмотр: Light/Dark, 100/125/150%, 960×620 и HD;
+  формы/план/сводка/главная, стрелки и адаптивная вкладка «Коллекции» проверены.
+  Это Linux evidence, не Windows/user acceptance.
+- Required quality/repository-safety и native Windows contracts/build/installer
+  smokes запускаются в едином итоговом PR; их actual links/results для PR HEAD
+  записываются в description/checks PR. Local results выше не объявлены CI PASS.
+- Windows native/DPI installer: NOT RUN locally (Linux). Полная Windows pytest
+  suite через full_windows workflow_dispatch: NOT RUN — connector не имеет
+  dispatch capability, доступный gh не авторизован. Обычный PR Windows job
+  проверяет native marked contracts и сборку/installer smokes отдельно.
 - User manual: PENDING, [единый checklist и candidate](../qa-all-30-manual.md).
 
 Schema v10 — 21 additive tables; v1–v9 raw bytes неизменны. Raw legacy rows,
