@@ -19,6 +19,18 @@ APP_ID = "{B724B6D6-9F24-49D0-9A0B-49BF455BE744}_is1"
 UNINSTALL_KEY = rf"Software\Microsoft\Windows\CurrentVersion\Uninstall\{APP_ID}"
 
 
+def fresh_database_facts(path):
+    from studium.infrastructure.database.migrations import SCHEMA_REVISION
+    from studium.infrastructure.database.models import Base
+
+    facts = database_facts(path)
+    if facts.get("alembic_version") != [(SCHEMA_REVISION,)]:
+        raise RuntimeError("Installed database schema differs from candidate")
+    if set(facts) != set(Base.metadata.tables) | {"alembic_version"}:
+        raise RuntimeError("Installed database tables differ from candidate")
+    return facts
+
+
 def registered_install():
     import winreg
 
@@ -361,8 +373,7 @@ def main():
             assert start_menu.is_file() and not desktop.exists()
             # Fresh default AppPaths initialization, without --data-dir.
             launch(program / "Studium.exe", root / "fresh-profile", root)
-            fresh = database_facts(root / "fresh-profile/Studium/studium.sqlite")
-            assert fresh["alembic_version"] == [("0009_daily_workflow",)]
+            fresh_database_facts(root / "fresh-profile/Studium/studium.sqlite")
             os.environ["LOCALAPPDATA"] = str(root / "harness-profile")
             create_demo(data)
             before_facts = database_facts(data / "studium.sqlite")
