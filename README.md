@@ -27,6 +27,12 @@ SQLite/Alembic и пользовательские файлы находятся
 исторические миграции v0001–v0009 и пакетную offline справку.
 Схемы в assets, исходное ТЗ и synthetic screenshots входят в сохранённые материалы.
 
+Пакет 0.2.0 объединяет все 30 ST-QA: версии программ и независимые планы,
+сдачи/проверки/возвраты, очередь, сводку и долги, структурированные ответы и GUI.
+[Матрица реализации и проверок](docs/management/QA_ALL_30_IMPLEMENTATION.md),
+[общая ручная проверка и Windows candidate](docs/qa-all-30-manual.md).
+Ручная приёмка всех 30 требований остаётся PENDING.
+
 Bender разрабатывается отдельно Jules. У Studium нет runtime dependency на
 Bender. Будущий клиент использует JSON-RPC 2.0 over stdio; API/client ещё не
 реализованы. Обязательный облачный сервер не требуется.
@@ -52,8 +58,9 @@ synthetic профиль; production DB и storage не открывать.
 
 ## Граница приёмки
 
-GitHub Actions не запускались. Native Windows/manual acceptance выполняется
-отдельно. Migration immutability tests используют проверенные frozen SHA-256
-fixtures и raw bytes; все 18 исходных migration payloads сохранены. Тестам не
-нужны commits исходного репозитория; схема/миграции этим переносом не меняются.
-Оставшиеся проверки и публикация перечислены в docs/todo.md.
+Результаты required Quality/repository-safety относятся к конкретному HEAD в PR;
+автоматические проверки не заменяют ручную приёмку. Migration immutability tests
+используют frozen SHA-256 fixtures и raw bytes: все 18 payloads v1–v9 сохранены,
+v10/v11 добавляют новые таблицы и lossless mapping прежних фактов; v12 защищает
+архивирование frozen классификации без переписывания данных. Тестам не нужны
+commits исходного репозитория. Оставшаяся приёмка перечислена в docs/todo.md.

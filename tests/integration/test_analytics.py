@@ -542,7 +542,9 @@ def test_timeline_cutoffs_use_current_facts_and_one_bulk_load(analytics_workflow
         event.remove(runtime._engine, "before_cursor_execute", count_queries)
     assert [point.assessments_completed for point in points] == [0, 0, 1]
     assert [point.attempts_total for point in points] == [0, 1, 2]
-    assert len(selects) <= 25
+    # Five additive QA fact tables extend the fixed bulk snapshot; the budget
+    # remains independent of students, weeks, attempts and timeline points.
+    assert len(selects) <= 30
 
 
 def test_analytics_reads_are_immutable_and_do_not_change_database(analytics_workflow, runtime):
@@ -681,7 +683,9 @@ def test_synthetic_group_30_students_20_assessments_has_bounded_queries(
     assert result.assessments_completed == 600 and result.attempts_total == 1800
     assert result.average_attempts == 3 and result.questions.question_cases_count == 30
     assert w.s.topic_evidence(topic.id).item_result_count == 600
-    assert len(selects) <= 25 and elapsed < 5
+    # Five additive QA fact tables extend the fixed bulk snapshot; the budget
+    # remains independent of students, weeks, attempts and timeline points.
+    assert len(selects) <= 30 and elapsed < 5
     print(
         f"Analytics performance: {len(selects)} SELECT, {elapsed:.3f}s; 30 students/20 assessments/1800 attempts/600 item results/10 lessons/30 cases"
     )

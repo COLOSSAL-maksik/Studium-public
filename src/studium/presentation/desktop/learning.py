@@ -1,6 +1,6 @@
 """Small standard Qt dialogs for the learning model, without a shell redesign."""
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QEvent, Qt
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
@@ -118,18 +118,32 @@ def display_day(value):
 
 
 class CheckList(QListWidget):
-    def __init__(self, values, selected_ids=()):
+    def __init__(self, values=(), selected_ids=()):
         super().__init__()
         self.setMinimumHeight(100)
         self.setMaximumHeight(180)
-        for value in values:
-            item = QListWidgetItem(value.title + (" (в архиве)" if value.deleted_at else ""))
-            item.setData(Qt.ItemDataRole.UserRole, value.id)
+        self.fill(
+            [
+                (value.id, value.title + (" (в архиве)" if value.deleted_at else ""))
+                for value in values
+            ],
+            selected_ids,
+        )
+
+    def fill(self, values, selected_ids=()):
+        self.clear()
+        selected = {str(value) for value in selected_ids}
+        for id, title in values:
+            item = QListWidgetItem(title)
+            item.setData(Qt.ItemDataRole.UserRole, id)
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(
-                Qt.CheckState.Checked if value.id in selected_ids else Qt.CheckState.Unchecked
+                Qt.CheckState.Checked if str(id) in selected else Qt.CheckState.Unchecked
             )
             self.addItem(item)
+
+    def selected_ids(self):
+        return self.ids()
 
     def ids(self):
         return tuple(
@@ -137,17 +151,6 @@ class CheckList(QListWidget):
             for i in range(self.count())
             if self.item(i).checkState() == Qt.CheckState.Checked
         )
-
-    def fill(self, values, selected_ids=()):
-        self.clear()
-        for id, title in values:
-            item = QListWidgetItem(title)
-            item.setData(Qt.ItemDataRole.UserRole, id)
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-            item.setCheckState(
-                Qt.CheckState.Checked if id in selected_ids else Qt.CheckState.Unchecked
-            )
-            self.addItem(item)
 
 
 def catalogue_choices(service, course_id, kind, owner_id=None):
@@ -293,12 +296,15 @@ class LearningCatalogueDialog(QDialog):
                 ),
                 (TEXT["edit"], lambda: self.act(self.edit_topic)),
                 (TEXT["archive"], lambda: self.act(self.archive_topic)),
-                (TEXT["skills"], lambda: self.act(self.topic_skills)),
+                ("Связанные навыки темы", lambda: self.act(self.topic_skills)),
             ],
         )
         self.tree = QTreeWidget()
         self.tree.setHeaderLabels([TEXT["name"], TEXT["description"]])
         self.tree.itemDoubleClicked.connect(lambda *_: self.act(self.edit_topic))
+        self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tree.customContextMenuRequested.connect(self.topic_menu)
+        self.tree.viewport().installEventFilter(self)
         topic_layout.addWidget(self.tree)
         self.empty_topics = EmptyState(
             "Тем пока нет",
@@ -405,6 +411,30 @@ class LearningCatalogueDialog(QDialog):
         self.skill_model.replace_rows(self.service.list_course_skills(self.course.id))
         self.empty_topics.setVisible(self.tree.topLevelItemCount() == 0)
         self.empty_skills.setVisible(self.skill_model.rowCount() == 0)
+
+    def eventFilter(self, watched, event):
+        if (
+            watched is self.tree.viewport()
+            and event.type() == QEvent.Type.MouseButtonDblClick
+            and event.button() != Qt.MouseButton.LeftButton
+        ):
+            return True
+        return super().eventFilter(watched, event)
+
+    def topic_menu(self, point):
+        item = self.tree.itemAt(point)
+        self.tree.setCurrentItem(item)
+        menu = QMenu(self)
+        menu.addAction("Создать корневую тему", lambda: self.act(lambda: self.edit_topic(new=True)))
+        if self.topic():
+            menu.addAction(
+                "Добавить подтему",
+                lambda: self.act(lambda: self.edit_topic(new=True, subtopic=True)),
+            )
+            menu.addAction("Изменить", lambda: self.act(self.edit_topic))
+            menu.addAction("Связанные навыки темы", lambda: self.act(self.topic_skills))
+            menu.addAction("Архивировать", lambda: self.act(self.archive_topic))
+        menu.exec(self.tree.viewport().mapToGlobal(point))
 
     def topic(self):
         item = self.tree.currentItem()
@@ -897,7 +927,7 @@ class AssessmentContentDialog(QDialog):
         structure_scroll = QScrollArea()
         structure_scroll.setWidgetResizable(True)
         structure_scroll.setWidget(structure)
-        self.main_tabs.addTab(structure_scroll, "Темы, навыки и части")
+        self.main_tabs.addTab(structure_scroll, "Задачи и варианты")
         self.content = hint(layout, "")
         self.content.hide()
         layout.addWidget(text_label("Темы", "subheading"))
@@ -966,7 +996,7 @@ class AssessmentContentDialog(QDialog):
         )
         self.sections.addTab(shared, "Общие комплекты")
         self.main_tabs.addTab(self.sections, "Условия и комплекты")
-        if assessment.type == AssessmentType.CONTROL_WORK:
+        if assessment.type in {AssessmentType.CONTROL_WORK, AssessmentType.HOMEWORK}:
             toolbar(
                 layout,
                 [
@@ -1099,8 +1129,13 @@ class AssessmentContentDialog(QDialog):
 
         window = main_window(self)
         if window:
-            window.router.back()
-            window.groups_page.tabs.setCurrentIndex(6)
+            from studium.presentation.desktop.tickets import TicketGeneratorPage
+
+            page = TicketGeneratorPage(
+                window, lambda: self.context, assessment_id=self.assessment.id
+            )
+            window.router.push(page, self.assessment.title + " · Задачи и варианты")
+            page.refresh()
 
 
 class ProblemSelectionForm(FormDialog):

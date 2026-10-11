@@ -18,6 +18,7 @@ from studium.infrastructure.database.models import communication as communicatio
 from studium.infrastructure.database.models import files as files
 from studium.infrastructure.database.models import learning as learning
 from studium.infrastructure.database.models import program as program
+from studium.infrastructure.database.models import qa as qa
 from studium.infrastructure.database.models.base import Base
 
 

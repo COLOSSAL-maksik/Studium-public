@@ -222,7 +222,14 @@ class StudentProgressWidget(QWidget):
         self.module = QComboBox()
         self.module.addItem("Весь семестр", None)
         program = service.program_for_offering(offering_id)
-        for module in service.list_program_modules(program.id) if program else ():
+        canonical = service.semester_plan(offering_id)
+        for module in (
+            canonical.modules
+            if canonical
+            else service.list_program_modules(program.id)
+            if program
+            else ()
+        ):
             self.module.addItem(module.title, module.id)
         layout.addWidget(self.module)
         self.tabs = QTabWidget()
@@ -267,7 +274,19 @@ class StudentProgressWidget(QWidget):
         self.highlights = SummaryHighlights(self)
         layout.insertWidget(0, self.highlights)
         self.metrics.refreshed.connect(self.highlights.update_summary)
-        self.tabs.addTab(self.metrics, "Сводка")
+        self.tabs.addTab(self.metrics, "Показатели")
+        from studium.presentation.desktop.qa_workflow import PackageSummary
+
+        self.package_summary = PackageSummary(
+            service,
+            student_id,
+            self,
+            on_section=lambda section: self.tabs.setCurrentWidget(
+                evidence if section == "evidence" else self.charts
+            ),
+        )
+        self.tabs.insertTab(0, self.package_summary, "Сводка")
+        self.tabs.setCurrentIndex(0)
         evidence = QWidget()
         evidence_layout = QVBoxLayout(evidence)
         hint(evidence_layout, TEXT["evidence_hint"])
@@ -348,6 +367,8 @@ class StudentProgressWidget(QWidget):
         )
 
     def refresh(self):
+        if hasattr(self, "package_summary"):
+            self.package_summary.refresh()
         self.metrics.refresh()
         s = self.metrics.summary
         facts = self.service.student_work_facts(
@@ -511,7 +532,14 @@ class GroupAnalyticsWidget(QWidget):
             service = self.service_provider()
             offering = self.context_provider().offering
             program = service.program_for_offering(offering.id)
-            modules = service.list_program_modules(program.id) if program else ()
+            canonical = service.semester_plan(offering.id)
+            modules = (
+                canonical.modules
+                if canonical
+                else service.list_program_modules(program.id)
+                if program
+                else ()
+            )
             ids = [self.module.itemData(i) for i in range(1, self.module.count())]
             if ids != [m.id for m in modules]:
                 self.module.blockSignals(True)

@@ -1,5 +1,8 @@
 """Selection boundaries, append-only histories, reusable links and offline help."""
 
+import re
+from pathlib import Path
+
 from PySide6.QtCore import QItemSelectionModel, Qt, QThreadPool, QTimer
 from PySide6.QtWidgets import QDialog
 from sqlalchemy import event
@@ -78,7 +81,8 @@ def test_student_categories_three_attempts_files_and_progress_are_readonly(
         settle(qt_app)
         assert card.works.files.model.rows[0].asset.id == link.file_asset_id
         card.progress.refresh()
-        assert [card.progress.tabs.tabText(i) for i in range(3)] == [
+        assert [card.progress.tabs.tabText(i) for i in range(4)] == [
+            "Сводка",
             "Домашнее задание",
             "Рубежный контроль",
             "Экзамен",
@@ -172,6 +176,12 @@ def test_help_search_navigation_fallback_and_period_entry(desktop):
     assert "История попыток" in window.help_page.content.toPlainText()
     window.help_page.search.setText("перетащите")
     assert window.help_page.navigation.count() == 1
+    # Exercise the native installer probe's actual query against packaged Help.
+    script = Path(__file__).resolve().parents[2] / "scripts/smoke_installer_ui.ps1"
+    query = re.search(r"\.SetValue\('([^']+)'\)", script.read_text(encoding="utf-8-sig"))[1]
+    window.help_page.search.setText(query)
+    assert window.help_page.navigation.count() == 1
+    assert window.help_page.current_article_id == "attempts"
     window.help_page.search.setText("no-such-help-word")
     assert "Ничего не найдено" in window.help_page.content.toPlainText()
     window.open_help("missing")

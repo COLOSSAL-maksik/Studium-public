@@ -175,6 +175,7 @@ class LearningService:
                 value = pending.pop()
                 subtree.append(value)
                 pending.extend(t for t in topics if t.parent_topic_id == value.id)
+            self._assert_frozen_taxonomy_archive(r, "topic", [v.id for v in subtree])
             for value in reversed(subtree):
                 if r.content_locks.topic_locked(value.id):
                     raise ApplicationError("content_semantic_locked")
@@ -208,6 +209,7 @@ class LearningService:
 
     def archive_skill(self, original):
         with self._transaction() as r:
+            self._assert_frozen_taxonomy_archive(r, "skill", [original.id])
             if r.content_locks.skill_locked(original.id):
                 raise ApplicationError("content_semantic_locked")
             r.skills.soft_delete(original.id, expected_revision=original.revision, at=self._clock())

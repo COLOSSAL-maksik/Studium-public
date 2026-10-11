@@ -1,5 +1,76 @@
 # Состояние Studium
 
+## Рабочая база принята — 2026-10-12, Europe/Moscow
+
+Владелец принял ST-QA-001–030 с остаточными замечаниями на проверенном HEAD
+`3eff0293f8540fa848a3175dd15ad34994268235` [PR #3](https://github.com/COLOSSAL-maksik/Studium-public/pull/3).
+Единый этап завершён; принятие и разрешение squash merge — [ADR-053](../decisions.md#adr-053).
+Реализация/evidence каждого ID — [матрица](QA_ALL_30_IMPLEMENTATION.md).
+Индивидуальные manual результаты остаются PENDING/NOT RUN; общего manual PASS
+нет, и checklist не новый блокер принятия. Остатки — только [BACKLOG](BACKLOG.md),
+следующий подход — [ROADMAP](ROADMAP.md); первый модуль выбирает владелец.
+
+### Прежние автоматические проверки принятого code HEAD
+
+Исходные runs/jobs прочитаны повторно, а не запущены заново этой задачей:
+
+| Run / job | HEAD и подтверждённый результат |
+|---|---|
+| [Quality 38134982090](https://github.com/COLOSSAL-maksik/Studium-public/actions/runs/38134982090) | `3eff029…`, completed/success; fast job 114456923021: 310 PASS; full job 114457062918: 830 PASS / 3 native-only SKIP, 833 tests / 48 modules; Linux total 1140 PASS / 3 SKIP, 1143 collected |
+| [Native Windows job 114457062952](https://github.com/COLOSSAL-maksik/Studium-public/actions/runs/38134982090/job/114457062952) | Тот же HEAD; 17 PASS, build/payload, install/launch/repair/uninstall и synthetic two-version upgrade/downgrade/recovery PASS |
+| [Repository safety 38134981827](https://github.com/COLOSSAL-maksik/Studium-public/actions/runs/38134981827) | Тот же HEAD; completed/success |
+
+Full Windows pytest/full_windows — NOT RUN; ручные Windows/DPI/PDF и non-admin
+client VM acceptance — PENDING/NOT RUN. Новые ordinary required checks последнего
+документационного HEAD фиксируются отдельно в PR; code/migration tree прежний.
+Merge outcome и main SHA определяются по GitHub PR, а не по обещанию merge.
+
+## История состояния и проверок до принятия базы
+
+## Дополнение ST-PR3-002 — frozen taxonomy
+
+На базе `67986fd` archive Topic/Skill, используемых сохранённой версией/назначением,
+отклоняется с concrete dependency list. Новая v12 добавляет только два archive
+guards; 22 v1–v11 payloads, прежние facts/UUID и SQL guards сохраняются.
+27 новых synthetic regressions, итоговый targeted пакет **165 PASS**. Required CI
+нового HEAD фиксируется в PR; manual всех 30 — PENDING. [Отчёт](PR3_REVIEW_FIXES.md).
+Ниже сохранены предыдущие implementation/verification результаты.
+
+## Исправления review PR #3
+
+Все четыре замечания исправлены в существующей ветке и PR #3 с сохранением
+пакета всех 30: late first submission при ended participation; frozen V1
+problem/family/attachments; explicit preview/CAS переназначения с прежними
+bindings; полная сводка ДЗ/РК/посещаемости и переходы. Additive v11,
+v1–v10 payloads неизменны. [Отчёт](PR3_REVIEW_FIXES.md), [ADR-051](../decisions.md#adr-051).
+Целевые DB/GUI: 38 PASS; полный local regression: 1113 PASS / 3 ожидаемых
+Windows-only SKIP. Wheel/source/resources/fresh/reopen/GUI: PASS. Проверки
+v1–v10, Ruff, pip и safety: PASS. Новое exact-HEAD CI evidence — в итоговом PR.
+Manual всех 30 — PENDING, промежуточная приёмка не требуется. История ниже
+сохраняется; старые результаты не объявляются проверкой нового HEAD.
+
+## Единый implementation-пакет — решение 2026-10-10
+
+Владелец расширил задачу до всех ST-QA-001–ST-QA-030 в одной ветке
+`agent/codex/qa-a-contracts` и одном итоговом implementation PR. База реализации:
+`d23eee39fcb0f3bd463c2868459fa48d0778925a`; документационная база PR #2 сохранена.
+QA-A → QA-B → QA-C → QA-D — внутренний порядок зависимостей после необходимых
+автоматических проверок. Промежуточные ручные приёмки и merge между этапами
+отменены этим решением; общий manual acceptance остаётся PENDING после пакета.
+Прежний план десяти QA-A PR и directions-only scope — исторические предложения.
+
+B7–B9 впервые заданы этим пакетным решением: SLA 7 календарных дней от received_at
+в explicit offset, near-due последние 24 часа, overdue строго после deadline;
+«выполнено» — подтверждённая содержательная сдача, «зачтено» — explicit ACCEPTED,
+cancelled исключается из active denominator; шаблоны structured answers копируются
+в immutable task/variant snapshots, teacher-only данные не публикуются студенту.
+Норматив и near-due настраиваются. Ранее не подтверждённое согласование не выдумывается.
+
+Текущие implementation/evidence и manual pending ведутся в
+[QA_ALL_30_IMPLEMENTATION](QA_ALL_30_IMPLEMENTATION.md). Матрицы и записи ниже
+сохраняют исторический baseline; они не являются статусом нового пакета.
+
+
 ## Актуальное дополнение — 2026-10-11
 
 Actual main перед работой: `b620ef3635c2965ad3630bae15d00d1b7bd9a82d`.

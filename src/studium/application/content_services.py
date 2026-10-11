@@ -234,6 +234,10 @@ class ContentService:
 
     def create_material(self, kind, *, tags=(), topic_ids=(), problem_ids=(), **values):
         name, cls, *_ = LIBRARIES[kind]
+        if kind == "problems" and "details_json" in values:
+            from studium.domain.qa import validate_answers
+
+            validate_answers(json.loads(values["details_json"]).get("structured_answers", []))
         with self._transaction() as r:
             if values.get("course_id"):
                 self._require(r.courses, values["course_id"])
@@ -254,6 +258,10 @@ class ContentService:
     def update_material(
         self, kind, original, *, tags=None, topic_ids=None, problem_ids=None, **values
     ):
+        if kind == "problems" and "details_json" in values:
+            from studium.domain.qa import validate_answers
+
+            validate_answers(json.loads(values["details_json"]).get("structured_answers", []))
         if values.get("course_id", original.course_id) != original.course_id:
             raise ApplicationError("learning_owner_immutable")
         with self._transaction() as r:
@@ -569,6 +577,7 @@ class ContentService:
                             {
                                 "correct_answer": problem.correct_answer,
                                 "solution": problem.solution,
+                                "answer_schema": json.loads(problem.details_json),
                                 "notes": problem.notes,
                                 "skill_ids": skill_ids.get(problem.family_id or problem.id, []),
                                 "family_id": str(problem.family_id) if problem.family_id else None,
@@ -691,3 +700,117 @@ class ContentService:
                 )
                 for p in facts
             )
+
+    def student_assignment_content(self, assignment_id):
+        """Public assignment DTO uses saved text and statement files only."""
+        with self._transaction() as r:
+            assignment = self._require(
+                r.student_problem_assignments, assignment_id, historical=True
+            )
+            return StudentTicketProblem(
+                assignment.title_snapshot,
+                assignment.statement_snapshot,
+                tuple(
+                    v.file_asset_id
+                    for v in sorted(
+                        r.student_problem_files.for_owner(assignment_id), key=lambda v: v.sort_order
+                    )
+                    if v.role == c.MaterialFileRole.STATEMENT
+                ),
+            )
+
+    def save_content_package(
+        self, kind, original, values, *, links=None, packs=None, collections=None, files=()
+    ):
+        """Metadata, exact links and every staged file share one commit boundary."""
+        from contextlib import contextmanager, nullcontext
+        from copy import copy
+
+        metas = tuple(self._meta() for _ in files)
+        manager = (
+            self._file_adapters().import_files(
+                tuple((Path(path), meta.id) for (path, role), meta in zip(files, metas))
+            )
+            if files
+            else nullcontext(())
+        )
+        with manager as imported:
+            with self._transaction() as r:
+                command = copy(self)
+                command._r = r
+
+                @contextmanager
+                def same_transaction():
+                    yield r
+
+                command._transaction = same_transaction
+                value = (
+                    command.update_material(kind, original, **values)
+                    if original
+                    else command.create_material(kind, **values)
+                )
+                for name, ids in (links or {}).items():
+                    command.set_content_links(name, value.id, ids)
+                if packs is not None:
+                    command.set_definition_packs(value.id, packs)
+                if collections is not None:
+                    ids = set(command.problem_collection_ids(value.id)) | set(collections)
+                    for id in ids:
+                        command.set_problem_collection(id, value.id, included=id in collections)
+                name, _, links_name, link_cls, owner_field = LIBRARIES[kind]
+                repo = getattr(r, links_name)
+                order = (
+                    max(
+                        (
+                            link.sort_order
+                            for link in repo.for_owner(value.id, include_deleted=True)
+                        ),
+                        default=-1,
+                    )
+                    + 1
+                )
+                for index, (meta, payload, (path, role)) in enumerate(zip(metas, imported, files)):
+                    asset = FileAsset(metadata=meta, **asdict(payload))
+                    r.file_assets.insert(asset)
+                    repo.insert(
+                        link_cls(
+                            metadata=self._meta(),
+                            file_asset_id=asset.id,
+                            sort_order=order + index,
+                            role=role,
+                            **{owner_field: value.id},
+                        )
+                    )
+                return value
+
+    def import_material_files(self, kind, owner_id, files):
+        name, _, links_name, link_cls, owner_field = LIBRARIES[kind]
+        self.get_material(kind, owner_id)
+        metas = tuple(self._meta() for _ in files)
+        with self._file_adapters().import_files(
+            tuple((Path(path), meta.id) for (path, role), meta in zip(files, metas))
+        ) as imported:
+            with self._transaction() as r:
+                self._require(getattr(r, name), owner_id)
+                repo = getattr(r, links_name)
+                order = (
+                    max(
+                        (v.sort_order for v in repo.for_owner(owner_id, include_deleted=True)),
+                        default=-1,
+                    )
+                    + 1
+                )
+                result = []
+                for index, (meta, payload, (path, role)) in enumerate(zip(metas, imported, files)):
+                    asset = FileAsset(metadata=meta, **asdict(payload))
+                    link = link_cls(
+                        metadata=self._meta(),
+                        file_asset_id=asset.id,
+                        sort_order=order + index,
+                        role=role,
+                        **{owner_field: owner_id},
+                    )
+                    r.file_assets.insert(asset)
+                    repo.insert(link)
+                    result.append(link)
+                return tuple(result)

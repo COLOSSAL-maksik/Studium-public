@@ -1,10 +1,39 @@
 """Bounded Qt worker calls for file IO; results are delivered on the GUI thread."""
 
+import gc
 import weakref
 
-from PySide6.QtCore import QObject, QRunnable, Qt, QThreadPool, Signal, Slot
+from PySide6.QtCore import QObject, QRunnable, Qt, QThread, QThreadPool, QTimer, Signal, Slot
 from PySide6.QtWidgets import QApplication
 from shiboken6 import isValid
+
+_gc_timer = None
+
+
+def _gui_collection():
+    """Qt wrapper cycles must be collected on the application thread."""
+    global _gc_timer
+    app = QApplication.instance()
+    if QThread.currentThread() != app.thread():
+        raise RuntimeError("BackgroundCall must be started from the GUI thread")
+    if _gc_timer is not None and isValid(_gc_timer):
+        return
+    enabled = gc.isenabled()
+    gc.disable()
+    gc.collect()
+    _gc_timer = QTimer(app)
+    _gc_timer.setInterval(3000)
+    _gc_timer.timeout.connect(gc.collect)
+    _gc_timer.start()
+
+    def restore():
+        QThreadPool.globalInstance().waitForDone()
+        _gc_timer.stop()
+        gc.collect()
+        if enabled:
+            gc.enable()
+
+    app.aboutToQuit.connect(restore)
 
 
 class _Worker(QRunnable):
@@ -26,6 +55,7 @@ class BackgroundCall(QObject):
 
     def __init__(self, owner, action, success, failure):
         # Survives a closed/destroyed view until its worker has finished.
+        _gui_collection()
         super().__init__(QApplication.instance())
         self.owner = weakref.ref(owner)
         self.success, self.failure = success, failure

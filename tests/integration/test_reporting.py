@@ -345,7 +345,8 @@ def test_group_query_budget_does_not_grow_with_matrix(runtime):
         report = s.build_report(ReportKind.GROUP, offering.id)
     finally:
         event.remove(runtime._engine, "before_cursor_execute", capture)
-    assert len(queries) == small_count <= 30
+    # Six fixed bulk reads cover submission/review, plan and review-grade facts.
+    assert len(queries) == small_count <= 34
     assert all(q.lstrip().upper().startswith("SELECT") for q in queries)
     assert len(section(report, "students").rows) == 30
     assert len(section(report, "works").rows) == 600

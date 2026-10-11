@@ -119,8 +119,9 @@ class TestDatabaseContracts:
             row[0] for row in self.db.execute("SELECT name FROM sqlite_master WHERE type='table'")
         }
         from studium.infrastructure.database.models.program import SPECS
+        from studium.infrastructure.database.models.qa import SPECS as QA_SPECS
 
-        assert names == {
+        assert names == {row.__table__.name for _, row, _, _ in QA_SPECS.values()} | {
             row.__table__.name for _, row, _, _ in SPECS.values()
         } | TABLES | LEARNING_TABLES | {
             "file_assets",

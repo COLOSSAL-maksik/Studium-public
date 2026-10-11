@@ -1,5 +1,51 @@
 # Архитектура Studium
 
+## Frozen taxonomy — дополнение v12
+
+Архивирование темы/навыка проверяет immutable snapshots и concrete bindings до
+записи, включая всё поддерево темы. Application error содержит concrete dependency
+DTO; desktop перечисляет версии/работы/индивидуальные назначения. Новые teacher
+snapshots отдельного назначения сохраняют topic_ids и skill_ids; public whitelist
+прежний. Два новых SQL archive guards дублируют защиту записанных semantic fields,
+не меняя прежние endpoint/attempt guards. v1–v11 и старые snapshots неизменны;
+никакая классификация не восстанавливается из текущей библиотеки. [ADR-052](decisions.md#adr-052).
+
+## Исправления review PR #3 — v11
+
+`0011_qa_review_fixes` добавляет immutable PlanContentSource и
+LateWorkAuthorization. Первая поздняя сдача создаёт StudentWork при доказанном
+завершённом участии в исходной выданной работе; scoped authorization и deferred
+FK фиксируются с Attempt/Submission/files одной транзакцией. ACTIVE guard для
+прочих записей, deleted context и membership identity сохраняются.
+
+QAContentSources фиксирует нужные source snapshots, точные links, family/variant
+revisions и файлы. Выдача и последующее назначение студенту читают сохранённое
+содержание. Переназначение плана использует pure preview, fingerprint всех
+затронутых assignments/facts и подтверждённый atomic apply; прежние bindings
+остаются immutable. QASummary считает distinct works по общему resolver,
+substantive review и current typed deadline. [ADR-051](decisions.md#adr-051).
+
+## Текущий пакет QA — 0.2.0
+
+QAPackageService дополняет application facade через concrete repository/UoW ports;
+`domain/qa.py` содержит exact score/deadline/result правила без Qt/SQL.
+`0010_qa_package` использует frozen static DDL и deterministic UUID backfill,
+исторические миграции неизменны. Immutable версия CourseProgram отделена от
+SemesterPlan конкретной группы/периода; content/ordinal выбираются явно.
+PlanHistory хранит original/current snapshots. Submission/Review/ReviewGrade/
+ReviewFile/ReviewReturn разделяют реальные события, timestamps и immutable files.
+RequiredWorkSet/DebtRestoration сохраняют индивидуальные долги. Journal, analytics
+и reporting используют общий evidence-aware resolver и fixed bulk reads.
+Read-only формы/DTO не создают фактов.
+
+`qa_plans.py`, `qa_workflow.py`, `qa_content.py` используют прежний router,
+FormDialog/tokens/Studium generator. StagedAttachmentPicker общий для content,
+submission и review; metadata/links/file batch фиксируются одной транзакцией.
+IO/preview вне GUI-thread, delivery/stale guards внутри него. Python cyclic GC
+Qt wrappers выполняется application-owned GUI timer. Teacher snapshots разделены
+с student DTO/export whitelist. [ADR-050](decisions.md#adr-050--qa-all-30-implementation).
+Ниже сохранены описания предыдущих фаз, не текущий schema head.
+
 > Документ относится к Studium как независимому локальному приложению.
 > Bender — отдельный проект; будущая интеграция использует локальный JSON-RPC
 > 2.0 over stdio. Прямые импорты Bender, API/client, облачный сервер и новые

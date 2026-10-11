@@ -6,6 +6,7 @@ import json
 import shutil
 import sqlite3
 import zipfile
+from contextlib import closing
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -20,6 +21,26 @@ smoke_spec = importlib.util.spec_from_file_location(
 )
 smoke = importlib.util.module_from_spec(smoke_spec)
 smoke_spec.loader.exec_module(smoke)
+
+
+def test_installed_fresh_database_requires_current_head_and_all_tables(tmp_path):
+    from studium.infrastructure.database.migrations import SCHEMA_REVISION, upgrade_database
+    from studium.infrastructure.database.session import create_database_engine
+
+    database = tmp_path / "synthetic.sqlite"
+    engine = create_database_engine(database)
+    upgrade_database(engine)
+    engine.dispose()
+    assert smoke.fresh_database_facts(database)["alembic_version"] == [(SCHEMA_REVISION,)]
+    with closing(sqlite3.connect(database)) as connection, connection:
+        connection.execute("UPDATE alembic_version SET version_num='synthetic_unknown_head'")
+    with pytest.raises(RuntimeError, match="schema differs"):
+        smoke.fresh_database_facts(database)
+    with closing(sqlite3.connect(database)) as connection, connection:
+        connection.execute("UPDATE alembic_version SET version_num=?", (SCHEMA_REVISION,))
+        connection.execute("DROP TABLE directions")
+    with pytest.raises(RuntimeError, match="tables differ"):
+        smoke.fresh_database_facts(database)
 
 
 def test_database_comparison_closes_its_windows_file_handle(tmp_path, monkeypatch):

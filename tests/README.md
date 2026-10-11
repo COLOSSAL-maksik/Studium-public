@@ -5,6 +5,7 @@ Suite содержит unit, database и integration tests Studium. Bender tests
 temporary SQLite/file roots и изоляцию LOCALAPPDATA до collection.
 
 ```text
+python scripts/run_ci_tests.py --phase all
 python scripts/run_ci_tests.py --phase fast
 python scripts/run_ci_tests.py --phase full
 python scripts/run_ci_tests.py --phase windows
@@ -24,3 +25,8 @@ Fixtures не генерируются во время тестов. Исход�
 backup/recovery сценарии проверяют реальные synthetic databases.
 Недоступные проверки не объявлять PASS.
 Native Windows installer/manual acceptance выполняются отдельно, не в Linux.
+
+Пакет 0.2.0 добавляет `test_qa_domain`, `test_qa_package`, `test_qa_migration`,
+`test_qa_desktop` и `test_qa_scale`: exact scores/SLA, реальные транзакции и файлы,
+v9→v10/late DDL rollback/new-head restore, UI save/cancel и 60 студентов с
+120 сдачами и 300 вложениями. Они входят в общий runner без выборочного skip.

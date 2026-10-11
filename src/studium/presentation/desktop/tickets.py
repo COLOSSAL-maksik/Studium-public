@@ -23,9 +23,10 @@ from studium.presentation.desktop.workflow_widgets import data_index
 
 
 class TicketGeneratorPage(QWidget):
-    def __init__(self, window, context_provider):
+    def __init__(self, window, context_provider, *, assessment_id=None):
         super().__init__()
         self.window, self.context_provider = window, context_provider
+        self.target_assessment_id = assessment_id
         self.draft, self.saved, self.offering_id, self.generation = None, None, None, 0
         layout = QVBoxLayout(self)
         hint(layout, "Варианты").setProperty("role", "heading")
@@ -132,6 +133,7 @@ class TicketGeneratorPage(QWidget):
     def apply_tasks(self):
         if self.saved_sets.currentData():
             values = self.service.apply_ticket_set_for_evaluation(self.saved_sets.currentData())
+            self.select_target()
             self.notice.setText(f"Задач назначено для проверки рубежного контроля: {len(values)}")
 
     def refresh(self):
@@ -170,6 +172,7 @@ class TicketGeneratorPage(QWidget):
             for id, title in values:
                 field.addItem(title, id)
             field.setCurrentIndex(max(0, data_index(field, previous)))
+        self.select_target()
         self.roster = self.service.list_students_for_offering(self.offering_id)
         self.student.clear()
         for entry in self.roster:
@@ -193,7 +196,15 @@ class TicketGeneratorPage(QWidget):
             problem_ids=self.selected_problem_ids,
         )
 
+    def select_target(self):
+        if self.target_assessment_id:
+            from studium.presentation.desktop.workflow_widgets import data_index
+
+            self.assessment.setCurrentIndex(data_index(self.assessment, self.target_assessment_id))
+            self.assessment.setEnabled(False)
+
     def generate(self):
+        self.select_target()
         criteria = self.criteria()
         self.generation += 1
         generation = self.generation
@@ -361,6 +372,12 @@ class TicketDetails(QWidget):
         teacher.setPlainText(
             "\n\n".join(
                 f"{p.title_snapshot}\nОтвет: {json.loads(p.teacher_snapshot_json)['correct_answer']}\nРешение: {json.loads(p.teacher_snapshot_json)['solution']}"
+                + "".join(
+                    f"\n{a['name']} ({a['symbol']}): {a['value']} {a.get('units', '')}\n{a.get('formula', '')} {a.get('comment', '')}"
+                    for a in json.loads(p.teacher_snapshot_json)
+                    .get("answer_schema", {})
+                    .get("structured_answers", [])
+                )
                 for p in view.problems
             )
         )

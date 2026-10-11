@@ -1,5 +1,55 @@
 # Реализованные компоненты Studium
 
+## Пакет принят как рабочая база — 2026-10-12
+
+Этап ST-QA-001–030 завершён и принят владельцем с остаточными замечаниями,
+включая четыре review fixes и frozen taxonomy ([ADR-053](decisions.md#adr-053)).
+[Матрица](management/QA_ALL_30_IMPLEMENTATION.md) сохраняет реализацию и automated
+mapping; ручные результаты отдельно, массового manual PASS нет. Дальше выполняются
+ограниченные module tasks по [ROADMAP](management/ROADMAP.md).
+
+## История выполненного и прежних проверок
+
+## Дополнение ST-PR3-002 — frozen taxonomy
+
+На базе `67986fd` archive Topic/Skill, используемых сохранённой версией/назначением,
+отклоняется с concrete dependency list. Новая v12 добавляет только два archive
+guards; 22 v1–v11 payloads, прежние facts/UUID и SQL guards сохраняются.
+27 новых synthetic regressions, итоговый targeted пакет **165 PASS**. Required CI
+нового HEAD фиксируется в PR; manual всех 30 — PENDING. [Отчёт](management/PR3_REVIEW_FIXES.md).
+Ниже сохранены предыдущие implementation/verification результаты.
+
+## Исправления ST-PR3-001–004
+
+Все четыре замечания исправлены в существующей ветке и PR #3 с сохранением
+пакета всех 30: late first submission при ended participation; frozen V1
+problem/family/attachments; explicit preview/CAS переназначения с прежними
+bindings; полная сводка ДЗ/РК/посещаемости и переходы. Additive v11,
+v1–v10 payloads неизменны. [Отчёт](management/PR3_REVIEW_FIXES.md), [ADR-051](decisions.md#adr-051).
+Целевые DB/GUI: 38 PASS; полный local regression: 1113 PASS / 3 ожидаемых
+Windows-only SKIP. Wheel, Ruff/pip, frozen migrations и safety: PASS. Exact-HEAD
+CI evidence — в итоговом PR.
+Manual всех 30 — PENDING, промежуточная приёмка не требуется. История ниже
+сохраняется; старые результаты не объявляются проверкой нового HEAD.
+
+## Единый implementation-пакет 0.2.0
+
+Реализованы пользовательские маршруты всех ST-QA-001–030 в прежней ветке,
+с сохранением PR #2/B1–B6. Course content version/calendar, exact review/rules,
+submission/teacher files/return, queue/summary/debt, topic tree/structured answers,
+staged picker и общий GUI включены одним пакетом. Additive v10, v1–v9 unchanged.
+[Матрица actual source/evidence](management/QA_ALL_30_IMPLEMENTATION.md),
+[ADR-050](decisions.md#adr-050--qa-all-30-implementation).
+Full local regression: 1080 PASS / 3 предусмотренных Windows SKIP, 58 modules;
+synthetic scale, Ruff/dependencies/safety и isolated wheel/GUI smoke прошли.
+После обновления Help исправлен устаревший запрос installed-app smoke;
+PowerShell query проверяется actual GUI regression; fresh installed schema строго
+проверяет current head/all tables и отказывает при unknown/missing. Targeted
+Help/installer: 69 PASS.
+Exact code candidate и evidence — в матрице, CI конкретного PR HEAD — в PR.
+Общая [manual acceptance](qa-all-30-manual.md) PENDING.
+Ниже — история предыдущего документационного этапа.
+
 ## Документационные контракты QA-A — 2026-10-11
 
 Подготовлены [QA_A_CONTRACTS](management/QA_A_CONTRACTS.md) и

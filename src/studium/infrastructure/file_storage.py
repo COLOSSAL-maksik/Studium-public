@@ -4,8 +4,9 @@ import errno
 import hashlib
 import json
 import os
+import shutil
 import stat
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
 
 from studium.application.errors import ApplicationError
@@ -74,6 +75,22 @@ class LocalFileStorage:
         if not path.resolve().is_relative_to(self.root):
             raise ApplicationError("file_unsafe_path")
         return path
+
+    def working_copy(self, asset):
+        from uuid import uuid4
+
+        if self.verify(asset) != FileIntegrity.AVAILABLE:
+            raise ApplicationError("file_missing")
+        target = self.controlled_path(
+            "cache/working-copies/" + str(uuid4()) + "/" + asset.original_filename
+        )
+        target.parent.mkdir(parents=True, exist_ok=False)
+        try:
+            shutil.copyfile(self.path(asset), target)
+        except OSError as error:
+            shutil.rmtree(target.parent)
+            raise file_error(error) from error
+        return target
 
     def path(self, asset):
         validate_storage_key(asset.storage_key)
@@ -160,79 +177,99 @@ class LocalFileStorage:
     @contextmanager
     def import_file(self, source: Path, id: EntityId):
         try:
-            with self._lock():
-                source = Path(source)
-                validate_filename(source.name)
-                extension = source.suffix.lower()
-                if extension not in FILE_EXTENSIONS:
-                    raise ApplicationError("file_type_blocked")
-                if source.is_symlink() or source.is_junction():
-                    raise ApplicationError("file_invalid_source")
-                if not stat.S_ISREG(source.stat().st_mode):
-                    raise ApplicationError("file_invalid_source")
-                key = f"files/{id.value[:2]}/{id.value}{extension}"
-                final = self.controlled_path(key)
-                final.parent.mkdir(parents=True, exist_ok=True)
-                temporary = self.controlled_path(f"files/.imports/{id.value}.tmp")
-                marker = self.controlled_path(f"files/.imports/{id.value}.json")
-                published = False
-                committed = False
-                marker_created = False
-                try:
-                    with marker.open("x", encoding="utf-8") as record:
-                        marker_created = True
-                        json.dump({"storage_key": key}, record)
-                        record.flush()
-                        os.fsync(record.fileno())
-                    digest = hashlib.sha256()
-                    count = 0
-                    with source.open("rb") as original, temporary.open("xb") as target:
-                        before = os.fstat(original.fileno())
-                        if not stat.S_ISREG(before.st_mode):
-                            raise ApplicationError("file_invalid_source")
-                        if before.st_size > MAX_FILE_BYTES:
-                            raise ApplicationError("file_too_large")
-                        header = original.read(16)
-                        if header.startswith((b"MZ", b"\x7fELF", b"#!")):
-                            raise ApplicationError("file_type_blocked")
-                        original.seek(0)
-                        while chunk := original.read(CHUNK_BYTES):
-                            count += len(chunk)
-                            if count > MAX_FILE_BYTES:
-                                raise ApplicationError("file_too_large")
-                            target.write(chunk)
-                            digest.update(chunk)
-                        target.flush()
-                        os.fsync(target.fileno())
-                        after = os.fstat(original.fileno())
-                        if (before.st_size, before.st_mtime_ns) != (
-                            after.st_size,
-                            after.st_mtime_ns,
-                        ) or count != before.st_size:
-                            raise ApplicationError("file_source_changed")
-                    # Windows registry MIME settings vary, notably for WebP.
-                    mime = MIME_TYPES[extension]
-                    self._publish(temporary, final)
-                    published = True
-                    final.chmod(stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
-                    yield ImportedFile(source.name, key, mime, count, digest.hexdigest())
-                    # The caller's DB transaction has committed before resuming.
-                    committed = True
-                finally:
-                    if marker_created:
-                        try:
-                            if published and not committed:
-                                self._remove_uncommitted(final)
-                            temporary.unlink(missing_ok=True)
-                            marker.unlink(missing_ok=True)
-                        except OSError:
-                            # Keep the marker for startup reconciliation. Never
-                            # remove a committed original after finalization fails.
-                            raise ApplicationError(
-                                "file_finalize_pending" if committed else "file_rollback_pending"
-                            ) from None
+            with self._lock(), self._import_unlocked(source, id) as imported:
+                yield imported
         except OSError as error:
             raise file_error(error) from None
+
+    @contextmanager
+    def import_files(self, sources):
+        """One lock/publication boundary; DB failure rolls back every new asset."""
+        try:
+            committed_batch = {"committed": False}
+            with self._lock(), ExitStack() as stack:
+                imported = [
+                    stack.enter_context(self._import_unlocked(Path(path), id, committed_batch))
+                    for path, id in sources
+                ]
+                yield tuple(imported)
+                committed_batch["committed"] = True
+        except OSError as error:
+            raise file_error(error) from None
+
+    @contextmanager
+    def _import_unlocked(self, source, id, committed_batch=None):
+        source = Path(source)
+        validate_filename(source.name)
+        extension = source.suffix.lower()
+        if extension not in FILE_EXTENSIONS:
+            raise ApplicationError("file_type_blocked")
+        if source.is_symlink() or source.is_junction():
+            raise ApplicationError("file_invalid_source")
+        if not stat.S_ISREG(source.stat().st_mode):
+            raise ApplicationError("file_invalid_source")
+        key = f"files/{id.value[:2]}/{id.value}{extension}"
+        final = self.controlled_path(key)
+        final.parent.mkdir(parents=True, exist_ok=True)
+        temporary = self.controlled_path(f"files/.imports/{id.value}.tmp")
+        marker = self.controlled_path(f"files/.imports/{id.value}.json")
+        published = False
+        committed = False
+        marker_created = False
+        try:
+            with marker.open("x", encoding="utf-8") as record:
+                marker_created = True
+                json.dump({"storage_key": key}, record)
+                record.flush()
+                os.fsync(record.fileno())
+            digest = hashlib.sha256()
+            count = 0
+            with source.open("rb") as original, temporary.open("xb") as target:
+                before = os.fstat(original.fileno())
+                if not stat.S_ISREG(before.st_mode):
+                    raise ApplicationError("file_invalid_source")
+                if before.st_size > MAX_FILE_BYTES:
+                    raise ApplicationError("file_too_large")
+                header = original.read(16)
+                if header.startswith((b"MZ", b"\x7fELF", b"#!")):
+                    raise ApplicationError("file_type_blocked")
+                original.seek(0)
+                while chunk := original.read(CHUNK_BYTES):
+                    count += len(chunk)
+                    if count > MAX_FILE_BYTES:
+                        raise ApplicationError("file_too_large")
+                    target.write(chunk)
+                    digest.update(chunk)
+                target.flush()
+                os.fsync(target.fileno())
+                after = os.fstat(original.fileno())
+                if (before.st_size, before.st_mtime_ns) != (
+                    after.st_size,
+                    after.st_mtime_ns,
+                ) or count != before.st_size:
+                    raise ApplicationError("file_source_changed")
+            # Windows registry MIME settings vary, notably for WebP.
+            mime = MIME_TYPES[extension]
+            self._publish(temporary, final)
+            published = True
+            final.chmod(stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
+            yield ImportedFile(source.name, key, mime, count, digest.hexdigest())
+            # The caller's DB transaction has committed before resuming.
+            committed = True
+        finally:
+            committed = committed or bool(committed_batch and committed_batch["committed"])
+            if marker_created:
+                try:
+                    if published and not committed:
+                        self._remove_uncommitted(final)
+                    temporary.unlink(missing_ok=True)
+                    marker.unlink(missing_ok=True)
+                except OSError:
+                    # Keep the marker for startup reconciliation. Never
+                    # remove a committed original after finalization fails.
+                    raise ApplicationError(
+                        "file_finalize_pending" if committed else "file_rollback_pending"
+                    ) from None
 
     def recover_pending(self, find_asset):
         """Reconcile only our journal, never scan/delete arbitrary stored originals."""

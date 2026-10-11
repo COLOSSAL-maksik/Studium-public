@@ -82,6 +82,47 @@ class AppPaths:
 
 
 class JsonPreferences:
+    def fractional_scores_enabled(self):
+        return self._read().get("fractional_scores_enabled") is True
+
+    def set_fractional_scores_enabled(self, enabled):
+        if type(enabled) is not bool:
+            raise ValueError("Expected bool")
+        self._save(fractional_scores_enabled=enabled)
+
+    def review_settings(self):
+        values = self._read()
+        days, near = values.get("review_sla_days", 7), values.get("review_near_hours", 24)
+        return (
+            days if type(days) is int and 1 <= days <= 365 else 7,
+            near if type(near) is int and 0 <= near <= 8760 else 24,
+        )
+
+    def set_review_settings(self, days, near):
+        if (
+            type(days) is not int
+            or not 1 <= days <= 365
+            or type(near) is not int
+            or not 0 <= near <= 8760
+        ):
+            raise ValueError("Некорректный норматив проверки")
+        self._save(review_sla_days=days, review_near_hours=near)
+
+    def splitter_sizes(self, key):
+        sizes = self._read().get("splitter_sizes", {})
+        value = sizes.get(key, []) if isinstance(sizes, dict) else []
+        return (
+            tuple(value)
+            if isinstance(value, list) and all(type(n) is int and 40 <= n <= 5000 for n in value)
+            else ()
+        )
+
+    def save_splitter_sizes(self, key, sizes):
+        values = self._read().get("splitter_sizes", {})
+        values = values if isinstance(values, dict) else {}
+        values[key] = list(sizes)
+        self._save(splitter_sizes=values)
+
     def table_widths(self, key):
         tables = self._read().get("table_widths", {})
         values = tables.get(key, []) if isinstance(tables, dict) else []

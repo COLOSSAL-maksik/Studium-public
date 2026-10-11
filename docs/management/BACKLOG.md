@@ -1,5 +1,64 @@
 # Backlog Studium
 
+## Действующий backlog принятой базы — 2026-10-12
+
+База [PR #3](https://github.com/COLOSSAL-maksik/Studium-public/pull/3),
+`3eff0293f8540fa848a3175dd15ad34994268235`, принята владельцем с остаточными
+замечаниями ([ADR-053](../decisions.md#adr-053)). Изменение этих остатков сейчас
+не выполняется; первый модуль для отдельной задачи ещё не выбран.
+
+**Тип записи:** ограничение — известная граница текущего поведения; проверка —
+недостающее evidence, а не доказанный дефект; требует описания — сообщение владельца
+без конкретного воспроизведения. Новые подтверждённые дефекты добавляются после
+описания сценария на выбранном модуле, с исходным ST-QA ID, если требование прежнее.
+Нового defect ID для переописания старого требования или проверки не создаём.
+
+| Модуль/раздел | ID | Тип и наблюдаемая граница | Ожидаемое поведение | Приоритет | Источник / воспроизведение | Критерий проверки | Статус |
+|---|---|---|---|---|---|---|---|
+| Библиотека и версии | ST-QA-003 | Ограничение: pre-v11 версия не содержит утраченных problem snapshots; unissued work без них нельзя выдать | Не подставлять текущую библиотеку; новая явная версия/назначение | P2 | [Review report](PR3_REVIEW_FIXES.md), ADR-051 | Synthetic legacy copy: старые UUID/JSON прежние, явный отказ, новая версия выдаётся | Ограничение сохранено |
+| Материалы и вложения | ST-QA-003 | Ограничение: legacy shared files без исторического snapshot показывают прежний compatibility view/current links | Не объявлять current links историческим снимком; новые выдачи используют frozen file IDs/hashes | P2 | Review report, ADR-051 | Reopen/restore legacy и новой версии; сравнить file IDs/hashes и student whitelist | Ограничение сохранено |
+| Темы/навыки и версии | ST-QA-003 | Ограничение: saved V1 удерживает taxonomy UUID даже без группы; V2/archive плана не освобождают зависимость. Уже архивированные pre-v12 endpoints не восстанавливаются | Archive заранее отказывает со списком dependencies; старый повреждённый snapshot не заменяется живыми связями | P2 | Review report, ADR-052; test_pr3_frozen_taxonomy | Task/definition/family/individual assignment, atomic refusal, UUID, issue V1, reopen/backup | Ограничение; frozen archive defect исправлен |
+| План семестра | ST-QA-003/010/011 | Ограничение: пересечения retained/new modules требуют согласования календаря; retained assignments блокируют смену ordinal | Preview/refusal без частичных записей; исходные bindings/facts не переносить между семестрами | P2 | Review report, ADR-051; test_pr3_review | Cancel/stale/conflict; согласованный non-overlap apply; независимая группа | Ограничение сохранено |
+| Регистрация и старые долги | ST-QA-011/027 | Ограничение: явно deleted исходный контекст требует подтверждаемого восстановления; archived term допускается | Первая поздняя сдача сохраняет исходные UUID/enrollment; не выполнять auto-restore/re-enroll | P1 (027), P2 (011) | ST-PR3-001 regression mapping в Review report | WITHDRAWN/COMPLETED, отсутствующий StudentWork, T1→T2, restore/cancel и file rollback | Политика сохранена; late-submission defect исправлен |
+| Исторические даты и баллы | ST-QA-013/029/030 | Ограничение: неизвестные legacy actual timestamps/ordinal/min не достраиваются; REAL/NULL сохраняются | Показывать unknown без выдуманной просрочки/зачёта; exact и REAL без потери precision | P1 (029/030), P2 (013) | ADR-050/051 и Review report | Synthetic legacy/fractional/unknown boundary cases, неизменность старых фактов | Ограничение сохранено |
+| Backup/recovery | OPEN-011 | Ограничение совместимости: старый ZIP требует matching прежнего candidate/release и затем upgrade отдельного профиля | Не подменять manifest/schema и не ослаблять unknown-head/fingerprint guards | Не назначен | ADR-051/052, unified checklist | Synthetic ZIP v10/v11: compatible restore → v12 upgrade, rows/bytes и guard failures | Compatibility ограничение; local backup реализован |
+| Аналитика и история коррекций | OPEN-002/011 | Исторический остаток manual overrides/correction audit и полной audit/purge политики за пределами реализованных QA snapshots/PlanHistory | Конкретный новый scope уточняется в выбранном модуле; текущие формулы и immutable facts не переоткрывать | Не назначен | [Архитектурные OPEN/ADR](../decisions.md) | Описать конкретный сценарий и критерии до отдельной реализации | Требует module specification; не подтверждённый дефект |
+| Функциональные сценарии/UI | ST-QA-001–030 | Проверка: полного ручного прохода владельцем по 30 строкам нет; developer/CI evidence отдельно | Фиксировать результат каждого проверенного сценария и SHA; не ставить массовый manual PASS | По исходному ID | [Manual checklist](../qa-all-30-manual.md), implementation matrix | Выполнить относящиеся к выбранному модулю сценарии, включая нужные Light/Dark/DPI/keyboard checks | Manual PENDING; не блокирует принятие базы |
+| Windows/distribution | Native Windows/manual acceptance (существующая запись) | Проверка: full_windows pytest, non-admin interactive client VM и ручные PDF/DPI acceptance не выполнены | Native CI 17 PASS/build/lifecycle отделять от полного Windows и manual evidence | Не назначен | [Состояние и run context](PROJECT_STATUS.md), checklist | При отдельной задаче фактически выполнить нужные проверки и записать среду/результат | NOT RUN/PENDING; не доказанный дефект |
+| Остаточные замечания владельца | Привязать к исходному ST-QA при описании | Требует описания: владелец сообщил недоработки; конкретных текстов/скриншотов в решении нет | Не выдумывать ошибки; собрать наблюдаемое/ожидаемое поведение и воспроизведение выбранного модуля | Требует уточнения | Решение владельца 2026-10-12, ADR-053 | Конкретный module scope, existing/new issue mapping, воспроизведение и acceptance | Требует описания при проверке соответствующего модуля |
+
+ST-PR3-001–004 и frozen Topic/Skill сохраняются как исправленные в
+[отчёте и regression mapping](PR3_REVIEW_FIXES.md). Нового воспроизведения их
+неисправности нет; они не возвращаются в очередь. OPEN-009 не переоткрывает
+реализованные typed deadlines/offset/SLA ADR-050; иные сценарии требуют отдельного
+описания. License/repository решения OPEN-006 и Bender scope не изменены.
+
+## История backlog до принятия базы
+
+Таблицы QA-A–D и 10-PR proposals ниже не являются действующей очередью.
+
+## Единый implementation-пакет — решение 2026-10-10
+
+Владелец расширил задачу до всех ST-QA-001–ST-QA-030 в одной ветке
+`agent/codex/qa-a-contracts` и одном итоговом implementation PR. База реализации:
+`d23eee39fcb0f3bd463c2868459fa48d0778925a`; документационная база PR #2 сохранена.
+QA-A → QA-B → QA-C → QA-D — внутренний порядок зависимостей после необходимых
+автоматических проверок. Промежуточные ручные приёмки и merge между этапами
+отменены этим решением; общий manual acceptance остаётся PENDING после пакета.
+Прежний план десяти QA-A PR и directions-only scope — исторические предложения.
+
+B7–B9 впервые заданы этим пакетным решением: SLA 7 календарных дней от received_at
+в explicit offset, near-due последние 24 часа, overdue строго после deadline;
+«выполнено» — подтверждённая содержательная сдача, «зачтено» — explicit ACCEPTED,
+cancelled исключается из active denominator; шаблоны structured answers копируются
+в immutable task/variant snapshots, teacher-only данные не публикуются студенту.
+Норматив и near-due настраиваются. Ранее не подтверждённое согласование не выдумывается.
+
+Текущие implementation/evidence и manual pending ведутся в
+[QA_ALL_30_IMPLEMENTATION](QA_ALL_30_IMPLEMENTATION.md). Матрицы и записи ниже
+сохраняют исторический baseline; они не являются статусом нового пакета.
+
+
 ## QA-A — актуальное дополнение 2026-10-11
 
 | Задача | Состояние | Следующий результат |

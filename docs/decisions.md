@@ -1,5 +1,182 @@
 # Решения и открытые вопросы
 
+<a id="adr-053"></a>
+
+## ADR-053 — Принятие рабочей базы и дальнейшая работа по модулям
+
+**Дата решения владельца:** 2026-10-12, Europe/Moscow. **Статус:** ACCEPTED.
+
+Пакет ST-QA-001–ST-QA-030 принят как рабочая база с остаточными замечаниями.
+Следующие доработки выполняются отдельно по функциональным модулям.
+Принятая версия: [PR #3](https://github.com/COLOSSAL-maksik/Studium-public/pull/3),
+проверенный HEAD `3eff0293f8540fa848a3175dd15ad34994268235`, включая четыре
+ST-PR3-001–004 и дополнение frozen Topic/Skill. Документационное дополнение
+не меняет её код, tests, dependencies, CI, installer, ресурсы или v1–v12.
+
+Принятие этапа владельцем отделено от реализации, автоматических checks и
+ручного evidence отдельного сценария. Полная ручная проверка всех 30 не заявлена;
+индивидуальные Manual PENDING/NOT RUN сохраняются в [матрице](management/QA_ALL_30_IMPLEMENTATION.md)
+и [checklist](qa-all-30-manual.md). Они не блокируют уже принятое решение о базе.
+Приёмка с остатками не означает отсутствие дефектов. Исходные ID, требования,
+приоритеты и история сохраняются; исправленные review cases не переоткрываются
+без нового воспроизведения.
+
+[BACKLOG](management/BACKLOG.md) — действующий список остаточных ограничений,
+непроведённых проверок и последующих конкретных замечаний. Неописанные владельцем
+недоработки требуют описания при проверке выбранного модуля; ошибки не угадываются.
+QA-A→QA-B→QA-C→QA-D и прежний 10-PR plan — история завершённого пакета, не очередь.
+Правило ограниченных итераций записано в [ROADMAP](management/ROADMAP.md).
+Первый модуль не выбран; новый общий пакет, реализация и задачи агентам не начинаются.
+Неутверждённые UX-концепции не становятся требованиями. Bender и его интеграция
+остаются отдельным проектом Jules.
+
+Владелец разрешил Markdown-only commit в PR #3, обычный push и после успеха
+required checks итогового HEAD — squash merge с expected HEAD без обхода защиты
+main. Это заменяет прежний запрет merge данного пакета. Фактический merge commit
+фиксируется GitHub в PR. Force-push, release, новый installer и дополнительные
+full_windows/workflow_dispatch не разрешены; локальные полные regression/package
+для этого документационного дополнения не повторяются.
+
+<a id="adr-052"></a>
+
+## ADR-052 — Запрет archive frozen классификации
+
+**Дата:** 2026-10-11. **Статус:** IMPLEMENTED; manual acceptance PENDING.
+Основание: дополнительный ST-PR3-002 на `67986fd`.
+
+Два synthetic сценария подтвердили успешный archive и последующий SQL отказ
+выдачи V1. Сохраняем общие endpoint guards и заранее отклоняем несовместимое
+архивирование. Проверяются **записанные** taxonomy UUID в версиях, конкретных
+plan sources и индивидуальных snapshots; mutable библиотека не источник истории.
+Preflight всего subtree атомарен. Error DTO перечисляет зависимые версии/работы/
+назначения с context и UUID; desktop показывает его через прежний error boundary.
+Новые индивидуальные snapshots сохраняют topic_ids и skill_ids. Никакой teacher
+information не добавляется в public whitelist.
+
+Additive v12 содержит только два BEFORE archive guards. Общие SQL triggers и
+22 v1–v11 payloads побайтово прежние, tables/rows/snapshots не переписываются.
+Защита действует и для raw writes; persisted saved version удерживает endpoint
+независимо от live links, назначения группе, отмены/архивирования плана и V2.
+Это намеренная lifetime зависимость immutable содержания. Свободная taxonomy
+архивируется. Уже невалидная pre-v12 классификация не восстанавливается: новая
+freeze/выдача отказывает явно, прежние неизвестные связи не реконструируются.
+Populated upgrade/late DDL rollback, facts/UUID/file hashes, reopen/backup и actual
+GUI проверяются в test_pr3_frozen_taxonomy. Manual всех 30 остаётся PENDING.
+
+<a id="adr-051"></a>
+
+## ADR-051 — Исправления четырёх замечаний PR #3
+
+**Дата:** 2026-10-11. **Статус:** IMPLEMENTED; manual acceptance PENDING.
+Основание: ST-PR3-001–004; прежние B1–B9/ADR-050 сохраняются.
+
+Первая поздняя сдача не требует заранее созданного StudentWork. Внутри атомарной
+команды вставляется LateWorkAuthorization для concrete ended enrollment и
+исходной Assessment, затем StudentWork/Attempt/Submission/files. Deferred FK
+не позволяет оставить authorization без работы. Только WITHDRAWN/COMPLETED,
+не deleted, исходная фактическая выдача до окончания участия; поздняя дата записи
+выдачи не подменяет её event time. Чужой offering
+отвергается. Term.archived не равен deleted. Отдельное подтверждённое восстановление
+с причиной и DebtRestoration audit допускается до первой сдачи, без fake ACTIVE.
+
+В версии фиксируются effective problem text/title, source/family revisions,
+variant parameters, exact topic/skill links, teacher schema/answer и file IDs.
+Общие файлы definition/packs и выбранных материалов также сохраняются; bytes
+не копируются по группе. PlanContentSource связывает конкретный module/work
+с исходной immutable version/ordinal. AssessmentItem и StudentProblemAssignment
+получают frozen content, включая архивированный source. Student output использует
+whitelist statement-only DTO; teacher files/answers не публикуются.
+
+Pure preview переназначения перечисляет retained/retired/incoming modules/works
+и counts выдач/попыток/сдач/reviews/required sets. Apply требует подтверждения,
+expected plan revision и неизменённого fingerprint assignments/facts. Можно
+сохранить все назначения и добавить новое содержание либо явно архивировать
+невыданные работы и заменить их. Выданные работы и required modules сохраняются
+с прежними bindings. Пересечение retained/new modules — отказ: преподаватель
+должен явно согласовать календарь. Изменить ordinal можно у пустого/заменяемого
+невыданного плана; retained assignments прежнего семестра требуют отдельного
+плана исходного периода. Facts не перемещаются между семестрами.
+
+Сводка показывает все исходные периоды. Active total — issued без cancelled;
+not-issued/cancelled отдельно. Выполнено — distinct work с substantive attempt;
+зачтено — current explicit ACCEPTED. Awaiting — последняя substantive сдача без
+substantive review; COMMENT_ONLY не завершает ожидание, SCORED завершает проверку
+без автоматического зачёта. «Не сдано в срок» включает отсутствие своевременного
+предъявления и позднее первое предъявление по current typed deadline: DATE/WEEK
+exclusive, EXACT inclusive. Unknown deadline не становится просрочкой. Exact
+cents и legacy REAL отображаются раздельно без округления. Attendance сохраняет
+(PRESENT+LATE)/(PRESENT+LATE+ABSENT); EXCUSED/UNKNOWN/missing отдельно, cancelled
+lessons исключены. Доступны ДЗ/РК/экзамены, evidence, charts и исходные долги.
+
+Additive `0011_qa_review_fixes`: две новые таблицы, прежняя v10 неизменна.
+Earliest saved binding backfill не восстанавливает отсутствовавшие problem
+snapshots. Выдача такого unissued legacy назначения требует новой явной версии;
+mutable library не подставляется. Backup head/fingerprint guards остаются строгими.
+ZIP v10 восстанавливается прежним compatible v10 candidate, затем standalone
+synthetic профиль обновляется до v11; ZIP не переписывается. Fresh/populated
+upgrade, late rollback, reopen и v11 round-trip проверяются реальной БД/файлами.
+Pre-v11 shared files без исторического snapshot сохраняют прежний compatibility view;
+его current links не объявляются историческим содержимым версии. Новая выдача
+явно закреплённой версии использует сохранённые snapshots/files.
+[Отчёт review](management/PR3_REVIEW_FIXES.md),
+[единый checklist](qa-all-30-manual.md).
+
+<a id="adr-050--qa-all-30-implementation"></a>
+
+## ADR-050 — Единый пакет 30 требований: календарь и факты проверки
+
+**Дата исполнения:** 2026-10-10. **Статус:** IMPLEMENTED; manual acceptance PENDING.
+Прямое пакетное задание заменяет предложенные 10 PR и промежуточные manual gates
+ADR-049. B1–B6, QA-A-REV-01/02 сохранены. Задание датировано 2026-10-11;
+execution environment — 2026-10-10. Записи ниже сохраняют прежнюю историю.
+
+`0010_qa_package` добавляет 21 таблицу: 100 user tables / 101 с Alembic.
+CourseProgram → immutable ProgramVersion/ProgramDirection/VersionReference
+отделены от SemesterPlan/PlanModule/PlannedWork конкретного offering. Ordinal
+задаётся явно, AUTUMN/SPRING его не определяют. Legacy mapping по UUID, не title;
+raw WorkProgram, связи, NULL, REAL и snapshots сохраняются. Только полный XX.XX.XX
+связывается автоматически после NFC/trim; identity casefold + normalized UNIQUE.
+
+Preview чистый; commit атомарный с revision checks/PlanHistory. Соседи не сдвигаются
+автоматически. Deadline за модуль/семестр требует предупреждения/подтверждения,
+модули внутри семестра. EXACT_INCLUSIVE сохраняет legacy UTC/operator,
+DATE_EXCLUSIVE — next-day-start в explicit offset, WEEK_ONLY — current calendar.
+Default нового плана +03. IssuedWork actual отдельный, ambiguous legacy unknown.
+
+Новая сдача создаёт одну Attempt + Submission; re-review только immutable Review.
+ReviewGrade/ReviewFile/ReviewReturn имеют concrete FK и independent timestamps.
+SCORED после NEEDS_REVISION этой сдачи запрещён application/SQL без записи,
+доработка завершается explicit ACCEPTED. Resolver сохраняет legacy fold и порядок
+Attempt number/review_seq: re-review S1 не вытесняет S2. Grade/result/rule
+проверяются вместе. Min — нижняя граница начисления; pending/revision без 0.
+Decimal input → int64 cents без rounding, максимум 92233720368547758.07;
+legacy REAL lossless. Fractional default OFF, ON до двух знаков; saved bounds
+копируются при OFF. Для прежней сдачи после изменения rule явный old/current.
+
+B7–B9 приняты именно пакетным заданием, не ретроспективно. SLA default 7 calendar
+days от received_at в explicit fixed offset; equality не overdue, near default
+24 часа; оба settings persisted. Recording time отдельно. B8 выполнено =
+substantive submission, зачтено = ACCEPTED, cancelled вне active denominator,
+attendance denominator прежний. RequiredWorkSet versioned student/module,
+unknown не закрывает модуль; все concrete bindings должны быть ACCEPTED.
+DebtRestoration с confirmed reason сохраняет ended enrollment/immutable историю.
+B9 numeric/symbolic допускают arbitrary physical Decimal precision; units
+optional, formula/comments plain text. Template copied snapshot, teacher-only.
+
+StagedAttachmentPicker не пишет до save; metadata/links/file batch атомарны.
+Late failure откатывает DB и опубликованные файлы; post-commit finalize failure
+сохраняет bytes/recovery journal. JPEG/PNG/WebP/PDF previews bounded, DOC/DOCX icon.
+Внешний редактор получает рабочую copy в cache. IO — Qt workers; cyclic Qt wrappers
+собираются application-owned GUI timer, исключая их разрушение worker GC.
+
+v1–v9 Python/SQL raw bytes неизменны; static DDL/backfill transactional,
+deterministic UUIDv5. Fresh/populated/late rollback/reopen/new-head restore тестируются.
+ZIP v1 без preferences: новый restore OFF, saved fractions видимы. Archive 0.1.0
+восстановить прежним совместимым release в отдельный профиль, затем upgrade;
+unknown schema/fingerprint/version guards не ослабляются. Candidate 0.2.0 честно
+отличает новую schema; релиз не опубликован. [Карта](management/QA_ALL_30_IMPLEMENTATION.md),
+[общая manual проверка и Windows candidate](qa-all-30-manual.md).
+
 <a id="adr-049--qa-a-product-contracts"></a>
 
 ## ADR-049 — QA-A: продуктовые контракты и безопасная совместимость

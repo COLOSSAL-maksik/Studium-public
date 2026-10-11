@@ -38,7 +38,7 @@ Named 'Добро пожаловать' | Out-Null
 Start-Sleep -Milliseconds 300
 Named 'Статья справки' | Out-Null
 $search = Named 'Поиск в справке'
-$search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue('переделка всегда')
+$search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue('дата получения')
 Start-Sleep -Milliseconds 300
 $results = @($main.FindAll([System.Windows.Automation.TreeScope]::Descendants,
     [System.Windows.Automation.PropertyCondition]::new(

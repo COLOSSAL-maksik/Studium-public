@@ -2,6 +2,7 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QFormLayout,
@@ -12,6 +13,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QSizePolicy,
+    QSpinBox,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
@@ -32,7 +34,7 @@ from studium.presentation.desktop.dialogs import (
 )
 from studium.presentation.desktop.icons import icon
 from studium.presentation.desktop.messages import TEXT
-from studium.presentation.desktop.models import TableModel
+from studium.presentation.desktop.models import TableModel, display_time
 from studium.presentation.desktop.navigation import NavigationStack, Sidebar, present_detail
 from studium.presentation.desktop.pages import GroupsPage
 from studium.presentation.desktop.theme import apply_theme, resize_to_screen
@@ -150,6 +152,13 @@ class MainWindow(QMainWindow):
             cards.addWidget(card, 1)
             self.home_tiles[index] = card
         overview_layout.insertLayout(2, cards)
+        self.queue_button = QPushButton("Очередь проверки всех групп")
+        self.queue_button.setAccessibleName("Открыть общую очередь проверки")
+        self.queue_button.clicked.connect(self.open_review_queue)
+        overview_layout.insertWidget(3, self.queue_button)
+        self.queue_oldest = text_label("", "body")
+        self.queue_oldest.setWordWrap(True)
+        overview_layout.insertWidget(4, self.queue_oldest)
         resume_surface = QFrame()
         resume_surface.setProperty("role", "surface")
         resume_layout = QVBoxLayout(resume_surface)
@@ -215,6 +224,28 @@ class MainWindow(QMainWindow):
         self.theme_combo.addItem("Тёмная", "dark")
         self.settings_form.addRow("Тема", self.theme_combo)
         self.theme_combo.currentIndexChanged.connect(self.change_theme)
+        self.fractional = QCheckBox("Разрешить дробные баллы (до двух знаков)")
+        self.fractional.toggled.connect(
+            lambda value: (
+                self.service.set_fractional_scores_enabled(value) if self.service else None
+            )
+        )
+        self.settings_form.addRow("Баллы", self.fractional)
+        self.sla_days, self.near_hours = QSpinBox(), QSpinBox()
+        self.sla_days.setRange(1, 365)
+        self.near_hours.setRange(0, 8760)
+        self.settings_form.addRow("Норматив проверки, календарных дней", self.sla_days)
+        self.settings_form.addRow("Срок близко, часов до проверки", self.near_hours)
+        sla_save = QPushButton("Сохранить норматив")
+        sla_save.clicked.connect(
+            lambda: run_action(
+                self,
+                lambda: self.service.set_review_settings(
+                    self.sla_days.value(), self.near_hours.value()
+                ),
+            )
+        )
+        self.settings_form.addRow(sla_save)
         layout.addLayout(self.settings_form)
         from studium.presentation.desktop.backup import BackupPanel
 
@@ -236,6 +267,12 @@ class MainWindow(QMainWindow):
     def initialize(self, service, diagnostics):
         self.service = service
         self.data_directory = diagnostics.data_directory
+        self.fractional.blockSignals(True)
+        self.fractional.setChecked(service.fractional_scores_enabled())
+        self.fractional.blockSignals(False)
+        days, near = service.review_settings()
+        self.sla_days.setValue(days)
+        self.near_hours.setValue(near)
         self.navigation.restore_expansion(service.sidebar_state())
         self.theme_combo.blockSignals(True)
         self.theme_combo.setCurrentIndex(self.theme_combo.findData(service.preferred_theme()))
@@ -341,7 +378,24 @@ class MainWindow(QMainWindow):
         self.router.root(self.help_page, "Справка")
         self.help_page.open_article(article_id)
 
+    def open_review_queue(self):
+        from studium.presentation.desktop.qa_workflow import ReviewQueue
+
+        queue = ReviewQueue(self.service, self)
+        self.router.push(queue, "Очередь проверки")
+        queue.refresh()
+
     def refresh(self):
+        queue = self.service.review_queue()
+        self.queue_button.setText(
+            f"Очередь проверки: {len(queue)} · срок близко: {sum(r.state == 'near_due' for r in queue)} · просрочено: {sum(r.state == 'overdue' for r in queue)}"
+        )
+        self.queue_oldest.setText(
+            "\n".join(
+                f"{r.student.full_name} · {r.group.number} · {r.assessment.title} · {display_time(r.submission.received_at)}"
+                for r in queue[:3]
+            )
+        )
         terms = self.service.list_terms()
         active = self.service.active_term()
         self.term_combo.blockSignals(True)

@@ -9,7 +9,12 @@ from sqlalchemy import inspect
 from studium.application.services import GradeInput
 from studium.domain.enums import AssessmentType, AttemptResult, AttendanceStatus, GradeKind
 from studium.domain.value_objects import LocalDate, UtcInstant
-from studium.infrastructure.database.migrations import migration_config, upgrade_database
+from studium.infrastructure.database.migrations import (
+    SCHEMA_REVISION,
+    migration_config,
+    upgrade_database,
+)
+from studium.infrastructure.database.models import Base
 from studium.infrastructure.database.session import create_database_engine, create_session_factory
 from studium.infrastructure.user_data import JsonPreferences
 from tests.legacy_schema import HistoricalStudiumService as StudiumService
@@ -105,9 +110,11 @@ def test_populated_phase3_v2_copy_upgrade_preserves_every_fact_and_schema(tmp_pa
             after, new_schema = snapshot(c)
             assert (
                 c.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
-                == "0009_daily_workflow"
+                == SCHEMA_REVISION
             )
-            assert len(after) == 79
+            assert set(after) == set(
+                Base.metadata.tables
+            )  # Current head includes v11; every old row is compared below.
             assert preserved_rows(before, after)
             assert preserved_objects(schema, new_schema)
             assert c.exec_driver_sql("PRAGMA foreign_key_check").fetchall() == []

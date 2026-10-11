@@ -79,6 +79,16 @@ class AttachmentService:
             raise ApplicationError("file_open_failed")
         self._file_opener.open(path)
 
+    def open_working_copy(self, file_asset_id):
+        asset = self.get_file_asset(file_asset_id, include_deleted=True)
+        if Path(asset.original_filename).suffix.lower() not in OPEN_EXTENSIONS:
+            raise ApplicationError("file_open_blocked")
+        if self._file_opener is None:
+            raise ApplicationError("file_open_failed")
+        path = self._file_adapters().working_copy(asset)
+        self._file_opener.open(path)
+        return path
+
     def image_preview(self, file_asset_id, *, maximum=1400):
         asset = self.get_file_asset(file_asset_id, include_deleted=True)
         if not asset.mime_type.startswith("image/"):
@@ -156,6 +166,20 @@ class AttachmentService:
 
     def archive_file_asset(self, file_asset_id, *, expected_revision):
         with self._transaction() as r:
+            import json
+
+            from studium.domain.qa import snapshot_file_ids
+
+            if r.version_references and any(
+                v.file_asset_id == file_asset_id
+                for v in r.version_references.list(include_deleted=True)
+            ):
+                raise ApplicationError("file_asset_in_use")
+            if r.plan_content_sources and any(
+                str(file_asset_id) in snapshot_file_ids(json.loads(v.snapshot_json))
+                for v in r.plan_content_sources.list(include_deleted=True)
+            ):
+                raise ApplicationError("file_asset_in_use")
             for name in (
                 "homework_attachments",
                 "problem_attachments",

@@ -1,5 +1,56 @@
 # Модель данных Studium
 
+## Текущий head v12 — frozen taxonomy
+
+`0012_frozen_taxonomy` добавляет только topics_frozen_content_archive и
+skills_frozen_content_archive. Набор таблиц прежний: 102 user / 103 с Alembic.
+Защищаются известные UUID из version references, top-level/definition/problem
+snapshots версий и plan sources, semantic fields teacher assignment snapshots.
+Новые assignments сохраняют topic_ids; прежний JSON и pre-v11 неизвестные связи
+не переписываются. Все v1–v11 payloads и существующие guards сохранены.
+[ADR-052](decisions.md#adr-052).
+
+## Предыдущая additive схема v11
+
+Head `0011_qa_review_fixes`: 102 user tables / 103 с Alembic. После v10 добавлены
+две таблицы без изменения прежних rows/columns:
+
+| Таблица | Сохранённый смысл |
+|---|---|
+| plan_content_sources | Concrete plan + один module/work FK; immutable version/ordinal/content snapshot, прежние bindings после переназначения |
+| late_work_authorizations | Concrete StudentWork (deferred FK), Enrollment, Student, Assessment; только исходная выдача и ended WITHDRAWN/COMPLETED, без re-enrollment |
+
+v11 заменяет только membership insert trigger на ACTIVE либо scoped authorization;
+scope, archived/deleted и immutable guards сохранены. Frozen content удерживает
+FileAsset от archive. Deterministic backfill берёт earliest saved plan binding,
+не сочиняет утраченные pre-v11 тексты задач. Старые unissued назначения без
+снимка требуют новой явной версии/назначения. Существующие issued facts доступны.
+v1–v10 payloads неизменны. [ADR-051](decisions.md#adr-051).
+
+## Предыдущая additive схема v10
+
+`0010_qa_package` после v9: 21 новая таблица; 100 user tables / 101 с Alembic.
+Старые columns/UUID/FK/revisions/NULL/REAL и bytes не переписываются. Mapping
+deterministic UUIDv5 сохраняет raw content и original plan history; legacy actual
+issue, ordinal, min/rules/submission evidence не выдумываются.
+
+| Сущности | Контракт |
+|---|---|
+| Direction, CourseProgram, ProgramVersion, ProgramDirection | Normalized directions, immutable курс без Term |
+| VersionReference, LegacyProgramMap | Concrete FK/exactly one target; bridge каждого legacy UUID без title merge |
+| SemesterPlan, PlanModule, PlannedWork, PlanHistory | Offering calendar, explicit ordinal/offset, независимые сроки и revisioned snapshots |
+| IssuedWork, ScoringRule, Submission | Concrete Assessment/Attempt, actual nullable для legacy, append-only cents bounds, received_at/rule |
+| Review, ReviewGrade, ReviewFile, ReviewReturn | Immutable result/rule/grade/teacher FileAsset, review и return отдельно |
+| RequiredWorkSet, RequiredWorkBinding, DebtRestoration | Versioned student/module requirement, concrete StudentWork и restore audit |
+| AnswerTemplate | Numeric/symbolic schema, copied snapshot/arbitrary physical precision |
+
+Новые scores INTEGER cents; legacy REAL отдельная lossless projection. Date-only
+exclusive next-day-start, exact inclusive UTC, week-only current calendar. UUID/UTC/
+revision/soft-delete, FK indexes, no physical delete, scope/immutable guards.
+Template mutable, ранее сохранённые assignment schemas независимы. Preferences
+не в ZIP v1. [ADR-050](decisions.md#adr-050--qa-all-30-implementation) — совместимость.
+Ниже сохранена история прежних schema heads.
+
 > Документ относится к Studium как независимому локальному приложению.
 > Bender — отдельный проект; будущая интеграция использует локальный JSON-RPC
 > 2.0 over stdio. Прямые импорты Bender, API/client, облачный сервер и новые

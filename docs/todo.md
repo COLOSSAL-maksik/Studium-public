@@ -1,5 +1,53 @@
 # Оставшаяся работа
 
+## Следующее действие после принятия — 2026-10-12
+
+Владелец выбирает один функциональный модуль для отдельной ограниченной задачи.
+Затем уточняются реальные сценарии, остатки и acceptance по [ROADMAP](management/ROADMAP.md).
+Действующий список — [BACKLOG](management/BACKLOG.md), решение о принятии базы —
+[ADR-053](decisions.md#adr-053). Первый модуль не выбран; нового общего implementation
+пакета/задач агентам сейчас нет. Недостающие manual проверки относятся к выбранным
+модулям и не становятся повторным gate принятия всех 30.
+
+## История прежней очереди до принятия базы
+
+QA-A–D, directions foundation/10-PR proposals и прежний запрет merge ниже заменены
+актуальным решением ADR-053. Они не являются новыми заданиями.
+
+## Дополнение ST-PR3-002 — frozen taxonomy
+
+На базе `67986fd` archive Topic/Skill, используемых сохранённой версией/назначением,
+отклоняется с concrete dependency list. Новая v12 добавляет только два archive
+guards; 22 v1–v11 payloads, прежние facts/UUID и SQL guards сохраняются.
+27 новых synthetic regressions, итоговый targeted пакет **165 PASS**. Required CI
+нового HEAD фиксируется в PR; manual всех 30 — PENDING. [Отчёт](management/PR3_REVIEW_FIXES.md).
+Ниже сохранены предыдущие implementation/verification результаты.
+
+## Общая проверка после review PR #3
+
+Все четыре замечания исправлены в существующей ветке и PR #3 с сохранением
+пакета всех 30: late first submission при ended participation; frozen V1
+problem/family/attachments; explicit preview/CAS переназначения с прежними
+bindings; полная сводка ДЗ/РК/посещаемости и переходы. Additive v11,
+v1–v10 payloads неизменны. [Отчёт](management/PR3_REVIEW_FIXES.md), [ADR-051](decisions.md#adr-051).
+Целевые DB/GUI: 38 PASS; полный local regression: 1113 PASS / 3 ожидаемых
+Windows-only SKIP. Wheel, Ruff/pip, frozen migrations и safety: PASS. Exact-HEAD
+CI evidence — в итоговом PR.
+Manual всех 30 — PENDING, промежуточная приёмка не требуется. История ниже
+сохраняется; старые результаты не объявляются проверкой нового HEAD.
+
+## Общая приёмка пакета 0.2.0
+
+Промежуточные manual/merge gates отменены прямым пакетным заданием. Реализация
+всех 30 UI/backend требований собрана в одной ветке; текущая проверка и реальные
+blockers отражены в [матрице](management/QA_ALL_30_IMPLEMENTATION.md).
+Полная локальная регрессия прошла (1080 PASS / 3 Windows SKIP); результаты required
+CI конкретного итогового HEAD фиксируются в PR перед передачей владельцу.
+Проверить единый [manual checklist](qa-all-30-manual.md)
+на synthetic Windows candidate, включая Light/Dark/DPI/архивы/хвосты.
+Manual PENDING, merge/release/deploy не выполнять. История ниже superseded там,
+где требует 10 implementation PR или отдельного разрешения на каждый QA этап.
+
 ## QA-A — следующие действия 2026-10-11
 
 - Review [технических proposals/migration mapping](management/QA_A_CONTRACTS.md):

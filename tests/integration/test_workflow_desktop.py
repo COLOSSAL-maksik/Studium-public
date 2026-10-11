@@ -6,8 +6,9 @@ from PySide6.QtWidgets import QApplication, QComboBox, QMessageBox
 from studium.domain.enums import AttemptResult, LessonType
 from studium.domain.value_objects import UtcInstant
 from studium.presentation.desktop.dialogs import AssessmentDialog, HistoryDialog
-from studium.presentation.desktop.learning import LessonForm
+from studium.presentation.desktop.learning import AssessmentContentDialog, LessonForm
 from studium.presentation.desktop.library import ContentEditor, MaterialFiles
+from studium.presentation.desktop.qa_workflow import SubmissionHistory
 from studium.presentation.desktop.theme import apply_theme
 from studium.presentation.desktop.workflow_widgets import FileDropZone, data_index
 from tests.integration.test_desktop import desktop as desktop
@@ -43,7 +44,11 @@ def test_internal_student_work_attempt_push_back_no_top_level(desktop):
     card.work_view.selectRow(0)
     card.open_selected_work()
     history = window.pages.currentWidget()
-    assert isinstance(history, HistoryDialog) and not history.isWindow()
+    assert isinstance(history, SubmissionHistory) and not history.isWindow()
+    history.legacy()
+    legacy = window.pages.currentWidget()
+    assert isinstance(legacy, HistoryDialog) and not legacy.isWindow()
+    history = legacy
     history.view.selectRow(0)
     history.open_attempt()
     attempt_page = window.pages.currentWidget()
@@ -52,6 +57,8 @@ def test_internal_student_work_attempt_push_back_no_top_level(desktop):
     assert {id(w) for w in QApplication.topLevelWidgets() if w.isVisible()} == top_before
     window.router.back()
     assert window.pages.currentWidget() is history
+    window.router.back()
+    assert isinstance(window.pages.currentWidget(), SubmissionHistory)
     window.router.back()
     assert window.pages.currentWidget() is card
     window.router.back()
@@ -135,6 +142,9 @@ def test_reusable_drop_multifile_import_from_library(desktop, tmp_path, kind):
     )
     files.drop_zone.dropEvent(drop)
     assert drop.isAccepted() and not files.drop_zone.property("dragActive")
+    assert len(files.staged.paths) == 2
+    assert not runtime.service.list_material_files(kind, material.id)
+    files.import_pending()
     wait_until(lambda: files.model.rowCount() == 2)
     assert len(runtime.service.list_material_files(kind, material.id)) == 2
     QThreadPool.globalInstance().waitForDone()
@@ -219,9 +229,12 @@ def test_generator_ui_save_select_set_unassign_restore(desktop):
             "problems", course_id=offering.course_id, title=f"Problem {i}", tags=("балки",)
         )
     open_group(window, group)
-    page = window.groups_page
-    page.tabs.setCurrentWidget(page.tickets)
-    tickets = page.tickets
+    content = AssessmentContentDialog(
+        runtime.service, window.groups_page.context(), desktop[-1], window
+    )
+    content.open_variants()
+    tickets = window.pages.currentWidget()
+    assert tickets.target_assessment_id == desktop[-1].id
     tickets.tags.setText("балки")
     tickets.generate()
     wait_until(lambda: tickets.draft is not None)
@@ -237,13 +250,16 @@ def test_generator_ui_save_select_set_unassign_restore(desktop):
 
 
 def test_generator_insufficient_pool_notice_readable(desktop):
-    window, _, group, *_ = desktop
+    window, runtime, group, _, _, assessment = desktop
     open_group(window, group)
-    page = window.groups_page
-    page.tabs.setCurrentWidget(page.tickets)
-    page.tickets.generate()
-    wait_until(lambda: "Недостаточно" in page.tickets.notice.text())
-    assert page.tickets.draft is None
+    content = AssessmentContentDialog(
+        runtime.service, window.groups_page.context(), assessment, window
+    )
+    content.open_variants()
+    page = window.pages.currentWidget()
+    page.generate()
+    wait_until(lambda: "Недостаточно" in page.notice.text())
+    assert page.draft is None
 
 
 def test_internal_pdf_back_releases_document_and_ignores_late_worker(desktop, tmp_path):
