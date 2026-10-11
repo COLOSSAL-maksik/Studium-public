@@ -4,7 +4,7 @@
 `agent/codex/qa-a-contracts`. PR #2/B1–B6/QA-A-REV-01/02 сохранены.
 Один пакет/PR, без промежуточной manual acceptance и без merge.
 Implementation QA-A–D выполнена; полная локальная регрессия прошла.
-Проверенный code candidate: `c50bd5538623aaade1f135815180556d623041db`;
+Проверенный code candidate: `b0b1d1e8e157427edc7ea9c4931851fe5bb9911f`;
 последующее дополнение изменяет только документы. Точный PR HEAD и результаты
 его required checks указываются в итоговом PR.
 Manual acceptance всех 30 ID — PENDING.
@@ -60,8 +60,11 @@ application/domain/infrastructure явно указаны. Базовые ссы
   sharing lock и два junction contracts; unexpected/collection skips запрещены.
   Python-код приложения с тех пор не менялся. На финальном candidate исправлен
   устаревший поисковый запрос native installer smoke и инструкции Help;
-  actual PowerShell query → packaged Help проверяется GUI regression: 68 PASS
-  вместе с installer unit contracts. Полная проверка final PR HEAD — в CI PR.
+  actual PowerShell query → packaged Help проверяется GUI regression.
+  Fresh installer profile строго сверяется с текущим SCHEMA_REVISION и полным
+  набором таблиц; реальная DB regression отклоняет unknown head/missing table.
+  Targeted Help/installer contracts: 69 PASS. Теперь collected total — 1084
+  (добавлена одна meaningful schema regression). Полная final PR HEAD suite — в CI PR.
 - Target DB/repositories/reporting/migration: 50 PASS; финальные GUI формы и
   редактор: 35 PASS; отдельная строгая ORM/DDL comparison: PASS.
 - Synthetic scale: две группы, 60 студентов, 18 недель, 72 работы,
