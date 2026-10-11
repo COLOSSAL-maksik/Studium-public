@@ -1,6 +1,23 @@
 # Модель данных Studium
 
-## Текущая additive схема v10
+## Текущая additive схема v11
+
+Head `0011_qa_review_fixes`: 102 user tables / 103 с Alembic. После v10 добавлены
+две таблицы без изменения прежних rows/columns:
+
+| Таблица | Сохранённый смысл |
+|---|---|
+| plan_content_sources | Concrete plan + один module/work FK; immutable version/ordinal/content snapshot, прежние bindings после переназначения |
+| late_work_authorizations | Concrete StudentWork (deferred FK), Enrollment, Student, Assessment; только исходная выдача и ended WITHDRAWN/COMPLETED, без re-enrollment |
+
+v11 заменяет только membership insert trigger на ACTIVE либо scoped authorization;
+scope, archived/deleted и immutable guards сохранены. Frozen content удерживает
+FileAsset от archive. Deterministic backfill берёт earliest saved plan binding,
+не сочиняет утраченные pre-v11 тексты задач. Старые unissued назначения без
+снимка требуют новой явной версии/назначения. Существующие issued facts доступны.
+v1–v10 payloads неизменны. [ADR-051](decisions.md#adr-051).
+
+## Предыдущая additive схема v10
 
 `0010_qa_package` после v9: 21 новая таблица; 100 user tables / 101 с Alembic.
 Старые columns/UUID/FK/revisions/NULL/REAL и bytes не переписываются. Mapping

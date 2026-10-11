@@ -3,7 +3,7 @@
 Все 30 пунктов передаются одним пакетом. Каждый пункт ниже — **PENDING**;
 автоматические проверки и осмотр разработчика не заменяют приёмку владельцем.
 База: `d23eee39fcb0f3bd463c2868459fa48d0778925a`.
-Точный code candidate: `b0b1d1e8e157427edc7ea9c4931851fe5bb9911f`.
+Точный code candidate: `acccbaf5286bbf42a5b9a4816ec65df2ce6b82fe`.
 Итоговый PR HEAD добавляет документы к этому содержимому и указан в PR вместе
 с проверками. Сверяйте SHA перед сборкой. PR #2 и его договорённости сохранены.
 
@@ -15,7 +15,7 @@
 
 ```powershell
 git fetch origin agent/codex/qa-a-contracts
-git switch --detach b0b1d1e8e157427edc7ea9c4931851fe5bb9911f
+git switch --detach acccbaf5286bbf42a5b9a4816ec65df2ce6b82fe
 git rev-parse HEAD
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.lock -r requirements-build.lock
@@ -65,7 +65,7 @@ offscreen checks за Windows installer evidence. Не публикуйте сб
 | ST-QA-026 | Sidebar hover/selected/expanded, обе темы | Нет выступающих branch artifacts, двойных рамок, clipping/лишней прокрутки |
 | ST-QA-027 | Студент → Прогресс/Работы → «+ Зарегистрировать сдачу» | Фактическая дата и несколько файлов сохраняются атомарно в новую Attempt; cancel без записи |
 | ST-QA-028 | История работы → Проверить → teacher files → Возврат | Оригиналы и проверенные bytes раздельны; review/recording/return dates; внешнему редактору только копия |
-| ST-QA-029 | Студент → Прогресс → Сводка → категория/модуль | Первый экран: выполнено/зачтено/выдано/отменено и посещаемость; drill-down; долги всех периодов |
+| ST-QA-029 | Студент → Прогресс → Сводка → категория/модуль | Первый экран: все показатели ДЗ/РК/посещаемости из исходного ST-QA-029, точные баллы, planned/issued/cancelled; ДЗ/РК/экзамены/evidence/charts; долги всех периодов |
 | ST-QA-030 | Правило min=18/max=30; fractional OFF/ON; review 24,75 | Bounds exact; OFF reject, ON сохраняет; доработка без 0, SCORED не зачёт; правило сохранённого review неизменно |
 
 ## Один общий сценарий
@@ -94,3 +94,52 @@ active denominator, backup/restore нового профиля с общими/�
 Повторите ключевые формы в Light/Dark при 100/125/150%, 960×620 и HD,
 с длинными названиями и keyboard/context menu. Отметьте каждую строку PASS/FAIL
 с SHA candidate; до этого manual acceptance всех 30 ID остаётся PENDING.
+
+## Четыре review regression сценария — также PENDING
+
+1. **ST-PR3-001 / ST-QA-011/027:** выдать H1 в T1, не открывая историю студента
+   (StudentWork отсутствует); завершить участие WITHDRAWN/COMPLETED, выбрать T2.
+   Зарегистрировать первую позднюю сдачу H1 с несколькими файлами, затем вторую.
+   Исходные Assessment/offering/student UUID, ended_at/status прежние, номера
+   попыток 1/2. Повторить при существующей работе. Archived term допустим;
+   явно deleted context отказывает до отдельного «Восстановить исходный контекст»
+   с подтверждением. Cancel не создаёт сдачи. Чужой offering отвергается.
+2. **ST-PR3-002 / ST-QA-003:** закрепить V1, затем изменить problem text/title,
+   topic A→B, family statement/variant parameters, answer и attachments. Создать
+   V2 явно. Выдать V1 и V2 разным группам: каждая сохраняет своё содержание и
+   file IDs/hashes. Архивировать source, reopen, выполнить synthetic backup/restore.
+   Назначение студенту V1 сохраняет старую задачу; student output содержит только
+   statement files и не содержит answer/solution/reference.
+3. **ST-PR3-003 / ST-QA-003/010:** у V1 создать issued и pending works, Submission,
+   Review и required set. Выбрать V2 через «Переназначение содержания плана»:
+   первый Save только preview с конкретными retained/retired/incoming модулями и
+   работами, counts фактов. Cancel без записи. Выбрать сохранение всех либо замену
+   невыданных работ, подтвердить перечисленное и применить. Прежние issued UUID,
+   source version/ordinal, debts/reviews не меняются. Пересекающиеся модули или
+   смена ordinal с retained facts дают понятный отказ. Для непересекающегося
+   пакета apply атомарен. У пустого/заменяемого unissued плана допустим ordinal 2.
+   После нового факта повторить stale preview: отказ и предложение нового preview.
+   Другая группа не меняется; bindings доступны после reopen.
+4. **ST-PR3-004 / ST-QA-029:** первым экраном «Прогресс» остаётся «Сводка».
+   Проверить для **ДЗ**: всего issued active, зачтено, на доработке, ожидают проверки,
+   не сдано в срок. Для **РК**: всего, выполнено, зачтено, ожидают проверки,
+   фактические результаты каждой работы в баллах (exact 24,75 и legacy REAL).
+   Planned/not-issued и cancelled показаны отдельно; cancelled вне active total.
+   Повторные reviews не удваивают работы; COMMENT_ONLY оставляет ожидание,
+   SCORED снимает ожидание без создания ACCEPTED, новая сдача снова ожидает.
+   «Не сдано в срок» включает late first submission и отсутствие своевременной
+   сдачи, использует current deadline после переноса: DATE/WEEK boundary exclusive,
+   EXACT inclusive, unknown не выдумывается. Для **посещаемости**: количество
+   занятий, посещено, пропущено, опоздания, уважительные причины, доля; UNKNOWN
+   и без отметки отдельно, cancelled lessons исключены. Доля сохраняет
+   (PRESENT+LATE)/(PRESENT+LATE+ABSENT). Открыть ДЗ/РК/экзамены, факты тем/навыков,
+   графики и долги исходного T1 при active T2.
+
+Head v11 имеет 103 таблицы с Alembic. Старый ZIP v10 восстанавливать прежним
+совместимым v10 candidate в отдельный профиль, затем выполнять upgrade до v11.
+Не подменять ZIP manifest/schema. Утраченные pre-v11 snapshots не реконструируются;
+unissued legacy назначение без snapshots требует новой явной версии/назначения.
+
+Pre-v11 shared files без исторического snapshot сохраняют прежний compatibility view;
+его current links не объявляются историческим содержимым версии. Новая выдача
+явно закреплённой версии использует сохранённые snapshots/files.

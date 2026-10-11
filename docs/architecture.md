@@ -1,5 +1,20 @@
 # Архитектура Studium
 
+## Исправления review PR #3 — v11
+
+`0011_qa_review_fixes` добавляет immutable PlanContentSource и
+LateWorkAuthorization. Первая поздняя сдача создаёт StudentWork при доказанном
+завершённом участии в исходной выданной работе; scoped authorization и deferred
+FK фиксируются с Attempt/Submission/files одной транзакцией. ACTIVE guard для
+прочих записей, deleted context и membership identity сохраняются.
+
+QAContentSources фиксирует нужные source snapshots, точные links, family/variant
+revisions и файлы. Выдача и последующее назначение студенту читают сохранённое
+содержание. Переназначение плана использует pure preview, fingerprint всех
+затронутых assignments/facts и подтверждённый atomic apply; прежние bindings
+остаются immutable. QASummary считает distinct works по общему resolver,
+substantive review и current typed deadline. [ADR-051](decisions.md#adr-051).
+
 ## Текущий пакет QA — 0.2.0
 
 QAPackageService дополняет application facade через concrete repository/UoW ports;

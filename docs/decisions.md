@@ -1,5 +1,63 @@
 # Решения и открытые вопросы
 
+<a id="adr-051"></a>
+
+## ADR-051 — Исправления четырёх замечаний PR #3
+
+**Дата:** 2026-10-11. **Статус:** IMPLEMENTED; manual acceptance PENDING.
+Основание: ST-PR3-001–004; прежние B1–B9/ADR-050 сохраняются.
+
+Первая поздняя сдача не требует заранее созданного StudentWork. Внутри атомарной
+команды вставляется LateWorkAuthorization для concrete ended enrollment и
+исходной Assessment, затем StudentWork/Attempt/Submission/files. Deferred FK
+не позволяет оставить authorization без работы. Только WITHDRAWN/COMPLETED,
+не deleted, исходная фактическая выдача до окончания участия; поздняя дата записи
+выдачи не подменяет её event time. Чужой offering
+отвергается. Term.archived не равен deleted. Отдельное подтверждённое восстановление
+с причиной и DebtRestoration audit допускается до первой сдачи, без fake ACTIVE.
+
+В версии фиксируются effective problem text/title, source/family revisions,
+variant parameters, exact topic/skill links, teacher schema/answer и file IDs.
+Общие файлы definition/packs и выбранных материалов также сохраняются; bytes
+не копируются по группе. PlanContentSource связывает конкретный module/work
+с исходной immutable version/ordinal. AssessmentItem и StudentProblemAssignment
+получают frozen content, включая архивированный source. Student output использует
+whitelist statement-only DTO; teacher files/answers не публикуются.
+
+Pure preview переназначения перечисляет retained/retired/incoming modules/works
+и counts выдач/попыток/сдач/reviews/required sets. Apply требует подтверждения,
+expected plan revision и неизменённого fingerprint assignments/facts. Можно
+сохранить все назначения и добавить новое содержание либо явно архивировать
+невыданные работы и заменить их. Выданные работы и required modules сохраняются
+с прежними bindings. Пересечение retained/new modules — отказ: преподаватель
+должен явно согласовать календарь. Изменить ordinal можно у пустого/заменяемого
+невыданного плана; retained assignments прежнего семестра требуют отдельного
+плана исходного периода. Facts не перемещаются между семестрами.
+
+Сводка показывает все исходные периоды. Active total — issued без cancelled;
+not-issued/cancelled отдельно. Выполнено — distinct work с substantive attempt;
+зачтено — current explicit ACCEPTED. Awaiting — последняя substantive сдача без
+substantive review; COMMENT_ONLY не завершает ожидание, SCORED завершает проверку
+без автоматического зачёта. «Не сдано в срок» включает отсутствие своевременного
+предъявления и позднее первое предъявление по current typed deadline: DATE/WEEK
+exclusive, EXACT inclusive. Unknown deadline не становится просрочкой. Exact
+cents и legacy REAL отображаются раздельно без округления. Attendance сохраняет
+(PRESENT+LATE)/(PRESENT+LATE+ABSENT); EXCUSED/UNKNOWN/missing отдельно, cancelled
+lessons исключены. Доступны ДЗ/РК/экзамены, evidence, charts и исходные долги.
+
+Additive `0011_qa_review_fixes`: две новые таблицы, прежняя v10 неизменна.
+Earliest saved binding backfill не восстанавливает отсутствовавшие problem
+snapshots. Выдача такого unissued legacy назначения требует новой явной версии;
+mutable library не подставляется. Backup head/fingerprint guards остаются строгими.
+ZIP v10 восстанавливается прежним compatible v10 candidate, затем standalone
+synthetic профиль обновляется до v11; ZIP не переписывается. Fresh/populated
+upgrade, late rollback, reopen и v11 round-trip проверяются реальной БД/файлами.
+Pre-v11 shared files без исторического snapshot сохраняют прежний compatibility view;
+его current links не объявляются историческим содержимым версии. Новая выдача
+явно закреплённой версии использует сохранённые snapshots/files.
+[Отчёт review](management/PR3_REVIEW_FIXES.md),
+[единый checklist](qa-all-30-manual.md).
+
 <a id="adr-050--qa-all-30-implementation"></a>
 
 ## ADR-050 — Единый пакет 30 требований: календарь и факты проверки

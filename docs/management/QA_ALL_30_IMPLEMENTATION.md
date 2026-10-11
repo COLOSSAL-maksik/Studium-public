@@ -4,7 +4,7 @@
 `agent/codex/qa-a-contracts`. PR #2/B1–B6/QA-A-REV-01/02 сохранены.
 Один пакет/PR, без промежуточной manual acceptance и без merge.
 Implementation QA-A–D выполнена; полная локальная регрессия прошла.
-Проверенный code candidate: `b0b1d1e8e157427edc7ea9c4931851fe5bb9911f`;
+Текущий code candidate: `acccbaf5286bbf42a5b9a4816ec65df2ce6b82fe`;
 последующее дополнение изменяет только документы. Точный PR HEAD и результаты
 его required checks указываются в итоговом PR.
 Manual acceptance всех 30 ID — PENDING.
@@ -22,20 +22,20 @@ application/domain/infrastructure явно указаны. Базовые ссы
 | ID | Этап | Приоритет | Implementation | Automated evidence modules | Manual |
 |---|---|---|---|---|---|
 | ST-QA-002 | QA-A | P2 | Реализовано: qa_plans.py; domain/qa.py | test_qa_package; test_qa_desktop | PENDING |
-| ST-QA-003 | QA-A | P2 | Реализовано: qa_plans.py; application/qa_services.py | test_qa_package; test_qa_scale | PENDING |
+| ST-QA-003 | QA-A | P2 | Реализовано: qa_plans.py; application/qa_content_sources.py; v0011 | test_qa_package; test_qa_scale; test_pr3_review | PENDING |
 | ST-QA-006 | QA-A | P2 | Реализовано: qa_plans.py; programs.py | test_qa_package; test_program_desktop | PENDING |
-| ST-QA-010 | QA-A | P2 | Реализовано: qa_plans.py; application/qa_services.py | test_qa_desktop; test_qa_package | PENDING |
-| ST-QA-011 | QA-A | P2 | Реализовано: qa_plans.py; application/qa_services.py | test_qa_package; test_qa_domain | PENDING |
+| ST-QA-010 | QA-A | P2 | Реализовано: qa_plans.py; application/qa_services.py | test_qa_desktop; test_qa_package; test_pr3_review | PENDING |
+| ST-QA-011 | QA-A | P2 | Реализовано: qa_plans.py; application/qa_services.py | test_qa_package; test_qa_domain; test_pr3_review | PENDING |
 | ST-QA-013 | QA-A | P2 | Реализовано: qa_plans.py; application/journal.py | test_qa_package; test_qa_migration | PENDING |
-| ST-QA-030 | QA-A | P1 | Реализовано: qa_workflow.py: RuleForm/ReviewForm; domain/qa.py | test_qa_domain; test_qa_package; test_qa_migration | PENDING |
+| ST-QA-030 | QA-A | P1 | Реализовано: qa_workflow.py: RuleForm/ReviewForm; domain/qa.py | test_qa_domain; test_qa_package; test_qa_migration; test_pr3_review | PENDING |
 | ST-QA-008 | QA-B | P2 | Реализовано: pages.py; qa_plans.py | test_learning_desktop; test_phase65_desktop | PENDING |
 | ST-QA-009 | QA-B | P2 | Реализовано: pages.py: WorksPage | test_learning_desktop; test_iteration4_workflows | PENDING |
 | ST-QA-012 | QA-B | P1 | Реализовано: application/journal.py; desktop/journal.py | test_program_regressions; test_learning_desktop | PENDING |
 | ST-QA-015 | QA-B | P2 | Реализовано: design.py; journal.py | test_desktop; developer visual | PENDING |
 | ST-QA-017 | QA-B | P1 | Реализовано: qa_workflow.py; main_window.py | test_qa_domain; test_qa_scale | PENDING |
-| ST-QA-027 | QA-B | P1 | Реализовано: qa_workflow.py: SubmissionForm | test_qa_desktop; test_qa_package; test_qa_scale | PENDING |
-| ST-QA-028 | QA-B | P1 | Реализовано: qa_workflow.py: SubmissionHistory; file_storage.py | test_qa_desktop; test_qa_package; test_qa_migration | PENDING |
-| ST-QA-029 | QA-B | P1 | Реализовано: qa_workflow.py: PackageSummary | test_qa_desktop; test_qa_package; test_qa_scale | PENDING |
+| ST-QA-027 | QA-B | P1 | Реализовано: qa_workflow.py: SubmissionForm | test_qa_desktop; test_qa_package; test_qa_scale; test_pr3_review | PENDING |
+| ST-QA-028 | QA-B | P1 | Реализовано: qa_workflow.py: SubmissionHistory; file_storage.py | test_qa_desktop; test_qa_package; test_qa_migration; test_pr3_review | PENDING |
+| ST-QA-029 | QA-B | P1 | Реализовано: qa_workflow.py: PackageSummary; application/qa_summary.py | test_qa_desktop; test_qa_package; test_qa_scale; test_pr3_review | PENDING |
 | ST-QA-014 | QA-C | P2 | Реализовано: learning.py; tickets.py | test_workflow_desktop; test_content_workflow | PENDING |
 | ST-QA-021 | QA-C | P2 | Реализовано: attachment_picker.py; library.py | test_qa_desktop; test_workflow_desktop; test_qa_package | PENDING |
 | ST-QA-022 | QA-C | P2 | Реализовано: qa_content.py; application/content_services.py | test_qa_domain; test_qa_desktop; test_content_workflow | PENDING |
@@ -52,7 +52,34 @@ application/domain/infrastructure явно указаны. Базовые ссы
 | ST-QA-025 | QA-D | P2 | Переиспользовано/проверено: programs.py: KnowledgeWidget | test_program_desktop; test_iteration4_workflows | PENDING |
 | ST-QA-026 | QA-D | P2 | Реализовано: theme.py; design.py | test_desktop; developer visual | PENDING |
 
-## Проверки и совместимость
+## Review PR #3 — ST-PR3-001–004
+
+Первая поздняя сдача без StudentWork, frozen problem/family/files V1,
+confirmed reassignment с concrete original bindings и полная ST-QA-029 summary
+исправлены в том же пакете. [Причины, source и regression](PR3_REVIEW_FIXES.md),
+[ADR-051](../decisions.md#adr-051). Целевые DB/GUI: **38 PASS**.
+Полный local regression: **1113 PASS / 3 предусмотренных Windows-only SKIP**,
+1116 tests / 59 modules, 811.87 s. Целевые 38 tests повторены после удаления
+trailing whitespace новой v11 без изменения SQL tokens. Ruff check/format
+(296 files), pip check, staged diff --check: PASS. Safety worktree/identity:
+647 checked, 0 errors/signals. Все 20 v1–v10 payloads побайтово неизменны.
+Wheel isolated install/fresh v11/103 tables/late submission/GUI/reopen: PASS;
+165 source/resource files и четыре embedded SVG побайтово проверены.
+SHA-256 wheel: `29a4c5483d97345ca1c3497af1d09eacc8b1dcd60c5edfab56437a5f4ab53eca`.
+Required CI именно нового HEAD отражается в итоговом PR.
+Manual всех 30 остаётся PENDING.
+
+Schema head `0011_qa_review_fixes`: две additive таблицы после неизменной v10,
+102 user tables / 103 с Alembic. Populated v10 upgrade/late rollback/reopen и
+v11 backup/restore проверяются. v1–v10 raw payloads сохраняются; unknown schema
+и fingerprint guards прежние. Снимки, которых не было в v10, не выдумываются.
+Новый unissued legacy work без snapshot требует явной новой версии/назначения.
+
+## Предыдущие проверки и совместимость до четырёх исправлений
+
+Результаты ниже относятся к прежнему содержимому до ST-PR3-001–004.
+Они сохранены как история и не заменяют новые проверки.
+
 
 - Полный module-isolated runner на `0ace4f8` до корректировки Help/probe:
   **1080 PASS, 3 SKIP**, 1083

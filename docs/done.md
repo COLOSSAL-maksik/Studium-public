@@ -1,5 +1,18 @@
 # Реализованные компоненты Studium
 
+## Исправления ST-PR3-001–004
+
+Все четыре замечания исправлены в существующей ветке и PR #3 с сохранением
+пакета всех 30: late first submission при ended participation; frozen V1
+problem/family/attachments; explicit preview/CAS переназначения с прежними
+bindings; полная сводка ДЗ/РК/посещаемости и переходы. Additive v11,
+v1–v10 payloads неизменны. [Отчёт](management/PR3_REVIEW_FIXES.md), [ADR-051](decisions.md#adr-051).
+Целевые DB/GUI: 38 PASS; полный local regression: 1113 PASS / 3 ожидаемых
+Windows-only SKIP. Wheel, Ruff/pip, frozen migrations и safety: PASS. Exact-HEAD
+CI evidence — в итоговом PR.
+Manual всех 30 — PENDING, промежуточная приёмка не требуется. История ниже
+сохраняется; старые результаты не объявляются проверкой нового HEAD.
+
 ## Единый implementation-пакет 0.2.0
 
 Реализованы пользовательские маршруты всех ST-QA-001–030 в прежней ветке,
