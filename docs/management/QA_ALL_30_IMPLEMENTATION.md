@@ -3,8 +3,8 @@
 База: `d23eee39fcb0f3bd463c2868459fa48d0778925a`. Ветка:
 `agent/codex/qa-a-contracts`. PR #2/B1–B6/QA-A-REV-01/02 сохранены.
 Один пакет/PR, без промежуточной manual acceptance и без merge.
-Implementation QA-A–D выполнена; полная локальная регрессия прошла.
-Текущий code candidate: `acccbaf5286bbf42a5b9a4816ec65df2ce6b82fe`;
+Implementation QA-A–D выполнена; проверки текущего содержания — ниже.
+Текущий code candidate: `cf808353d8b94ed710a77534284f2151e243625a`;
 последующее дополнение изменяет только документы. Точный PR HEAD и результаты
 его required checks указываются в итоговом PR.
 Manual acceptance всех 30 ID — PENDING.
@@ -22,7 +22,7 @@ application/domain/infrastructure явно указаны. Базовые ссы
 | ID | Этап | Приоритет | Implementation | Automated evidence modules | Manual |
 |---|---|---|---|---|---|
 | ST-QA-002 | QA-A | P2 | Реализовано: qa_plans.py; domain/qa.py | test_qa_package; test_qa_desktop | PENDING |
-| ST-QA-003 | QA-A | P2 | Реализовано: qa_plans.py; application/qa_content_sources.py; v0011 | test_qa_package; test_qa_scale; test_pr3_review | PENDING |
+| ST-QA-003 | QA-A | P2 | Реализовано: qa_plans.py; application/qa_content_sources.py; v0011 | test_qa_package; test_qa_scale; test_pr3_review; test_pr3_frozen_taxonomy | PENDING |
 | ST-QA-006 | QA-A | P2 | Реализовано: qa_plans.py; programs.py | test_qa_package; test_program_desktop | PENDING |
 | ST-QA-010 | QA-A | P2 | Реализовано: qa_plans.py; application/qa_services.py | test_qa_desktop; test_qa_package; test_pr3_review | PENDING |
 | ST-QA-011 | QA-A | P2 | Реализовано: qa_plans.py; application/qa_services.py | test_qa_package; test_qa_domain; test_pr3_review | PENDING |
@@ -53,6 +53,15 @@ application/domain/infrastructure явно указаны. Базовые ссы
 | ST-QA-026 | QA-D | P2 | Реализовано: theme.py; design.py | test_desktop; developer visual | PENDING |
 
 ## Review PR #3 — ST-PR3-001–004
+
+Последующее дополнение ST-PR3-002 от `67986fd`: архивирование frozen Topic/Skill
+заранее отклоняется с конкретным списком зависимых версий/назначений. Два raw SQL
+archive guards добавлены в **v12**, без изменения v1–v11 (22 payloads), старых
+rows/guards или числа таблиц (103 с Alembic). Task, definition, family/variant,
+manual plan и отдельное назначение, атомарность, GUI, reopen/backup и populated
+upgrade/rollback: test_pr3_frozen_taxonomy, **27 случаев**. Итоговые targeted:
+**165 PASS**. Current required CI — в PR; manual всех 30 PENDING.
+Предыдущие full/wheel результаты ниже относятся к содержимому на 67986fd.
 
 Первая поздняя сдача без StudentWork, frozen problem/family/files V1,
 confirmed reassignment с concrete original bindings и полная ST-QA-029 summary

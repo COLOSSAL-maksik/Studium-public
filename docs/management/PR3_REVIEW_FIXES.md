@@ -1,5 +1,53 @@
 # Исправления review PR #3
 
+## Дополнение ST-PR3-002: архивирование frozen Topic/Skill
+
+Проверенная база `67986fd28e7288437d175d031e5137ca4f580dcc`, та же ветка и PR.
+На actual synthetic DB оба случая сначала воспроизведены: **2 FAIL** — archive
+успешен, последующая выдача V1 получает `INVALID_REFERENCE` от прежних link guards.
+
+Выбран предварительный отказ archive. LearningService проверяет всё поддерево до
+записи; QAContentSources находит только **сохранённые** UUID в ProgramVersion,
+VersionReference, concrete PlanContentSource и StudentProblemAssignment. Ошибка
+перечисляет версии, работы плана (группа/период) и отдельные назначения (студент/
+работа), названия и UUID. Меняющиеся библиотечные связи не подставляются.
+Новые индивидуальные teacher snapshots сохраняют topic_ids наряду со skill_ids;
+прежние immutable snapshots не меняются. Student DTO whitelist остаётся прежним.
+Создание нового StudentWork и индивидуального назначения проходит одной
+транзакцией: отказ freeze не оставляет пустую работу.
+
+Новая additive **v12 / 0012_frozen_taxonomy** добавляет только два archive triggers.
+Raw repository/SQL archive того же frozen endpoint также отвергается. Общие
+assessment/item context guards и все прежние SQL objects сохраняются; tables
+по-прежнему 102 user / 103 с Alembic. **22 published v1–v11 payloads неизменны**.
+Нет backfill/переписывания старых rows или попытки восстановить отсутствующие связи.
+
+Source: application/learning_services.py, qa_content_sources.py, qa_services.py,
+program_services.py, errors.py; desktop/messages.py; migrations/v0012.py/.sql.
+Regression: [test_pr3_frozen_taxonomy.py](../../tests/integration/test_pr3_frozen_taxonomy.py).
+**27 новых случаев**, включая обе taxonomy, definition-level, family/variant,
+независимый manual plan source, unassigned version/direct references, отдельное
+назначение, реальные GUI actions/message, subtree rollback, populated v11 upgrade/
+late DDL rollback, UUID/facts/files/reopen/backup. Целевой итоговый пакет:
+**165 PASS**, 104.49 s. Ruff check/format (298 files), pip check, staged diff
+и safety worktree/identity (650 checked, 0 errors/signals): PASS. Isolated wheel:
+167 source/resource files + четыре SVG, v12/103 tables, first late submission,
+frozen taxonomy application/raw SQL refusal → issuance, GUI и reopen: PASS.
+SHA-256 `68235ddd2c3bbcac937c1c828103898f5f6bd9d6859d32c1194508621d5f7cd7`.
+Полный local regression после этого дополнения — NOT RUN; full regression
+и required CI нового HEAD фиксируются в итоговом PR. Прежние full результаты
+ниже — история, не проверка нового кода.
+
+Сохранённая версия удерживает классификацию даже без группы; новая V2 и archive
+плана не освобождают immutable зависимость V1. Unbound taxonomy архивируется как
+прежде. Новое сохранение уже архивной классификации и выдача старого повреждённого
+snapshot дают понятный отказ без подмены связей. Уже архивированные endpoints из
+pre-v12 DB автоматически не восстанавливаются. Pre-v11 отсутствующие topic
+snapshots индивидуальных назначений не реконструируются; защищаются известные
+сохранённые связи. [ADR-052](../decisions.md#adr-052).
+
+## Предыдущие четыре исправления и результаты на 67986fd
+
 Ветка `agent/codex/qa-a-contracts`; проверенная исходная точка
 `1df071dff41d389fbc88972d3161499cdfab4e84`; прежний пакет всех 30 сохранён.
 Обновляется [PR #3](https://github.com/COLOSSAL-maksik/Studium-public/pull/3).

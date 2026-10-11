@@ -1,5 +1,14 @@
 # Журнал требований Studium QA
 
+## Дополнение ST-PR3-002 — frozen taxonomy
+
+На базе `67986fd` archive Topic/Skill, используемых сохранённой версией/назначением,
+отклоняется с concrete dependency list. Новая v12 добавляет только два archive
+guards; 22 v1–v11 payloads, прежние facts/UUID и SQL guards сохраняются.
+27 новых synthetic regressions, итоговый targeted пакет **165 PASS**. Required CI
+нового HEAD фиксируется в PR; manual всех 30 — PENDING. [Отчёт](PR3_REVIEW_FIXES.md).
+Ниже сохранены предыдущие implementation/verification результаты.
+
 ## Текущее исправление review PR #3
 
 Все четыре замечания исправлены в существующей ветке и PR #3 с сохранением

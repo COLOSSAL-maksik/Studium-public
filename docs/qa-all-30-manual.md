@@ -3,7 +3,7 @@
 Все 30 пунктов передаются одним пакетом. Каждый пункт ниже — **PENDING**;
 автоматические проверки и осмотр разработчика не заменяют приёмку владельцем.
 База: `d23eee39fcb0f3bd463c2868459fa48d0778925a`.
-Точный code candidate: `acccbaf5286bbf42a5b9a4816ec65df2ce6b82fe`.
+Точный code candidate: `cf808353d8b94ed710a77534284f2151e243625a`.
 Итоговый PR HEAD добавляет документы к этому содержимому и указан в PR вместе
 с проверками. Сверяйте SHA перед сборкой. PR #2 и его договорённости сохранены.
 
@@ -15,7 +15,7 @@
 
 ```powershell
 git fetch origin agent/codex/qa-a-contracts
-git switch --detach acccbaf5286bbf42a5b9a4816ec65df2ce6b82fe
+git switch --detach cf808353d8b94ed710a77534284f2151e243625a
 git rev-parse HEAD
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.lock -r requirements-build.lock
@@ -110,6 +110,16 @@ active denominator, backup/restore нового профиля с общими/�
    file IDs/hashes. Архивировать source, reopen, выполнить synthetic backup/restore.
    Назначение студенту V1 сохраняет старую задачу; student output содержит только
    statement files и не содержит answer/solution/reference.
+   **Frozen taxonomy:** до выдачи попытаться архивировать исходные Topic и Skill
+   по очереди. Оба действия дают отказ со списком зависимых версий и работ,
+   названиями, группой/периодом и UUID; архивирования нет. Затем выдача V1 успешна
+   с прежней классификацией. Повторить для definition-level links, семейства/
+   варианта, самостоятельной manual работы плана и индивидуального назначения
+   без программы. Изменить текущие библиотечные связи: saved UUID по-прежнему
+   удерживаются. Archive родителя frozen темы не удаляет ни одного потомка;
+   свободная тема/навык архивируется. Reopen и synthetic backup/restore сохраняют
+   отказ, UUID/facts/file hashes и возможность выдачи. Unassigned V1 тоже удерживает
+   свои зависимости; V2/archive плана не меняют immutable V1.
 3. **ST-PR3-003 / ST-QA-003/010:** у V1 создать issued и pending works, Submission,
    Review и required set. Выбрать V2 через «Переназначение содержания плана»:
    первый Save только preview с конкретными retained/retired/incoming модулями и
@@ -135,10 +145,14 @@ active denominator, backup/restore нового профиля с общими/�
    (PRESENT+LATE)/(PRESENT+LATE+ABSENT). Открыть ДЗ/РК/экзамены, факты тем/навыков,
    графики и долги исходного T1 при active T2.
 
-Head v11 имеет 103 таблицы с Alembic. Старый ZIP v10 восстанавливать прежним
-совместимым v10 candidate в отдельный профиль, затем выполнять upgrade до v11.
+Head v12 имеет 103 таблицы с Alembic; только два новых archive guards после v11.
+Старый ZIP v10/v11 восстанавливать прежним совместимым candidate в отдельный
+профиль, затем выполнять upgrade до v12.
 Не подменять ZIP manifest/schema. Утраченные pre-v11 snapshots не реконструируются;
 unissued legacy назначение без snapshots требует новой явной версии/назначения.
+Уже архивированные pre-v12 taxonomy endpoints не восстанавливаются автоматически.
+Повреждённый прежний snapshot не заменяется текущими связями: выдача явно
+отказывается; требуется новое согласованное содержание.
 
 Pre-v11 shared files без исторического snapshot сохраняют прежний compatibility view;
 его current links не объявляются историческим содержимым версии. Новая выдача

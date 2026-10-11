@@ -1,6 +1,16 @@
 # Модель данных Studium
 
-## Текущая additive схема v11
+## Текущий head v12 — frozen taxonomy
+
+`0012_frozen_taxonomy` добавляет только topics_frozen_content_archive и
+skills_frozen_content_archive. Набор таблиц прежний: 102 user / 103 с Alembic.
+Защищаются известные UUID из version references, top-level/definition/problem
+snapshots версий и plan sources, semantic fields teacher assignment snapshots.
+Новые assignments сохраняют topic_ids; прежний JSON и pre-v11 неизвестные связи
+не переписываются. Все v1–v11 payloads и существующие guards сохранены.
+[ADR-052](decisions.md#adr-052).
+
+## Предыдущая additive схема v11
 
 Head `0011_qa_review_fixes`: 102 user tables / 103 с Alembic. После v10 добавлены
 две таблицы без изменения прежних rows/columns:

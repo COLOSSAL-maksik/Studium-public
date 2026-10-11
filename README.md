@@ -61,5 +61,6 @@ synthetic профиль; production DB и storage не открывать.
 Результаты required Quality/repository-safety относятся к конкретному HEAD в PR;
 автоматические проверки не заменяют ручную приёмку. Migration immutability tests
 используют frozen SHA-256 fixtures и raw bytes: все 18 payloads v1–v9 сохранены,
-v10/v11 добавляют новые таблицы и lossless mapping прежних фактов. Тестам не нужны
+v10/v11 добавляют новые таблицы и lossless mapping прежних фактов; v12 защищает
+архивирование frozen классификации без переписывания данных. Тестам не нужны
 commits исходного репозитория. Оставшаяся приёмка перечислена в docs/todo.md.

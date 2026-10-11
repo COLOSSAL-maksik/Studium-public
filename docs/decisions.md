@@ -1,5 +1,31 @@
 # Решения и открытые вопросы
 
+<a id="adr-052"></a>
+
+## ADR-052 — Запрет archive frozen классификации
+
+**Дата:** 2026-10-11. **Статус:** IMPLEMENTED; manual acceptance PENDING.
+Основание: дополнительный ST-PR3-002 на `67986fd`.
+
+Два synthetic сценария подтвердили успешный archive и последующий SQL отказ
+выдачи V1. Сохраняем общие endpoint guards и заранее отклоняем несовместимое
+архивирование. Проверяются **записанные** taxonomy UUID в версиях, конкретных
+plan sources и индивидуальных snapshots; mutable библиотека не источник истории.
+Preflight всего subtree атомарен. Error DTO перечисляет зависимые версии/работы/
+назначения с context и UUID; desktop показывает его через прежний error boundary.
+Новые индивидуальные snapshots сохраняют topic_ids и skill_ids. Никакой teacher
+information не добавляется в public whitelist.
+
+Additive v12 содержит только два BEFORE archive guards. Общие SQL triggers и
+22 v1–v11 payloads побайтово прежние, tables/rows/snapshots не переписываются.
+Защита действует и для raw writes; persisted saved version удерживает endpoint
+независимо от live links, назначения группе, отмены/архивирования плана и V2.
+Это намеренная lifetime зависимость immutable содержания. Свободная taxonomy
+архивируется. Уже невалидная pre-v12 классификация не восстанавливается: новая
+freeze/выдача отказывает явно, прежние неизвестные связи не реконструируются.
+Populated upgrade/late DDL rollback, facts/UUID/file hashes, reopen/backup и actual
+GUI проверяются в test_pr3_frozen_taxonomy. Manual всех 30 остаётся PENDING.
+
 <a id="adr-051"></a>
 
 ## ADR-051 — Исправления четырёх замечаний PR #3

@@ -1,5 +1,15 @@
 # Архитектура Studium
 
+## Frozen taxonomy — дополнение v12
+
+Архивирование темы/навыка проверяет immutable snapshots и concrete bindings до
+записи, включая всё поддерево темы. Application error содержит concrete dependency
+DTO; desktop перечисляет версии/работы/индивидуальные назначения. Новые teacher
+snapshots отдельного назначения сохраняют topic_ids и skill_ids; public whitelist
+прежний. Два новых SQL archive guards дублируют защиту записанных semantic fields,
+не меняя прежние endpoint/attempt guards. v1–v11 и старые snapshots неизменны;
+никакая классификация не восстанавливается из текущей библиотеки. [ADR-052](decisions.md#adr-052).
+
 ## Исправления review PR #3 — v11
 
 `0011_qa_review_fixes` добавляет immutable PlanContentSource и
