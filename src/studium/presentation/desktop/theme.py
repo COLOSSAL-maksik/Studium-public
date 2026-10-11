@@ -4,6 +4,7 @@ from PySide6.QtCore import QPointF
 from PySide6.QtGui import QColor, QFont, QPalette, QPolygonF
 from PySide6.QtWidgets import QApplication, QProxyStyle, QStyle, QStyleFactory
 
+from studium.presentation.desktop import style_resources as style_resources
 from studium.presentation.desktop.design import RADII, SPACES, TYPE, colors
 
 MARGIN = SPACES["l"]
@@ -17,6 +18,8 @@ class AcademicStyle(QProxyStyle):
     def drawPrimitive(self, element, option, painter, widget=None):
         rotations = {
             QStyle.PrimitiveElement.PE_IndicatorArrowDown: 0,
+            QStyle.PrimitiveElement.PE_IndicatorSpinDown: 0,
+            QStyle.PrimitiveElement.PE_IndicatorSpinUp: 180,
             QStyle.PrimitiveElement.PE_IndicatorArrowUp: 180,
             QStyle.PrimitiveElement.PE_IndicatorArrowLeft: 90,
             QStyle.PrimitiveElement.PE_IndicatorArrowRight: -90,
@@ -77,6 +80,12 @@ QLineEdit:focus, QComboBox:focus, QDateEdit:focus, QDateTimeEdit:focus, QSpinBox
 QDoubleSpinBox:focus, QPlainTextEdit:focus, QTextEdit:focus {{ border-color: {c.accent}; }}
 QLineEdit:disabled, QComboBox:disabled, QDateEdit:disabled, QDateTimeEdit:disabled,
 QSpinBox:disabled, QDoubleSpinBox:disabled {{ background: {c.secondary}; color: {c.disabled}; }}
+QSpinBox::up-button, QDoubleSpinBox::up-button {{ width: 24px; border: 0; border-top-right-radius: 6px; }}
+QSpinBox::down-button, QDoubleSpinBox::down-button {{ width: 24px; border: 0; border-bottom-right-radius: 6px; }}
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {{ image: url(:/studium-style/up-{"dark" if theme == "dark" else "light"}.svg); width: 10px; height: 7px; }}
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {{ image: url(:/studium-style/down-{"dark" if theme == "dark" else "light"}.svg); width: 10px; height: 7px; }}
+QSpinBox::up-button:hover, QSpinBox::down-button:hover, QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {{ background: {c.hover}; }}
+QSpinBox::up-button:pressed, QSpinBox::down-button:pressed, QDoubleSpinBox::up-button:pressed, QDoubleSpinBox::down-button:pressed {{ background: {c.selected}; }}
 QComboBox::drop-down, QDateEdit::drop-down, QDateTimeEdit::drop-down {{ border: 0; width: 24px; }}
 QComboBox QAbstractItemView {{ background: {c.elevated}; color: {c.text};
     alternate-background-color: {c.elevated}; selection-background-color: {c.selected};
@@ -105,7 +114,8 @@ QTreeWidget#navigation {{ background: transparent; border: 0; outline: 0; show-d
 QTreeWidget#navigation::item {{ height: 34px; padding: 3px 10px; margin: 3px 0; border-radius: 8px; }}
 QTreeWidget#navigation::item:hover {{ background: {c.hover}; }}
 QTreeWidget#navigation::item:selected {{ background: {c.selected}; color: {c.accent}; }}
-QTreeWidget#navigation::branch:selected {{ background: transparent; }}
+QTreeWidget#navigation::branch {{ background: transparent; border: 0; }}
+QTreeWidget#navigation::branch:hover, QTreeWidget#navigation::branch:selected {{ background: transparent; }}
 QTableView#journalNames {{ border: 0; border-radius: 0; border-right: 1px solid {c.border}; }}
 QPushButton[role="resumeGroup"] {{ text-align: left; background: {c.surface}; border: 1px solid {c.border}; min-height: 88px; padding: 0; }}
 QPushButton[role="resumeGroup"]:hover {{ background: {c.hover}; border-color: {c.accent}; }}

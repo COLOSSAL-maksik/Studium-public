@@ -1,18 +1,24 @@
 """Read-only reporting over the existing analytics snapshot and factual semantics."""
 
 from collections import Counter, defaultdict
+from decimal import Decimal
 
 from studium.application.analytics import _Snapshot, _View
 from studium.application.errors import ApplicationError
 from studium.application.report_models import Report, ReportChoices, ReportKind, ReportTable
 from studium.application.view_models import OfferingContext
 from studium.domain.enums import AttendanceStatus, StudentWorkStatus
-from studium.domain.services import StudentWorkProgress
+from studium.domain.qa import result_from_events, score_text
 from studium.domain.value_objects import UtcInstant
 
 
 class _ReportSnapshot(_Snapshot):
     NAMES = (*_Snapshot.NAMES, "courses", "groups", "grades")
+
+    def __init__(self, repositories, *, historical=False):
+        super().__init__(repositories, historical=historical)
+        repo = getattr(repositories, "review_grades", None)
+        self.review_grades = tuple(repo.list(include_deleted=historical)) if repo else ()
 
 
 WORK_COLUMNS = (
@@ -71,6 +77,7 @@ class _Projection:
             )
         )
         self.grades = {g.attempt_id: g for g in snapshot.grades if g.created_at <= at}
+        self.review_grades = {g.review_id: g for g in snapshot.review_grades if g.created_at <= at}
         self.results = defaultdict(list)
         for result in self.view.results:
             self.results[result.attempt_id].append(result)
@@ -112,20 +119,53 @@ class _Projection:
         facts = self.view.work_facts(student.id, assessment)
         history = self.history(student, assessment)
         graded = next((a for a in reversed(history) if a.id in self.grades), None)
-        work = self.view.by_pair.get((student.id, assessment.id))
-        # The existing progress projection owns final score and status.
-        progress = StudentWorkProgress.from_history(work.id, history) if work else None
+        submissions = [
+            self.view.submissions[a.id] for a in history if a.id in self.view.submissions
+        ]
+        reviews = [v for sub in submissions for v in self.view.reviews[sub.id]]
+        result = result_from_events(history, submissions, reviews)
+        numeric = (
+            Decimal(result.score) / 100
+            if result.exact and result.score is not None
+            else result.score
+        )
+        grade = self.review_grades.get(result.source_id)
+        evaluation = (
+            score_text(grade.score_cents) + " / " + score_text(grade.max_cents)
+            if grade and grade.score_cents is not None
+            else "Зачтено"
+            if grade and grade.passed is True
+            else "Незачтено"
+            if grade and grade.passed is False
+            else grade.label
+            if grade
+            else self.grades.get(graded.id)
+            if graded
+            else None
+        )
+        plan_work = self.view.plan_deadlines.get(assessment.id)
+        deadline = assessment.due_at
+        due_week = assessment.planned_due_week.value if assessment.planned_due_week else None
+        if plan_work:
+            deadline = (
+                plan_work.exact_due_at
+                if plan_work.deadline_kind == "EXACT_INCLUSIVE"
+                else plan_work.due_date
+                if plan_work.deadline_kind == "DATE_EXCLUSIVE"
+                else None
+            )
+            due_week = plan_work.due_week if plan_work.deadline_kind == "WEEK_ONLY" else None
         return (
             assessment.title,
             assessment.type,
-            assessment.due_at,
-            assessment.planned_due_week.value if assessment.planned_due_week else None,
+            deadline,
+            due_week,
             facts["status"],
             facts["attempts"],
             history[-1].occurred_at if history else None,
-            self.grades.get(graded.id) if graded else None,
+            evaluation,
             graded.attempt_no if graded else None,
-            progress.final_score if progress else None,
+            numeric,
         )
 
     def item_rows(self, students, assessments):

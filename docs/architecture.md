@@ -1,5 +1,26 @@
 # Архитектура Studium
 
+## Текущий пакет QA — 0.2.0
+
+QAPackageService дополняет application facade через concrete repository/UoW ports;
+`domain/qa.py` содержит exact score/deadline/result правила без Qt/SQL.
+`0010_qa_package` использует frozen static DDL и deterministic UUID backfill,
+исторические миграции неизменны. Immutable версия CourseProgram отделена от
+SemesterPlan конкретной группы/периода; content/ordinal выбираются явно.
+PlanHistory хранит original/current snapshots. Submission/Review/ReviewGrade/
+ReviewFile/ReviewReturn разделяют реальные события, timestamps и immutable files.
+RequiredWorkSet/DebtRestoration сохраняют индивидуальные долги. Journal, analytics
+и reporting используют общий evidence-aware resolver и fixed bulk reads.
+Read-only формы/DTO не создают фактов.
+
+`qa_plans.py`, `qa_workflow.py`, `qa_content.py` используют прежний router,
+FormDialog/tokens/Studium generator. StagedAttachmentPicker общий для content,
+submission и review; metadata/links/file batch фиксируются одной транзакцией.
+IO/preview вне GUI-thread, delivery/stale guards внутри него. Python cyclic GC
+Qt wrappers выполняется application-owned GUI timer. Teacher snapshots разделены
+с student DTO/export whitelist. [ADR-050](decisions.md#adr-050--qa-all-30-implementation).
+Ниже сохранены описания предыдущих фаз, не текущий schema head.
+
 > Документ относится к Studium как независимому локальному приложению.
 > Bender — отдельный проект; будущая интеграция использует локальный JSON-RPC
 > 2.0 over stdio. Прямые импорты Bender, API/client, облачный сервер и новые

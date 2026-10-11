@@ -24,19 +24,22 @@ def test_program_create_explicit_offering_and_enum_values(desktop):
         p for p in service.list_work_programs(course.id) if p.title == "Other work program"
     )
     group = service.create_group("OTHER")
+    version = service.create_course_program(course.id, program.title)
     offering_form = OfferingProgramForm(service, service.active_term(), group)
     offering_form.program.setCurrentIndex(
         next(
             i
             for i in range(offering_form.program.count())
-            if offering_form.program.itemData(i) == program.id
+            if offering_form.program.itemData(i) == version.id
         )
     )
     offering_form.submit()
     assert offering_form.result() == QDialog.DialogCode.Accepted
     assert (
-        next(c for c in service.list_offerings() if c.group.id == group.id).offering.work_program_id
-        == program.id
+        service.semester_plan(
+            next(c for c in service.list_offerings() if c.group.id == group.id).offering.id
+        ).plan.program_version_id
+        == version.id
     )
     editor = ContentEditor(window, "homework")
     editor.title.setText("Reusable control")

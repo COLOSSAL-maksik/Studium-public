@@ -1,5 +1,17 @@
 # Реализованные компоненты Studium
 
+## Единый implementation-пакет 0.2.0
+
+Реализованы пользовательские маршруты всех ST-QA-001–030 в прежней ветке,
+с сохранением PR #2/B1–B6. Course content version/calendar, exact review/rules,
+submission/teacher files/return, queue/summary/debt, topic tree/structured answers,
+staged picker и общий GUI включены одним пакетом. Additive v10, v1–v9 unchanged.
+[Матрица actual source/evidence](management/QA_ALL_30_IMPLEMENTATION.md),
+[ADR-050](decisions.md#adr-050--qa-all-30-implementation).
+Target checks и synthetic scale прошли; full final regression/CI фиксируются в
+матрице по завершении. Общая [manual acceptance](qa-all-30-manual.md) PENDING.
+Ниже — история предыдущего документационного этапа.
+
 ## Документационные контракты QA-A — 2026-10-11
 
 Подготовлены [QA_A_CONTRACTS](management/QA_A_CONTRACTS.md) и

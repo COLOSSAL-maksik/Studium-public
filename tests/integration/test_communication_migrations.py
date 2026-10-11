@@ -68,12 +68,14 @@ def test_populated_historical_copy_to_v4_preserves_all_data_schema_and_original(
         upgrade_database(migrated)
         with migrated.connect() as conn:
             after, new_objects = snapshot(conn)
-            assert len(after) == 79
+            assert (
+                len(after) == 100
+            )  # v10 adds 21 concrete QA tables; every old row is compared below.
             assert preserved_rows(before, after)
             assert preserved_objects(objects, new_objects)
             assert (
                 conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
-                == "0009_daily_workflow"
+                == "0010_qa_package"
             )
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").fetchall() == []
     finally:

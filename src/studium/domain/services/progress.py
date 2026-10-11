@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
+from decimal import Decimal
 
 from studium.domain.entities import Attempt
 from studium.domain.enums import AttemptResult, StudentWorkStatus
@@ -9,7 +10,7 @@ from studium.domain.value_objects import EntityId
 @dataclass(frozen=True)
 class StudentWorkProgress:
     status: StudentWorkStatus
-    final_score: float | None
+    final_score: float | Decimal | None
     attempt_count: int
 
     @classmethod

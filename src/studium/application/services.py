@@ -19,6 +19,7 @@ from studium.application.learning_services import LearningService
 from studium.application.ports import Preferences, Repositories, Transaction
 from studium.application.program_services import ProgramService
 from studium.application.progress_charts import ProgressChartsService
+from studium.application.qa_services import QAPackageService
 from studium.application.reporting import ReportingService
 from studium.application.view_models import (
     ActivityEntry,
@@ -34,7 +35,6 @@ from studium.application.workflow_analytics import WorkflowAnalyticsService
 from studium.domain import entities as e
 from studium.domain.enums import AssessmentType, AttemptResult, EnrollmentStatus, GradeKind
 from studium.domain.repositories import RepositoryError, RepositoryFailure
-from studium.domain.services import StudentWorkProgress
 from studium.domain.value_objects import EntityId, EntityMetadata, LocalDate, UtcInstant
 
 
@@ -46,6 +46,7 @@ class GradeInput:
 
 
 class StudiumService(
+    QAPackageService,
     ReportingService,
     DeletionService,
     ProgressChartsService,
@@ -202,7 +203,14 @@ class StudiumService(
             )
 
     def create_offering(
-        self, term_id: EntityId, course_id: EntityId, group_id: EntityId, work_program_id=None
+        self,
+        term_id: EntityId,
+        course_id: EntityId,
+        group_id: EntityId,
+        work_program_id=None,
+        *,
+        course_version_id=None,
+        course_semester=None,
     ):
         with self._transaction() as r:
             self._require(r.terms, term_id)
@@ -220,6 +228,15 @@ class StudiumService(
             if existing:
                 if work_program_id and existing.work_program_id != work_program_id:
                     raise ApplicationError("program_context_has_facts")
+                if course_version_id:
+                    plans = r.semester_plans.for_owner(existing.id)
+                    if plans and (
+                        plans[0].program_version_id != course_version_id
+                        or plans[0].course_semester != course_semester
+                    ):
+                        raise ApplicationError("program_context_has_facts")
+                    if not plans:
+                        self._assign_initial_plan(r, existing, course_version_id, course_semester)
                 return existing
             if work_program_id:
                 program = self._require(r.work_programs, work_program_id)
@@ -240,6 +257,10 @@ class StudiumService(
                 work_program_id=program.id,
             )
             r.offerings.insert(offering)
+            if course_version_id:
+                if course_semester is None:
+                    raise ValueError("Сопоставьте номер семестра курса явно")
+                self._assign_initial_plan(r, offering, course_version_id, course_semester)
             return offering
 
     def groups(self, term_id: EntityId | None = None):
@@ -555,7 +576,7 @@ class StudiumService(
 
     def history(self, work_id: EntityId):
         with self._transaction() as r:
-            work = self._require(r.works, work_id)
+            work = self._require(r.works, work_id, historical=True)
             assessment = self._require(r.assessments, work.assessment_id, historical=True)
             attempts = r.attempts.history(work_id)
             return WorkHistory(
@@ -564,7 +585,12 @@ class StudiumService(
                 assessment,
                 self._context(r, assessment.offering_id, historical=True),
                 tuple(HistoryEntry(a, r.grades.for_attempt(a.id)) for a in attempts),
-                StudentWorkProgress.from_history(work_id, attempts),
+                self._progress(
+                    work_id,
+                    attempts,
+                    r.submissions.list() if r.submissions else (),
+                    r.reviews.list() if r.reviews else (),
+                ),
             )
 
     def matrix(self, offering_id: EntityId, *, include_ended=False):
@@ -576,6 +602,8 @@ class StudiumService(
             histories = defaultdict(list)
             for attempt in r.attempts.for_works(w.id for w in works):
                 histories[attempt.student_work_id].append(attempt)
+            submissions = r.submissions.list() if r.submissions else ()
+            reviews = r.reviews.list() if r.reviews else ()
             by_pair = {(w.student_id, w.assessment_id): w for w in works}
             cells = {}
             for entry in roster:
@@ -585,7 +613,7 @@ class StudiumService(
                     cells[pair] = WorkCell(
                         *pair,
                         work,
-                        StudentWorkProgress.from_history(work.id, histories[work.id])
+                        self._progress(work.id, histories[work.id], submissions, reviews)
                         if work
                         else None,
                     )

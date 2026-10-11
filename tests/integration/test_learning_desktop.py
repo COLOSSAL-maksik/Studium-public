@@ -78,10 +78,10 @@ def test_group_lesson_form_topics_card_attendance_and_reload(desktop):
         "Журнал",
         "Студенты",
         "Работы",
+        "План семестра",
         "Занятия",
         "Аналитика",
         "Вопросы",
-        "Варианты",
         "Настройки группы",
     ]
     page = window.groups_page.lessons_page

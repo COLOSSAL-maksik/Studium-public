@@ -73,3 +73,27 @@ DARK = Colors(
 
 def colors(theme):
     return DARK if theme == "dark" else LIGHT
+
+
+ATTENDANCE_TONES = {
+    "•": "success",
+    "×": "error",
+    "◷": "warning",
+    "У": "information",
+    "?": "muted",
+    "—": "muted",
+}
+
+
+def attendance_color(symbol, theme):
+    return getattr(colors(theme), ATTENDANCE_TONES.get(symbol, "text"))
+
+
+ATTENDANCE_NAMES = {
+    "•": "Присутствовал",
+    "×": "Отсутствовал",
+    "◷": "Опоздал",
+    "У": "Уважительная причина",
+    "?": "Неизвестная отметка",
+    "—": "Не отмечено",
+}

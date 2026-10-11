@@ -7,6 +7,7 @@ from typing import Protocol
 
 from studium.domain import content as c
 from studium.domain import program as p
+from studium.domain import qa as q
 from studium.domain.communication import (
     QuestionCaseAssessment,
     QuestionCaseAttempt,
@@ -137,6 +138,28 @@ class Repositories:
     methodical_skills: ContentLinkRepository[p.MethodicalSkill]
     knowledge_topics: ContentLinkRepository[p.KnowledgeTopic]
     knowledge_skills: ContentLinkRepository[p.KnowledgeSkill]
+
+    directions: ContentRepository[q.Direction] | None = None
+    course_programs: ContentRepository[q.CourseProgram] | None = None
+    program_versions: ContentRepository[q.ProgramVersion] | None = None
+    program_directions: ContentRepository[q.ProgramDirection] | None = None
+    legacy_program_maps: ContentRepository[q.LegacyProgramMap] | None = None
+    semester_plans: ContentRepository[q.SemesterPlan] | None = None
+    plan_modules: ContentRepository[q.PlanModule] | None = None
+    planned_works: ContentRepository[q.PlannedWork] | None = None
+    plan_history: ContentRepository[q.PlanHistory] | None = None
+    issued_works: ContentRepository[q.IssuedWork] | None = None
+    scoring_rules: ContentRepository[q.ScoringRule] | None = None
+    submissions: ContentRepository[q.Submission] | None = None
+    reviews: ContentRepository[q.Review] | None = None
+    review_grades: ContentRepository[q.ReviewGrade] | None = None
+    review_files: ContentRepository[q.ReviewFile] | None = None
+    review_returns: ContentRepository[q.ReviewReturn] | None = None
+    required_work_sets: ContentRepository[q.RequiredWorkSet] | None = None
+    required_work_bindings: ContentRepository[q.RequiredWorkBinding] | None = None
+    answer_templates: ContentRepository[q.AnswerTemplate] | None = None
+    debt_restorations: ContentRepository[q.DebtRestoration] | None = None
+    version_references: ContentRepository[q.VersionReference] | None = None
 
 
 Transaction = Callable[[], AbstractContextManager[Repositories]]

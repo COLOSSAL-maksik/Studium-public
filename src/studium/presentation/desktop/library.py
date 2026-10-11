@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QFormLayout,
+    QFrame,
     QGridLayout,
     QHBoxLayout,
     QLabel,
@@ -48,7 +49,6 @@ from studium.presentation.desktop.preview_pane import FilePreviewPane
 from studium.presentation.desktop.visuals import EmptyState
 from studium.presentation.desktop.widgets import search_shortcut
 from studium.presentation.desktop.workflow_widgets import (
-    FileDropZone,
     WeekSelector,
     data_index,
     week_label,
@@ -95,9 +95,13 @@ class MaterialFiles(QWidget):
         )
         self.pending, self.generation = [], 0
         layout = QVBoxLayout(self)
-        self.drop_zone = FileDropZone(self)
-        self.drop_zone.pathsDropped.connect(self.import_paths)
-        layout.addWidget(self.drop_zone)
+        from studium.presentation.desktop.attachment_picker import StagedAttachmentPicker
+
+        self.staged = StagedAttachmentPicker(self)
+        self.drop_zone = self.staged.list
+        layout.addWidget(self.staged)
+        if not isinstance(parent, ContentEditor):
+            toolbar(layout, [("Сохранить вложения", lambda: run_action(self, self.import_pending))])
         self.notice = hint(layout, "")
         self.model = TableModel(
             [
@@ -118,25 +122,7 @@ class MaterialFiles(QWidget):
         self.refresh()
 
     def import_paths(self, paths):
-        owner = self.owner_provider()
-        if not owner:
-            self.pending.extend(paths)
-            self.notice.setText(f"Файлов к добавлению после сохранения: {len(self.pending)}")
-            return
-        self.drop_zone.setEnabled(False)
-        self.notice.setText("Импорт файлов…")
-        service, kind, role = self.service, self.kind, self.role
-
-        def import_batch():
-            failures = []
-            for path in paths:
-                try:
-                    service.import_file_for_material(kind, owner.id, path, role=role)
-                except Exception as error:
-                    failures.append(error_message(error))
-            return failures
-
-        BackgroundCall(self, import_batch, self.imported, self.failed)
+        self.staged.add_paths(paths)
 
     def imported(self, failures):
         self.drop_zone.setEnabled(True)
@@ -145,14 +131,30 @@ class MaterialFiles(QWidget):
 
     def failed(self, error):
         self.drop_zone.setEnabled(True)
+        self.staged.setEnabled(True)
         self.notice.setText(error_message(error))
 
     def import_pending(self):
-        paths, self.pending = self.pending, []
-        if paths:
-            self.import_paths(paths)
-        else:
+        owner = self.owner_provider()
+        if not owner or not self.staged.paths:
             self.refresh()
+            return
+        paths = self.staged.paths
+        self.staged.setEnabled(False)
+
+        def complete(_):
+            self.staged.clear()
+            self.staged.setEnabled(True)
+            self.imported(())
+
+        BackgroundCall(
+            self,
+            lambda: self.service.import_material_files(
+                self.kind, owner.id, tuple((p, self.role) for p in paths)
+            ),
+            complete,
+            self.failed,
+        )
 
     def refresh(self):
         owner = self.owner_provider()
@@ -262,7 +264,11 @@ class ContentEditor(QWidget):
                 self.purposes.fill(
                     list(PURPOSE_LABELS.items()), original.purposes if original else ()
                 )
-                self.purposes.setMaximumHeight(140)
+                self.purposes.setMaximumHeight(
+                    self.purposes.count() * self.purposes.sizeHintForRow(0)
+                    + 2 * self.purposes.frameWidth()
+                    + 8
+                )
                 form.addRow("Назначение (можно несколько)", self.purposes)
             self.line(form, "difficulty", "Сложность / уровень (по желанию)")
         elif kind == "literature":
@@ -288,8 +294,23 @@ class ContentEditor(QWidget):
             self.week = WeekSelector(original.planned_week if original else None)
             form.addRow("Плановая неделя", self.week)
         body_layout.addWidget(metadata)
+        if kind == "problems" and not self.family:
+            from studium.presentation.desktop.visuals import advanced_rows
+
+            body_layout.addWidget(
+                advanced_rows(
+                    form,
+                    (
+                        self.tags,
+                        self.fields.get("identifier"),
+                        self.purposes,
+                        self.fields.get("difficulty"),
+                    ),
+                    title="Теги, назначение и параметры",
+                )
+            )
         self.tabs = QTabWidget()
-        self.tabs.setMinimumHeight(380)
+        self.tabs.setMinimumHeight(180)
         body_layout.addWidget(self.tabs, 1)
         if kind == "problems":
             if self.family:
@@ -356,6 +377,13 @@ class ContentEditor(QWidget):
             page_layout = QVBoxLayout(page)
             self.add_files(page_layout)
             self.tabs.addTab(page, "Файлы")
+        if kind == "problems":
+            from studium.presentation.desktop.qa_content import StructuredAnswers
+
+            self.answers = StructuredAnswers(
+                self.service, original.details_json if original else "{}", self
+            )
+            self.tabs.addTab(self.answers, "Структурированные ответы")
         self.text_tab("notes", "Заметки")
         self.taxonomy_fields = {}
         if kind in {"homework", "problems", "methodical"} and not self.family:
@@ -366,7 +394,12 @@ class ContentEditor(QWidget):
             content_layout.addWidget(self.taxonomy_search)
             for suffix, label in (("topics", "Темы"), ("skills", "Навыки")):
                 hint(content_layout, label)
-                choices = CheckList([])
+                if suffix == "topics":
+                    from studium.presentation.desktop.qa_content import TopicTreePicker
+
+                    choices = TopicTreePicker(self)
+                else:
+                    choices = CheckList([])
                 self.taxonomy_fields[suffix] = choices
                 content_layout.addWidget(choices)
             self.tabs.addTab(page, "Темы и навыки")
@@ -411,6 +444,17 @@ class ContentEditor(QWidget):
             self.tabs.addTab(task_page, "Задачи рубежного контроля")
             self.course.currentIndexChanged.connect(self.refresh_bank_tasks)
             self.refresh_bank_tasks()
+        # Each tab controls its own overflow. A tall attachment/answer tab must
+        # not impose its minimum height on a short Collections tab.
+        pages = [(self.tabs.widget(i), self.tabs.tabText(i)) for i in range(self.tabs.count())]
+        for page, title in pages:
+            self.tabs.removeTab(0)
+        for page, title in pages:
+            scroll = QScrollArea(self.tabs)
+            scroll.setFrameShape(QFrame.Shape.NoFrame)
+            scroll.setWidgetResizable(True)
+            scroll.setWidget(page)
+            self.tabs.addTab(scroll, title)
         self.notice = hint(layout, "")
         actions = [("Сохранить", lambda: run_action(self, self.save))]
         if hasattr(window, "router"):
@@ -485,10 +529,17 @@ class ContentEditor(QWidget):
                 if self.original
                 else ()
             )
-            field.fill([(v.id, v.title) for v in values], [v.id for v in linked])
+            if suffix == "topics":
+                by_id = {v.id: v for v in values + list(linked)}
+                field.fill_topics(list(by_id.values()), [v.id for v in linked])
+            else:
+                field.fill([(v.id, v.title) for v in values], [v.id for v in linked])
 
     def search_taxonomy(self, text):
-        for field in self.taxonomy_fields.values():
+        for suffix, field in self.taxonomy_fields.items():
+            if suffix == "topics":
+                field.search(text)
+                continue
             for i in range(field.count()):
                 field.item(i).setHidden(text.casefold() not in field.item(i).text().casefold())
 
@@ -584,6 +635,7 @@ class ContentEditor(QWidget):
                     owner,
                 )
                 self.title = self.line("name", required=True)
+                self.resize(520, 280)
 
             def values(self):
                 return {"title": self.title.text()}
@@ -625,6 +677,7 @@ class ContentEditor(QWidget):
         if self.kind == "homework":
             values["type"] = AssessmentType(self.work_type.currentData())
         if self.kind == "problems":
+            values["details_json"] = self.answers.document()
             if self.family:
                 values.update(
                     family_id=self.family.id, tags=(), title="Вариант " + values["variant_code"]
@@ -640,32 +693,60 @@ class ContentEditor(QWidget):
         if not values["title"]:
             self.notice.setText("Введите название")
             return
-        self.original = (
-            self.service.update_material(self.kind, self.original, **values)
-            if self.original
-            else self.service.create_material(self.kind, **values)
-        )
-        self.course.setEnabled(False)
         prefix = {"homework": "definition", "problems": "problem", "methodical": "methodical"}.get(
             self.kind
         )
-        if prefix:
-            for suffix, field in self.taxonomy_fields.items():
-                self.service.set_content_links(prefix + "_" + suffix, self.original.id, field.ids())
+        links = (
+            {prefix + "_" + suffix: field.ids() for suffix, field in self.taxonomy_fields.items()}
+            if prefix
+            else {}
+        )
         if self.kind == "homework":
-            self.service.set_definition_packs(self.original.id, self.packs.ids())
-            self.service.set_content_links(
-                "definition_problems", self.original.id, self.bank_tasks.ids()
+            links["definition_problems"] = self.bank_tasks.ids()
+        payload = dict(
+            links=links,
+            packs=self.packs.ids() if self.kind == "homework" else None,
+            collections=self.collections.ids()
+            if self.kind == "problems" and not self.family
+            else None,
+            files=tuple(
+                (path, widget.role) for widget in self.file_widgets for path in widget.staged.paths
+            ),
+        )
+        if payload["files"]:
+            if getattr(self, "saving", False):
+                return
+            self.saving = True
+            self.notice.setText("Сохранение материала и файлов…")
+            service, kind, original = self.service, self.kind, self.original
+            for widget in self.file_widgets:
+                widget.setEnabled(False)
+            BackgroundCall(
+                self,
+                lambda: service.save_content_package(kind, original, values, **payload),
+                self.content_saved,
+                self.content_failed,
             )
-        if self.kind == "problems" and not self.family:
-            selected_ids = set(self.collections.ids())
-            all_ids = set(self.service.problem_collection_ids(self.original.id)) | selected_ids
-            for id in all_ids:
-                self.service.set_problem_collection(
-                    id, self.original.id, included=id in selected_ids
-                )
+            return
+        self.content_saved(
+            self.service.save_content_package(self.kind, self.original, values, **payload)
+        )
+
+    def content_failed(self, error):
+        self.saving = False
         for widget in self.file_widgets:
-            widget.import_pending()
+            widget.setEnabled(True)
+        self.notice.setText(error_message(error))
+
+    def content_saved(self, value):
+        self.saving = False
+        self.original = value
+        for widget in self.file_widgets:
+            widget.setEnabled(True)
+        self.course.setEnabled(False)
+        for widget in self.file_widgets:
+            widget.staged.clear()
+            widget.refresh()
         self.notice.setText("Сохранено локально")
         callback = getattr(self, "on_saved", None)
         if callback:

@@ -3,6 +3,7 @@
 import re
 from collections import defaultdict
 from dataclasses import dataclass, replace
+from datetime import date, timedelta, timezone
 
 from studium.domain.enums import AssessmentType, AttendanceStatus, ItemOutcome, StudentWorkStatus
 
@@ -178,6 +179,130 @@ class JournalService:
             else:
                 semantic_columns.append(column)
         columns = semantic_columns
+        canonical = self.semester_plan(offering_id)
+        if canonical:
+            program, modules = canonical.plan, canonical.modules
+            first = date(
+                program.first_week_start.year,
+                program.first_week_start.month,
+                program.first_week_start.day,
+            )
+
+            def week_for(value):
+                return (date(value.year, value.month, value.day) - first).days // 7 + 1
+
+            def title_for(week):
+                if week is None:
+                    return "Без срока"
+                if week < 1 or week > program.weeks:
+                    return "После семестра" if week > program.weeks else "До семестра"
+                return next(
+                    (m.title for m in modules if m.start_week <= week <= m.end_week), "Без модуля"
+                )
+
+            actual = {a.id: a for a in matrix.assessments}
+            issued = {i.planned_work_id: actual.get(i.assessment_id) for i in canonical.issued}
+            columns = []
+            for lesson in lessons:
+                week = week_for(lesson.lesson_date)
+                columns.append(
+                    JournalColumn(
+                        lesson.title,
+                        "attendance",
+                        title_for(week),
+                        week=week,
+                        lessons=(lesson,),
+                        full_title=f"{lesson.lesson_date} · {lesson.title}",
+                    )
+                )
+            occupied = {c.week for c in columns}
+            for week in range(1, program.weeks + 1):
+                if week not in occupied:
+                    columns.append(
+                        JournalColumn(
+                            "Занятие —",
+                            "attendance",
+                            title_for(week),
+                            week=week,
+                            full_title="Занятие ещё не создано",
+                        )
+                    )
+            for ordinal, work in enumerate(canonical.works, 1):
+                due = work.due_date if work.deadline_kind == "DATE_EXCLUSIVE" else None
+                if work.deadline_kind == "EXACT_INCLUSIVE" and work.exact_due_at:
+                    value = work.exact_due_at.value.astimezone(
+                        timezone(timedelta(minutes=program.week_utc_offset_minutes))
+                    ).date()
+                    from studium.domain.value_objects import LocalDate
+
+                    due = LocalDate(value.year, value.month, value.day)
+                week = week_for(due) if due else work.due_week
+                columns.append(
+                    JournalColumn(
+                        work_label(work.type, work.number, ordinal),
+                        "homework" if work.type == AssessmentType.HOMEWORK else "control",
+                        title_for(week),
+                        work.module_id,
+                        week,
+                        issued.get(work.id),
+                        work,
+                        full_title=work.title + (" · отменена" if work.cancelled else ""),
+                    )
+                )
+            linked = {i.assessment_id for i in canonical.issued}
+            for assessment in matrix.assessments:
+                if assessment.id not in linked:
+                    week = None
+                    if assessment.due_at:
+                        value = assessment.due_at.value.astimezone(
+                            timezone(timedelta(minutes=program.week_utc_offset_minutes))
+                        ).date()
+                        week = (value - first).days // 7 + 1
+                    columns.append(
+                        JournalColumn(
+                            work_label(assessment.type, assessment.number),
+                            "homework" if assessment.type == AssessmentType.HOMEWORK else "control",
+                            title_for(week),
+                            week=week,
+                            assessment=assessment,
+                            full_title=assessment.title,
+                        )
+                    )
+            columns.sort(
+                key=lambda c: (c.week is None, c.week or 0, c.kind != "attendance", c.full_title)
+            )
+            empty_sections = []
+        else:
+            # Each recorded lesson is a separate factual column, including events
+            # sharing a week and lessons outside the original prepared calendar.
+            expanded = []
+            seen = set()
+            for column in columns:
+                if column.kind == "attendance" and column.lessons:
+                    for lesson in column.lessons:
+                        expanded.append(
+                            replace(
+                                column,
+                                title=lesson.title,
+                                lessons=(lesson,),
+                                full_title=f"{lesson.lesson_date} · {lesson.title}",
+                            )
+                        )
+                        seen.add(lesson.id)
+                else:
+                    expanded.append(column)
+            for lesson in lessons:
+                if lesson.id not in seen:
+                    expanded.append(
+                        JournalColumn(
+                            lesson.title,
+                            "attendance",
+                            "Вне календаря",
+                            lessons=(lesson,),
+                            full_title=f"{lesson.lesson_date} · {lesson.title}",
+                        )
+                    )
+            columns = expanded
         marks = {
             (v.lesson_id, enrollments[v.enrollment_id].student_id): v
             for v in attendance
@@ -224,6 +349,10 @@ class JournalService:
                 elif column.assessment:
                     cell = matrix.cells[entry.student.id, column.assessment.id]
                     values[key] = compact_progress(cell.progress)
+                    if column.program_work and getattr(column.program_work, "cancelled", False):
+                        values[key] = "Отм."
+                    elif cell.progress and cell.progress.final_score is not None:
+                        values[key] += " · " + str(cell.progress.final_score).replace(".", ",")
                     if column.kind == "control" and counts[column.assessment.id] and cell.work:
                         latest = max(
                             by_work[cell.work.id], key=lambda a: a.attempt_no, default=None
@@ -242,7 +371,9 @@ class JournalService:
                         )
                     )
                 else:
-                    values[key] = "—"
+                    values[key] = (
+                        "Отм." if getattr(column.program_work, "cancelled", False) else "План"
+                    )
                     tooltips[key] = (
                         "Плановая работа. Нажмите, чтобы открыть попытки."
                         if column.program_work

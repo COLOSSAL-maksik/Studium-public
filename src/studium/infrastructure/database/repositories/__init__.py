@@ -332,6 +332,29 @@ class SqlAlchemyAssessmentRepository(SqlAlchemyMutableRepository[domain.Assessme
 class SqlAlchemyStudentWorkRepository(SqlAlchemySoftDeleteRepository[domain.StudentWork]):
     entity_type, row_type = domain.StudentWork, models.StudentWorkRow
 
+    def restore(self, id: EntityId, *, expected_revision: int, at: UtcInstant) -> None:
+        """Restore metadata only; work identity and all attached facts are immutable."""
+        with self._transaction() as session:
+            row = session.get(self.row_type, id.value)
+            if row is None:
+                raise RepositoryError(RepositoryFailure.NOT_FOUND, "Work not found")
+            if row.revision != expected_revision:
+                raise RepositoryError(RepositoryFailure.REVISION_CONFLICT, "Work changed")
+            if row.deleted_at is None:
+                return
+            metadata = domain_value(self.entity_type, row).metadata.touch(at)
+            result = session.execute(
+                update(self.row_type)
+                .where(self.row_type.id == id.value, self.row_type.revision == expected_revision)
+                .values(
+                    updated_at=metadata.updated_at.epoch_microseconds,
+                    revision=metadata.revision,
+                    deleted_at=None,
+                )
+            )
+            if result.rowcount != 1:
+                raise RepositoryError(RepositoryFailure.REVISION_CONFLICT, "Work changed")
+
     def for_assessments(self, ids: Iterable[EntityId]) -> list[domain.StudentWork]:
         return self._many(self.row_type.assessment_id, ids)
 

@@ -109,7 +109,7 @@ def test_v1_database_copy_preserves_all_phase2_rows_and_schema(tmp_path):
         with migrated.connect() as c:
             assert (
                 c.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
-                == "0009_daily_workflow"
+                == "0010_qa_package"
             )
             for table, facts in before.items():
                 assert [
@@ -120,7 +120,7 @@ def test_v1_database_copy_preserves_all_phase2_rows_and_schema(tmp_path):
                 "SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' AND name != 'alembic_version' ORDER BY name"
             ).fetchall()
             assert preserved_objects(schema, after)
-            assert len(inspect(c).get_table_names()) == 80
+            assert len(inspect(c).get_table_names()) == 101
             assert c.exec_driver_sql("PRAGMA foreign_key_check").fetchall() == []
     finally:
         migrated.dispose()
@@ -144,9 +144,9 @@ def test_fresh_database_to_latest_and_reopen(tmp_path):
             with engine.connect() as c:
                 assert (
                     c.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
-                    == "0009_daily_workflow"
+                    == "0010_qa_package"
                 )
-                assert len(inspect(c).get_table_names()) == 80
+                assert len(inspect(c).get_table_names()) == 101
                 assert c.exec_driver_sql("PRAGMA foreign_key_check").fetchall() == []
         finally:
             engine.dispose()

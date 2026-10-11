@@ -1,5 +1,29 @@
 # Модель данных Studium
 
+## Текущая additive схема v10
+
+`0010_qa_package` после v9: 21 новая таблица; 100 user tables / 101 с Alembic.
+Старые columns/UUID/FK/revisions/NULL/REAL и bytes не переписываются. Mapping
+deterministic UUIDv5 сохраняет raw content и original plan history; legacy actual
+issue, ordinal, min/rules/submission evidence не выдумываются.
+
+| Сущности | Контракт |
+|---|---|
+| Direction, CourseProgram, ProgramVersion, ProgramDirection | Normalized directions, immutable курс без Term |
+| VersionReference, LegacyProgramMap | Concrete FK/exactly one target; bridge каждого legacy UUID без title merge |
+| SemesterPlan, PlanModule, PlannedWork, PlanHistory | Offering calendar, explicit ordinal/offset, независимые сроки и revisioned snapshots |
+| IssuedWork, ScoringRule, Submission | Concrete Assessment/Attempt, actual nullable для legacy, append-only cents bounds, received_at/rule |
+| Review, ReviewGrade, ReviewFile, ReviewReturn | Immutable result/rule/grade/teacher FileAsset, review и return отдельно |
+| RequiredWorkSet, RequiredWorkBinding, DebtRestoration | Versioned student/module requirement, concrete StudentWork и restore audit |
+| AnswerTemplate | Numeric/symbolic schema, copied snapshot/arbitrary physical precision |
+
+Новые scores INTEGER cents; legacy REAL отдельная lossless projection. Date-only
+exclusive next-day-start, exact inclusive UTC, week-only current calendar. UUID/UTC/
+revision/soft-delete, FK indexes, no physical delete, scope/immutable guards.
+Template mutable, ранее сохранённые assignment schemas независимы. Preferences
+не в ZIP v1. [ADR-050](decisions.md#adr-050--qa-all-30-implementation) — совместимость.
+Ниже сохранена история прежних schema heads.
+
 > Документ относится к Studium как независимому локальному приложению.
 > Bender — отдельный проект; будущая интеграция использует локальный JSON-RPC
 > 2.0 over stdio. Прямые импорты Bender, API/client, облачный сервер и новые

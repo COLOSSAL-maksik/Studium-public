@@ -4,7 +4,7 @@ from PySide6.QtCore import QAbstractTableModel, QModelIndex, QRect, Qt
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QApplication, QHeaderView
 
-from studium.presentation.desktop.design import colors
+from studium.presentation.desktop.design import ATTENDANCE_NAMES, attendance_color, colors
 
 
 class JournalModel(QAbstractTableModel):
@@ -54,9 +54,17 @@ class JournalModel(QAbstractTableModel):
                 else None
             )
         column = self.column(index.column())
+        if role == Qt.ItemDataRole.BackgroundRole and column.kind == "attendance":
+            value = self.snapshot.values.get((entry.student.id, index.column()), "—")
+            fill = QColor(attendance_color(value, QApplication.instance().property("studiumTheme")))
+            fill.setAlpha(28 if value != "—" else 0)
+            return fill
         if role == Qt.ItemDataRole.ForegroundRole:
             value = self.snapshot.values.get((entry.student.id, index.column()), "—")
-            c = colors(QApplication.instance().property("studiumTheme"))
+            theme = QApplication.instance().property("studiumTheme")
+            if column.kind == "attendance":
+                return QColor(attendance_color(value, theme))
+            c = colors(theme)
             return QColor(
                 c.success
                 if value.startswith("✓") or value == "•"
@@ -77,6 +85,15 @@ class JournalModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole:
             return self.snapshot.values.get((entry.student.id, index.column()), "—")
         if role == Qt.ItemDataRole.ToolTipRole:
+            if column.kind == "attendance":
+                value = self.snapshot.values.get((entry.student.id, index.column()), "—")
+                return (
+                    entry.student.full_name
+                    + "\n"
+                    + ATTENDANCE_NAMES.get(value, value)
+                    + "\n"
+                    + self.snapshot.tooltips.get((entry.student.id, index.column()), "")
+                )
             return (
                 entry.student.full_name
                 + "\n"
@@ -118,7 +135,7 @@ class GroupedJournalHeader(QHeaderView):
             groups = []
             for index in visible:
                 column = self.model().column(index)
-                key = column.module_title if top else (column.module_title, column.kind)
+                key = column.module_title if top else (column.module_title, column.week)
                 if groups and groups[-1][0] == key:
                     groups[-1][2] = index
                 else:
@@ -138,9 +155,7 @@ class GroupedJournalHeader(QHeaderView):
                 painter.setFont(font)
                 painter.setPen(self.palette().text().color())
                 text = (
-                    key
-                    if top
-                    else {"attendance": "Посещаемость", "homework": "ДЗ", "control": "РК"}[key[1]]
+                    key if top else ("Неделя " + str(key[1]) if key[1] is not None else "Без срока")
                 )
                 if top:
                     missing = [

@@ -126,14 +126,16 @@ def test_populated_v1_v2_v3_v4_copies_to_analytics_preserve_rows_schema_and_file
         upgrade_database(migrated)
         with migrated.connect() as connection:
             after, new_objects = snapshot(connection)
-            assert len(after) == 79
+            assert (
+                len(after) == 100
+            )  # v10 adds 21 concrete QA tables; every old row is compared below.
             assert preserved_rows(before, after)
             assert preserved_objects(objects, new_objects)
             assert after["attempt_item_results"] == []
             assert connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall() == []
             assert (
                 connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
-                == "0009_daily_workflow"
+                == "0010_qa_package"
             )
         repositories = repository_set(create_session_factory(migrated))
         assert repositories.content_locks.assessment_locked(assessment.id)
@@ -164,13 +166,13 @@ def test_fresh_analytics_database_reopens_with_unchanged_schema(tmp_path):
         try:
             upgrade_database(engine)
             with engine.connect() as connection:
-                assert len(inspect(connection).get_table_names()) == 80
+                assert len(inspect(connection).get_table_names()) == 101
                 assert connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall() == []
                 assert (
                     connection.exec_driver_sql(
                         "SELECT version_num FROM alembic_version"
                     ).scalar_one()
-                    == "0009_daily_workflow"
+                    == "0010_qa_package"
                 )
         finally:
             engine.dispose()

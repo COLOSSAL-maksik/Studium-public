@@ -16,6 +16,7 @@ from studium.infrastructure.database.repositories.content import ADAPTERS as CON
 from studium.infrastructure.database.repositories.files import ADAPTERS as FILE_ADAPTERS
 from studium.infrastructure.database.repositories.learning import ADAPTERS
 from studium.infrastructure.database.repositories.program import ADAPTERS as PROGRAM_ADAPTERS
+from studium.infrastructure.database.repositories.qa import ADAPTERS as QA_ADAPTERS
 
 
 def repository_set(sessions) -> Repositories:
@@ -39,6 +40,7 @@ def repository_set(sessions) -> Repositories:
                 **ANALYTICS_FACT_ADAPTERS,
                 **CONTENT_ADAPTERS,
                 **PROGRAM_ADAPTERS,
+                **QA_ADAPTERS,
             }.items()
         }
     )

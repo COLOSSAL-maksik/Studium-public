@@ -87,7 +87,7 @@ def test_populated_v8_upgrade_preserves_every_old_row_and_guard(tmp_path):
                 assert connection.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
                 assert not connection.exec_driver_sql("PRAGMA foreign_key_check").all()
                 assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
-            assert runtime.diagnostics.schema_version == "0009_daily_workflow"
+            assert runtime.diagnostics.schema_version == "0010_qa_package"
             assert runtime.service.ticket_set_details(saved.id)[0].assignments
             for link in links:
                 assert (

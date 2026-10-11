@@ -47,8 +47,18 @@ class WorkflowAnalyticsService:
             for h in histories
         ]
         attempts = [a for h in histories for a in h]
+        submissions = {a.id for a in attempts if a.id in view.submissions}
+        accepted_reviews = [
+            r
+            for sid, reviews in view.reviews.items()
+            if view.submissions[sid].attempt_id in submissions
+            for r in reviews
+            if r.result == AttemptResult.ACCEPTED
+        ]
         term = view.terms[offering.term_id]
-        program = view.programs.get(offering.work_program_id)
+        program = view.offering_plans.get(offering_id) or view.programs.get(
+            offering.work_program_id
+        )
         first = program.first_week_start if program else term.starts_on
         start = date(first.year, first.month, first.day)
 
@@ -77,7 +87,8 @@ class WorkflowAnalyticsService:
                     a.result == AttemptResult.ACCEPTED
                     and view.week_at(offering_id, a.occurred_at) == week
                     for a in attempts
-                ),
+                )
+                + sum(view.week_at(offering_id, r.reviewed_at) == week for r in accepted_reviews),
                 sum(
                     a.planned_due_week is not None and a.planned_due_week.value == week
                     for a in assessments

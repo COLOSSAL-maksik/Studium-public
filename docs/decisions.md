@@ -1,5 +1,61 @@
 # Решения и открытые вопросы
 
+<a id="adr-050--qa-all-30-implementation"></a>
+
+## ADR-050 — Единый пакет 30 требований: календарь и факты проверки
+
+**Дата исполнения:** 2026-10-10. **Статус:** IMPLEMENTED; manual acceptance PENDING.
+Прямое пакетное задание заменяет предложенные 10 PR и промежуточные manual gates
+ADR-049. B1–B6, QA-A-REV-01/02 сохранены. Задание датировано 2026-10-11;
+execution environment — 2026-10-10. Записи ниже сохраняют прежнюю историю.
+
+`0010_qa_package` добавляет 21 таблицу: 100 user tables / 101 с Alembic.
+CourseProgram → immutable ProgramVersion/ProgramDirection/VersionReference
+отделены от SemesterPlan/PlanModule/PlannedWork конкретного offering. Ordinal
+задаётся явно, AUTUMN/SPRING его не определяют. Legacy mapping по UUID, не title;
+raw WorkProgram, связи, NULL, REAL и snapshots сохраняются. Только полный XX.XX.XX
+связывается автоматически после NFC/trim; identity casefold + normalized UNIQUE.
+
+Preview чистый; commit атомарный с revision checks/PlanHistory. Соседи не сдвигаются
+автоматически. Deadline за модуль/семестр требует предупреждения/подтверждения,
+модули внутри семестра. EXACT_INCLUSIVE сохраняет legacy UTC/operator,
+DATE_EXCLUSIVE — next-day-start в explicit offset, WEEK_ONLY — current calendar.
+Default нового плана +03. IssuedWork actual отдельный, ambiguous legacy unknown.
+
+Новая сдача создаёт одну Attempt + Submission; re-review только immutable Review.
+ReviewGrade/ReviewFile/ReviewReturn имеют concrete FK и independent timestamps.
+SCORED после NEEDS_REVISION этой сдачи запрещён application/SQL без записи,
+доработка завершается explicit ACCEPTED. Resolver сохраняет legacy fold и порядок
+Attempt number/review_seq: re-review S1 не вытесняет S2. Grade/result/rule
+проверяются вместе. Min — нижняя граница начисления; pending/revision без 0.
+Decimal input → int64 cents без rounding, максимум 92233720368547758.07;
+legacy REAL lossless. Fractional default OFF, ON до двух знаков; saved bounds
+копируются при OFF. Для прежней сдачи после изменения rule явный old/current.
+
+B7–B9 приняты именно пакетным заданием, не ретроспективно. SLA default 7 calendar
+days от received_at в explicit fixed offset; equality не overdue, near default
+24 часа; оба settings persisted. Recording time отдельно. B8 выполнено =
+substantive submission, зачтено = ACCEPTED, cancelled вне active denominator,
+attendance denominator прежний. RequiredWorkSet versioned student/module,
+unknown не закрывает модуль; все concrete bindings должны быть ACCEPTED.
+DebtRestoration с confirmed reason сохраняет ended enrollment/immutable историю.
+B9 numeric/symbolic допускают arbitrary physical Decimal precision; units
+optional, formula/comments plain text. Template copied snapshot, teacher-only.
+
+StagedAttachmentPicker не пишет до save; metadata/links/file batch атомарны.
+Late failure откатывает DB и опубликованные файлы; post-commit finalize failure
+сохраняет bytes/recovery journal. JPEG/PNG/WebP/PDF previews bounded, DOC/DOCX icon.
+Внешний редактор получает рабочую copy в cache. IO — Qt workers; cyclic Qt wrappers
+собираются application-owned GUI timer, исключая их разрушение worker GC.
+
+v1–v9 Python/SQL raw bytes неизменны; static DDL/backfill transactional,
+deterministic UUIDv5. Fresh/populated/late rollback/reopen/new-head restore тестируются.
+ZIP v1 без preferences: новый restore OFF, saved fractions видимы. Archive 0.1.0
+восстановить прежним совместимым release в отдельный профиль, затем upgrade;
+unknown schema/fingerprint/version guards не ослабляются. Candidate 0.2.0 честно
+отличает новую schema; релиз не опубликован. [Карта](management/QA_ALL_30_IMPLEMENTATION.md),
+[общая manual проверка и Windows candidate](qa-all-30-manual.md).
+
 <a id="adr-049--qa-a-product-contracts"></a>
 
 ## ADR-049 — QA-A: продуктовые контракты и безопасная совместимость

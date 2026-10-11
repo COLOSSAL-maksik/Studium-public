@@ -5,7 +5,6 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDateEdit,
-    QDialog,
     QGridLayout,
     QLineEdit,
     QPlainTextEdit,
@@ -115,7 +114,11 @@ class OfferingProgramForm(FormDialog):
         super().__init__(
             "Дисциплина и программа группы",
             lambda values: service.create_offering(
-                term.id, values["course_id"], group.id, work_program_id=values["work_program_id"]
+                term.id,
+                values["course_id"],
+                group.id,
+                course_version_id=values["course_version_id"],
+                course_semester=values["course_semester"],
             ),
             parent,
         )
@@ -125,6 +128,9 @@ class OfferingProgramForm(FormDialog):
             self.course.addItem(course.name, course)
         self.form.addRow("Дисциплина", self.course)
         self.form.addRow("Рабочая программа", self.program)
+        self.ordinal = QSpinBox()
+        self.ordinal.setRange(1, 104)
+        self.form.addRow("Номер семестра курса (явное сопоставление)", self.ordinal)
         self.create = QPushButton("Создать рабочую программу")
         self.create.clicked.connect(lambda: run_action(self, self.create_program))
         self.body_layout.addWidget(self.create)
@@ -133,24 +139,29 @@ class OfferingProgramForm(FormDialog):
 
     def reload_programs(self):
         self.program.clear()
+        self.program.addItem("Настроить программу/план позже", None)
         course = self.course.currentData()
         if course:
-            for program in self.service.list_work_programs(course.id):
-                if program.term_id == self.term.id:
-                    self.program.addItem(program.title, program.id)
-        self.save_button.setEnabled(self.program.count() > 0)
+            names = self.service.program_display_names(course.id)
+            for version in self.service.program_versions(course.id):
+                self.program.addItem(names[version.id], version.id)
+                self.program.setItemData(
+                    self.program.count() - 1, names[version.id], Qt.ItemDataRole.ToolTipRole
+                )
+        self.save_button.setEnabled(course is not None)
 
     def create_program(self):
+        from studium.presentation.desktop.qa_plans import CourseVersionForm
+
         course = self.course.currentData()
-        if (
-            course
-            and ProgramForm(self.service, course, parent=self).exec() == QDialog.DialogCode.Accepted
-        ):
+        if course and CourseVersionForm(self.service, course, parent=self).exec():
             self.reload_programs()
 
     def values(self):
         return dict(
-            course_id=self.course.currentData().id, work_program_id=self.program.currentData()
+            course_id=self.course.currentData().id,
+            course_version_id=self.program.currentData(),
+            course_semester=self.ordinal.value() if self.program.currentData() else None,
         )
 
 
@@ -625,26 +636,14 @@ class DisciplinePage(QWidget):
         overview_scroll.setWidgetResizable(True)
         overview_scroll.setWidget(overview)
         tabs.addTab(overview_scroll, "Обзор")
-        programs, body = panel()
-        self.program_model = TableModel(
-            [
-                ("Рабочая программа", lambda p: p.title),
-                ("Направление", lambda p: p.direction),
-                ("Недели", lambda p: p.weeks),
-            ]
+        from studium.presentation.desktop.qa_plans import CourseProgramsWidget
+
+        self.course_programs = CourseProgramsWidget(window, course, self)
+        self.program_model, self.program_view = (
+            self.course_programs.model,
+            self.course_programs.view,
         )
-        self.program_view = table(self.program_model)
-        body.addWidget(self.program_view)
-        toolbar(
-            body,
-            [
-                ("Создать", lambda: run_action(self, self.create_program)),
-                ("Открыть", lambda: run_action(self, self.open_program)),
-                ("Удалить", lambda: run_action(self, self.delete_program)),
-            ],
-        )
-        self.program_view.doubleClicked.connect(lambda _: run_action(self, self.open_program))
-        tabs.addTab(programs, "Рабочие программы")
+        tabs.addTab(self.course_programs, "Рабочие программы")
         tabs.addTab(
             embed(LearningCatalogueDialog(window.service, course, self), tabs), "Темы и навыки"
         )
@@ -658,23 +657,15 @@ class DisciplinePage(QWidget):
         self.refresh()
 
     def refresh(self):
-        self.program_model.replace_rows(self.window.service.list_work_programs(self.course.id))
-        self.program_count.setText(f"Рабочих программ: {len(self.program_model.rows)}")
+        self.course_programs.refresh()
+        self.program_count.setText(f"Версий программ: {len(self.program_model.rows)}")
 
     def create_program(self):
-        if ProgramForm(self.window.service, self.course, parent=self).exec():
-            self.refresh()
+        self.course_programs.create()
+        self.refresh()
 
     def open_program(self):
-        program = selected(self.program_view)
-        if program:
-            self.window.router.push(WorkProgramPage(self.window, program), program.title)
-
-    def delete_program(self):
-        program = selected(self.program_view)
-        if program and confirm_delete(self, self.window.service, "work_program", program):
-            self.window.service.safe_delete("work_program", program)
-            self.refresh()
+        self.course_programs.next_version()
 
 
 class WorkProgramPage(QWidget):

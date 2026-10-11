@@ -694,6 +694,7 @@ class ProgramService:
                     dict(
                         answer=problem.correct_answer,
                         solution=problem.solution,
+                        answer_schema=json.loads(problem.details_json),
                         skill_ids=[
                             str(link.skill_id)
                             for link in r.problem_skills.for_owner(problem.family_id or problem.id)

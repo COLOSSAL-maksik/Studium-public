@@ -63,11 +63,15 @@ def number_value(field):
 
 
 def date_value(field):
+    if not field.hasAcceptableInput():
+        raise ValueError("Введите корректную дату ДД.ММ.ГГГГ")
     value = field.date()
     return LocalDate(value.year(), value.month(), value.day())
 
 
 def instant_value(field):
+    if not field.hasAcceptableInput():
+        raise ValueError("Введите корректные дату и время")
     return UtcInstant.from_epoch_microseconds(field.dateTime().toMSecsSinceEpoch() * 1000)
 
 
@@ -579,9 +583,23 @@ class AttemptDetailsPage(QWidget):
 
 
 def open_work(parent, service, student_id, assessment_id, *, editable=True):
-    work = service.get_or_create_work(student_id, assessment_id)
+    work = service.find_student_work(student_id, assessment_id)
+    from studium.presentation.desktop.qa_workflow import SubmissionForm, SubmissionHistory
+
+    if work is None:
+        return present_detail(
+            SubmissionForm(service, student_id, assessment_id=assessment_id, parent=parent),
+            parent,
+            refresh=getattr(
+                parent,
+                "refresh_works",
+                getattr(parent, "load_roster", getattr(parent, "refresh", None)),
+            ),
+            title="Новая сдача",
+        )
+
     present_detail(
-        HistoryDialog(service, work.id, editable=editable, asynchronous=True, parent=parent),
+        SubmissionHistory(service, work.id, parent=parent),
         parent,
         refresh=getattr(parent, "refresh_works", getattr(parent, "refresh", None)),
         title=service.history(work.id).assessment.title,
@@ -625,6 +643,10 @@ class StudentDetailsDialog(QDialog):
         self.works = StudentWorksWidget(service, context, entry, self)
         self.work_model, self.work_view = self.works.work_model, self.works.work_view
         self.tabs.addTab(self.works, TEXT["works"])
+        toolbar(
+            overview_layout,
+            [("+ Зарегистрировать сдачу", lambda: run_action(self, self.register_submission))],
+        )
         from studium.presentation.desktop.analytics import StudentProgressWidget
 
         self.progress = StudentProgressWidget(service, self.student.id, context.offering.id, self)
@@ -642,6 +664,13 @@ class StudentDetailsDialog(QDialog):
         self.tabs.currentChanged.connect(self.refresh_progress)
         self.refresh_works()
         self.refresh_overview()
+
+    def register_submission(self):
+        from studium.presentation.desktop.qa_workflow import SubmissionForm
+
+        if SubmissionForm(self.service, self.student.id, parent=self).exec():
+            self.refresh_works()
+            self.refresh_overview()
 
     def refresh_progress(self, index):
         widget = self.tabs.widget(index)

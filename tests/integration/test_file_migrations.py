@@ -105,9 +105,11 @@ def test_populated_phase3_v2_copy_upgrade_preserves_every_fact_and_schema(tmp_pa
             after, new_schema = snapshot(c)
             assert (
                 c.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
-                == "0009_daily_workflow"
+                == "0010_qa_package"
             )
-            assert len(after) == 79
+            assert (
+                len(after) == 100
+            )  # v10 adds 21 concrete QA tables; every old row is compared below.
             assert preserved_rows(before, after)
             assert preserved_objects(schema, new_schema)
             assert c.exec_driver_sql("PRAGMA foreign_key_check").fetchall() == []

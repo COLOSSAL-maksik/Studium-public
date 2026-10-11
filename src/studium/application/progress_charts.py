@@ -62,7 +62,9 @@ class ProgressChartsService:
             return tuple(result)
 
         now = sectors(view)
-        program = view.programs.get(offering.work_program_id)
+        program = view.offering_plans.get(offering_id) or view.programs.get(
+            offering.work_program_id
+        )
         term = view.terms[offering.term_id]
         first = program.first_week_start if program else term.starts_on
         length = program.weeks if program else 17

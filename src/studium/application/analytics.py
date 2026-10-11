@@ -31,6 +31,7 @@ from studium.domain.communication import (
     message_order,
 )
 from studium.domain.enums import AttemptResult, AttendanceStatus, ItemOutcome, StudentWorkStatus
+from studium.domain.qa import planned_deadline, result_from_events
 from studium.domain.services import StudentWorkProgress
 from studium.domain.value_objects import UtcInstant
 
@@ -124,6 +125,9 @@ class _Snapshot:
             setattr(
                 self, name, tuple(getattr(repositories, name).list(include_deleted=include_deleted))
             )
+        for name in ("submissions", "reviews", "semester_plans", "planned_works", "issued_works"):
+            repo = getattr(repositories, name, None)
+            setattr(self, name, tuple(repo.list(include_deleted=historical)) if repo else ())
 
 
 class _View:
@@ -134,6 +138,7 @@ class _View:
         self.programs = {p.id: p for p in snapshot.work_programs}
         self.students = {s.id: s for s in snapshot.students}
         self.enrollments = {e.id: e for e in snapshot.enrollments}
+        self.offering_plans = {p.offering_id: p for p in snapshot.semester_plans}
         self.assessments = {
             a.id: a
             for a in snapshot.assessments
@@ -143,6 +148,29 @@ class _View:
                 or self.week_at(a.offering_id, as_of) >= a.planned_issue_week.value
             )
         }
+        planned = {p.id: p for p in snapshot.planned_works}
+        cancelled = {
+            i.assessment_id
+            for i in snapshot.issued_works
+            if planned.get(i.planned_work_id) and planned[i.planned_work_id].cancelled
+        }
+        self.assessments = {id: a for id, a in self.assessments.items() if id not in cancelled}
+        self.plan_deadlines = {
+            i.assessment_id: planned[i.planned_work_id]
+            for i in snapshot.issued_works
+            if i.planned_work_id in planned
+        }
+        self.plans = {p.id: p for p in snapshot.semester_plans}
+        self.offering_plans = {p.offering_id: p for p in snapshot.semester_plans}
+        self.submissions = {
+            s.attempt_id: s
+            for s in snapshot.submissions
+            if s.received_at <= as_of and s.created_at <= as_of
+        }
+        self.reviews = defaultdict(list)
+        for review in snapshot.reviews:
+            if review.reviewed_at <= as_of and review.created_at <= as_of:
+                self.reviews[review.submission_id].append(review)
         self.works = {w.id: w for w in snapshot.works if w.assessment_id in self.assessments}
         self.by_pair = {(w.student_id, w.assessment_id): w for w in self.works.values()}
         self.attempts = {
@@ -210,19 +238,46 @@ class _View:
         presentations = [a for a in history if a.result in PRESENTATIONS]
         # Earliest source timestamp controls timeliness; attempt_no controls progress.
         first_presented_at = min((a.occurred_at for a in presentations), default=None)
+        new_submissions = [self.submissions[a.id] for a in history if a.id in self.submissions]
+        reviews = [r for sub in new_submissions for r in self.reviews[sub.id]]
+        result = result_from_events(history, new_submissions, reviews)
+        status = result.status
+        first_pass = bool(presentations) and presentations[0].result == AttemptResult.ACCEPTED
+        if presentations and presentations[0].id in self.submissions:
+            sid = self.submissions[presentations[0].id].id
+            first_review = min(
+                (
+                    r
+                    for r in reviews
+                    if r.submission_id == sid and r.result != AttemptResult.COMMENT_ONLY
+                ),
+                key=lambda r: r.review_seq,
+                default=None,
+            )
+            first_pass = first_review is not None and first_review.result == AttemptResult.ACCEPTED
+        plan_work = self.plan_deadlines.get(assessment.id)
         deadline = assessment.due_at
+        exclusive = False
+        if plan_work:
+            deadline, exclusive = planned_deadline(
+                plan_work, self.plans[plan_work.semester_plan_id]
+            )
         on_time = (
             deadline is not None
             and first_presented_at is not None
-            and first_presented_at <= deadline
+            and (first_presented_at < deadline if exclusive else first_presented_at <= deadline)
         )
         late = (
             deadline is not None
             and first_presented_at is not None
-            and first_presented_at > deadline
+            and (first_presented_at >= deadline if exclusive else first_presented_at > deadline)
         )
-        overdue = deadline is not None and deadline < self.as_of and first_presented_at is None
-        if deadline is None and assessment.planned_due_week is not None:
+        overdue = (
+            deadline is not None
+            and first_presented_at is None
+            and (self.as_of >= deadline if exclusive else self.as_of > deadline)
+        )
+        if not plan_work and deadline is None and assessment.planned_due_week is not None:
             due_week = assessment.planned_due_week.value
             actual_week = (
                 self.week_at(assessment.offering_id, first_presented_at)
@@ -235,18 +290,13 @@ class _View:
                 first_presented_at is None
                 and self.week_at(assessment.offering_id, self.as_of) > due_week
             )
-        final_source = next((a for a in reversed(history) if a.result in SCORE_EVENTS), None)
-        final_score = (
-            normalized_score(progress.final_score, final_source.max_score)
-            if progress is not None and final_source is not None
-            else None
-        )
+        final_score = normalized_score(result.score, result.maximum)
         return {
             "started": bool(presentations),
-            "completed": progress is not None and progress.status == StudentWorkStatus.ACCEPTED,
-            "status": progress.status if progress else StudentWorkStatus.NOT_STARTED,
+            "completed": status == StudentWorkStatus.ACCEPTED,
+            "status": status,
             "attempts": progress.attempt_count if progress else 0,
-            "first_pass": bool(presentations) and presentations[0].result == AttemptResult.ACCEPTED,
+            "first_pass": first_pass,
             "on_time": on_time,
             "late": late,
             "overdue": overdue,
@@ -255,7 +305,9 @@ class _View:
 
     def week_at(self, offering_id, at):
         term = self.terms[self.offerings[offering_id].term_id]
-        program = self.programs.get(self.offerings[offering_id].work_program_id)
+        program = self.offering_plans.get(offering_id) or self.programs.get(
+            self.offerings[offering_id].work_program_id
+        )
         calendar_date = at.value.astimezone(
             timezone(
                 timedelta(
@@ -756,7 +808,14 @@ class AnalyticsService:
                     min((a.occurred_at for a in presentations), default=None),
                     max((a.occurred_at for a in presentations), default=None),
                     max(
-                        (a.occurred_at for a in history if a.result == AttemptResult.ACCEPTED),
+                        tuple(a.occurred_at for a in history if a.result == AttemptResult.ACCEPTED)
+                        + tuple(
+                            v.reviewed_at
+                            for a in history
+                            if a.id in view.submissions
+                            for v in view.reviews[view.submissions[a.id].id]
+                            if v.result == AttemptResult.ACCEPTED
+                        ),
                         default=None,
                     ),
                     relation,
@@ -790,6 +849,30 @@ class AnalyticsService:
         if module_id is None:
             return self._analytics_view(as_of)
         snapshot = self._analytics_snapshot()
+        canonical = self._r.plan_modules.find_by_id(module_id) if self._r.plan_modules else None
+        if canonical:
+            plan = self._require(self._r.semester_plans, canonical.semester_plan_id)
+            if plan.offering_id != offering_id:
+                raise ApplicationError("learning_course_mismatch")
+            ids = {w.id for w in snapshot.planned_works if w.module_id == canonical.id}
+            assessment_ids = {
+                i.assessment_id for i in snapshot.issued_works if i.planned_work_id in ids
+            }
+            snapshot.assessments = tuple(a for a in snapshot.assessments if a.id in assessment_ids)
+            first = date(
+                plan.first_week_start.year, plan.first_week_start.month, plan.first_week_start.day
+            )
+            snapshot.lessons = tuple(
+                v
+                for v in snapshot.lessons
+                if v.course_offering_id == offering_id
+                and canonical.start_week
+                <= (date(v.lesson_date.year, v.lesson_date.month, v.lesson_date.day) - first).days
+                // 7
+                + 1
+                <= canonical.end_week
+            )
+            return _View(snapshot, as_of or self._clock())
         module = self._require(self._r.program_modules, module_id)
         offering = next((o for o in snapshot.offerings if o.id == offering_id), None)
         if offering is None or module.work_program_id != offering.work_program_id:

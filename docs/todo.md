@@ -1,5 +1,15 @@
 # Оставшаяся работа
 
+## Общая приёмка пакета 0.2.0
+
+Промежуточные manual/merge gates отменены прямым пакетным заданием. Реализация
+всех 30 UI/backend требований собрана в одной ветке; текущая проверка и реальные
+blockers отражены в [матрице](management/QA_ALL_30_IMPLEMENTATION.md).
+После full automated regression проверить единый [manual checklist](qa-all-30-manual.md)
+на synthetic Windows candidate, включая Light/Dark/DPI/архивы/хвосты.
+Manual PENDING, merge/release/deploy не выполнять. История ниже superseded там,
+где требует 10 implementation PR или отдельного разрешения на каждый QA этап.
+
 ## QA-A — следующие действия 2026-10-11
 
 - Review [технических proposals/migration mapping](management/QA_A_CONTRACTS.md):

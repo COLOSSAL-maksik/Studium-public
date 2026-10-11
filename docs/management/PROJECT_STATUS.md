@@ -1,5 +1,27 @@
 # Состояние Studium
 
+## Единый implementation-пакет — решение 2026-10-10
+
+Владелец расширил задачу до всех ST-QA-001–ST-QA-030 в одной ветке
+`agent/codex/qa-a-contracts` и одном итоговом implementation PR. База реализации:
+`d23eee39fcb0f3bd463c2868459fa48d0778925a`; документационная база PR #2 сохранена.
+QA-A → QA-B → QA-C → QA-D — внутренний порядок зависимостей после необходимых
+автоматических проверок. Промежуточные ручные приёмки и merge между этапами
+отменены этим решением; общий manual acceptance остаётся PENDING после пакета.
+Прежний план десяти QA-A PR и directions-only scope — исторические предложения.
+
+B7–B9 впервые заданы этим пакетным решением: SLA 7 календарных дней от received_at
+в explicit offset, near-due последние 24 часа, overdue строго после deadline;
+«выполнено» — подтверждённая содержательная сдача, «зачтено» — explicit ACCEPTED,
+cancelled исключается из active denominator; шаблоны structured answers копируются
+в immutable task/variant snapshots, teacher-only данные не публикуются студенту.
+Норматив и near-due настраиваются. Ранее не подтверждённое согласование не выдумывается.
+
+Текущие implementation/evidence и manual pending ведутся в
+[QA_ALL_30_IMPLEMENTATION](QA_ALL_30_IMPLEMENTATION.md). Матрицы и записи ниже
+сохраняют исторический baseline; они не являются статусом нового пакета.
+
+
 ## Актуальное дополнение — 2026-10-11
 
 Actual main перед работой: `b620ef3635c2965ad3630bae15d00d1b7bd9a82d`.

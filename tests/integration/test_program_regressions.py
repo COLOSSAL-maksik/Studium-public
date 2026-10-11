@@ -207,7 +207,7 @@ def test_journal_30_by_17_and_charts_fixed_query_budget(content, runtime):
         event.remove(runtime._engine, "before_cursor_execute", count)
     assert len(journal.matrix.roster) == 30 and len(journal.columns) == 23
     assert len(data.students) == 30 and len(data.weeks) == 17
-    assert journal_queries <= 35 and len(selects) <= 25
+    assert journal_queries <= 35 and len(selects) <= 30  # Fixed five-table QA extension.
     assert elapsed < 3 and chart_elapsed < 3
     print(
         f"Journal30x17+6: {elapsed:.4f}s/{journal_queries} SELECT; progress charts: {chart_elapsed:.4f}s/{len(selects)} SELECT"

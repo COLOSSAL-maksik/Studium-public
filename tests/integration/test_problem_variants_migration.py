@@ -79,7 +79,7 @@ def test_populated_v7_upgrade_preserves_problems_tickets_assignments_files(tmp_p
             runtime.service.accessible_file_path(file.file_asset_id).read_bytes()
             == b"immutable v7 original"
         )
-        assert runtime.diagnostics.schema_version == "0009_daily_workflow"
+        assert runtime.diagnostics.schema_version == "0010_qa_package"
         runtime.close()
     assert (original / "studium.sqlite").read_bytes() == original_bytes
 
@@ -93,10 +93,10 @@ def test_empty_v7_upgrade_and_fresh_schema(tmp_path):
         command.upgrade(config, "head")
         assert (
             connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
-            == "0009_daily_workflow"
+            == "0010_qa_package"
         )
         assert not connection.exec_driver_sql("PRAGMA foreign_key_check").all()
     engine.dispose()
     runtime = create_runtime(tmp_path / "fresh")
-    assert runtime.diagnostics.schema_version == "0009_daily_workflow"
+    assert runtime.diagnostics.schema_version == "0010_qa_package"
     runtime.close()

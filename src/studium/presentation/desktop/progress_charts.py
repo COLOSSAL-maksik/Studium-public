@@ -5,10 +5,19 @@ import math
 from PySide6.QtCharts import QChart, QChartView, QLineSeries, QValueAxis
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen
-from PySide6.QtWidgets import QApplication, QComboBox, QStackedWidget, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QComboBox,
+    QDialog,
+    QSplitter,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 from studium.presentation.desktop.chart_style import chart_colors, style_chart
-from studium.presentation.desktop.components import hint
+from studium.presentation.desktop.components import hint, table, toolbar
+from studium.presentation.desktop.models import TableModel
 
 
 class RadialProgress(QWidget):
@@ -100,10 +109,59 @@ class ProgressCharts(QWidget):
         self.stack.addWidget(self.radial)
         self.stack.addWidget(self.line)
         self.mode.currentIndexChanged.connect(self.stack.setCurrentIndex)
-        layout.addWidget(self.stack, 1)
+        self.table_model = TableModel(
+            [
+                ("Студент", lambda r: r.label),
+                ("Зачтено", lambda r: r.completed),
+                ("Выдано", lambda r: r.total),
+                ("Доля", lambda r: f"{r.progress:.0%}" if r.progress is not None else "Нет данных"),
+            ]
+        )
+        self.table_view = table(self.table_model)
+        self.splitter = QSplitter(Qt.Orientation.Vertical)
+        self.splitter.setChildrenCollapsible(False)
+        self.splitter.addWidget(self.stack)
+        self.splitter.addWidget(self.table_view)
+        self.splitter.setSizes([300, 180])
+        self.splitter.splitterMoved.connect(lambda *_: self.persist())
+        layout.addWidget(self.splitter, 1)
+        toolbar(layout, [("Развернуть таблицу", self.expand_table)])
+        self.restored_key = None
+
+    def preference_context(self):
+        owner = self.parentWidget()
+        while owner and not hasattr(owner, "service_provider"):
+            owner = owner.parentWidget()
+        if owner and owner.context_provider():
+            return owner.service_provider(), "analytics:" + str(
+                owner.context_provider().offering.id
+            )
+        return None, None
+
+    def persist(self):
+        service, key = self.preference_context()
+        if service:
+            service.save_splitter_sizes(key, self.splitter.sizes())
+
+    def expand_table(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Прогресс · таблица")
+        dialog.resize(900, 620)
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(table(self.table_model))
+        dialog.exec()
 
     def update_data(self, data):
         self.data = data
+        self.table_model.replace_rows(data.students)
+        service, key = self.preference_context()
+        if service and self.restored_key != key:
+            sizes = service.splitter_sizes(key)
+            if len(sizes) == 2:
+                self.splitter.blockSignals(True)
+                self.splitter.setSizes(list(sizes))
+                self.splitter.blockSignals(False)
+            self.restored_key = key
         self.radial.data = data
         self.radial.update()
         self.notice.setText(

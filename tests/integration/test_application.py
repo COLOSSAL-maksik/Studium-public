@@ -289,4 +289,4 @@ def test_matrix_does_not_issue_query_per_cell(runtime, workflow):
         event.remove(runtime._engine, "before_cursor_execute", capture)
     assert len(matrix.cells) == 25 * 30
     assert all(cell.progress.status == StudentWorkStatus.ACCEPTED for cell in matrix.cells.values())
-    assert len(queries) <= 10
+    assert len(queries) <= 12  # Two fixed bulk reads for submissions/reviews, never per cell.

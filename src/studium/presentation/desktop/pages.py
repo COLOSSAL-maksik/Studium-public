@@ -12,13 +12,14 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QStackedWidget,
+    QTabBar,
     QTabWidget,
     QToolButton,
     QVBoxLayout,
     QWidget,
 )
 
-from studium.domain.enums import AttendanceStatus, EnrollmentStatus
+from studium.domain.enums import AssessmentType, AttendanceStatus, EnrollmentStatus
 from studium.presentation.desktop.components import (
     confirm,
     confirm_delete,
@@ -53,7 +54,6 @@ from studium.presentation.desktop.models import (
     progress_text,
 )
 from studium.presentation.desktop.navigation import present_detail
-from studium.presentation.desktop.quick_attempt import QuickAttemptDialog
 from studium.presentation.desktop.theme import resize_to_screen
 from studium.presentation.desktop.widgets import JournalTable, search_shortcut
 
@@ -137,7 +137,10 @@ class GroupsPage(QWidget):
         self.show_ended = QCheckBox(TEXT["show_ended"])
         self.show_ended.toggled.connect(lambda _: self.act(self.load_roster))
         self.add_student_button = QToolButton()
-        self.add_student_button.setText(TEXT["add_student_menu"])
+        self.add_student_button.setText("+ Добавить студента ▾")
+        self.add_student_button.setAccessibleName(
+            "Добавить студента: создать нового или выбрать существующего"
+        )
         self.add_student_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         menu = QMenu(self.add_student_button)
         menu.addAction(TEXT["create_new_student"], lambda: self.act(self.create_student))
@@ -164,9 +167,7 @@ class GroupsPage(QWidget):
         student_layout.addWidget(self.student_view)
         self.empty_students = hint(student_layout, TEXT["empty_students"])
         matrix, matrix_layout = panel()
-        journal_row = toolbar(
-            matrix_layout, [(TEXT["new_assessment"], lambda: self.act(self.create_assessment))]
-        )
+        journal_row = toolbar(matrix_layout, [])
         self.journal_search = QLineEdit()
         self.journal_search.setPlaceholderText(TEXT["journal_search"])
         journal_row.insertWidget(1, self.journal_search, 1)
@@ -236,6 +237,10 @@ class GroupsPage(QWidget):
         self.tabs.addTab(students, TEXT["students"])
         self.works_page = WorksPage(window, self.context)
         self.tabs.addTab(self.works_page, TEXT["works"])
+        from studium.presentation.desktop.qa_plans import SemesterPlanWidget
+
+        self.semester_plan_page = SemesterPlanWidget(window, self.context, self)
+        self.tabs.addTab(self.semester_plan_page, "План семестра")
         self.lessons_page = LessonsPage(lambda: self.service, self.context, self)
         self.tabs.addTab(self.lessons_page, TEXT["lessons"])
         from studium.presentation.desktop.analytics import GroupAnalyticsWidget
@@ -249,7 +254,7 @@ class GroupsPage(QWidget):
         from studium.presentation.desktop.tickets import TicketGeneratorPage
 
         self.tickets = TicketGeneratorPage(window, self.context)
-        self.tabs.addTab(self.tickets, "Варианты")
+        self.tickets.hide()
         group_settings, settings_layout = panel()
         hint(settings_layout, "Реквизиты группы и учебные контексты")
         toolbar(
@@ -391,6 +396,30 @@ class GroupsPage(QWidget):
         self.load_roster()
 
     def load_roster(self):
+        cursor = self.matrix_view.currentIndex()
+        previous_student = (
+            self.matrix_model.matrix.roster[cursor.row()].student.id
+            if cursor.isValid() and self.matrix_model.matrix
+            else None
+        )
+
+        def column_key(column):
+            if column is None:
+                return None
+            return (
+                column.kind,
+                column.assessment.id
+                if column.assessment
+                else column.program_work.id
+                if column.program_work
+                else tuple(lesson.id for lesson in column.lessons)
+                if column.lessons
+                else column.week,
+            )
+
+        previous_column = (
+            column_key(self.matrix_model.column(cursor.column())) if cursor.isValid() else None
+        )
         context = self.context()
         self.course_heading.setText(context.course.name if context else "")
         self.period_heading.setText(context.term.name if context else "")
@@ -416,7 +445,7 @@ class GroupsPage(QWidget):
                 )
             )
             self.period_heading.setText(
-                f"Рабочая программа: {journal.program.title}"
+                f"План семестра · {journal.program.weeks} недель"
                 if journal.program
                 else context.term.name
             )
@@ -437,6 +466,25 @@ class GroupsPage(QWidget):
                 )
             self.filter_journal()
             self.matrix_view.sync_frozen()
+            if previous_student:
+                row = next(
+                    (
+                        i
+                        for i, entry in enumerate(matrix.roster)
+                        if entry.student.id == previous_student
+                    ),
+                    None,
+                )
+                col = next(
+                    (
+                        i
+                        for i in range(self.matrix_model.columnCount())
+                        if column_key(self.matrix_model.column(i)) == previous_column
+                    ),
+                    None,
+                )
+                if row is not None and col is not None:
+                    self.matrix_view.setCurrentIndex(self.matrix_model.index(row, col))
         else:
             self.student_model.replace_rows([])
             self.matrix_model.replace_matrix(None)
@@ -472,6 +520,7 @@ class GroupsPage(QWidget):
             self.questions.offering_id = self.context().offering.id
         if self.service and widget in (
             self.analytics,
+            self.semester_plan_page,
             self.lessons_page,
             self.questions,
             self.tickets,
@@ -531,9 +580,7 @@ class GroupsPage(QWidget):
                     label,
                     lambda status=status: self.act(lambda: self.mark_selected_attendance(status)),
                 )
-        menu.addAction(
-            TEXT["quick_attempt"], lambda: self.act(lambda: self.open_matrix_cell(index))
-        )
+        menu.addAction("Сдачи и проверки", lambda: self.act(lambda: self.open_matrix_cell(index)))
         if index.column() > 0:
             menu.addAction(
                 TEXT["history"], lambda: self.act(lambda: self.open_matrix_history(index))
@@ -567,6 +614,13 @@ class GroupsPage(QWidget):
             return
         column = self.matrix_model.column(next(iter(columns)))
         if column is None or column.kind != "attendance":
+            return
+        if column.lessons and all(lesson.cancelled for lesson in column.lessons):
+            QMessageBox.information(
+                self,
+                "Посещаемость",
+                "Занятие отменено. Его история сохранена; отметки посещения не изменяются.",
+            )
             return
         lessons = [lesson for lesson in column.lessons if not lesson.cancelled]
         if not lessons:
@@ -721,39 +775,16 @@ class GroupsPage(QWidget):
             self.open_journal_attendance(index, column)
             return
         if column.assessment is None:
-            if column.program_work:
-                self.service.issue_program_work(self.context().offering.id, column.program_work.id)
-                self.load_roster()
-                index = self.matrix_model.index(index.row(), index.column())
-            else:
-                from studium.presentation.desktop.programs import WorkProgramPage
-
-                program = self.service.program_for_offering(self.context().offering.id)
-                if program:
-                    self.window.router.push(WorkProgramPage(self.window, program), program.title)
-                return
+            self.tabs.setCurrentWidget(self.semester_plan_page)
+            self.semester_plan_page.refresh()
+            return
         cell = self.matrix_model.data(index, Qt.ItemDataRole.UserRole)
         if cell:
             entry = self.matrix_model.matrix.roster[index.row()]
-            editable = entry.enrollment.status == EnrollmentStatus.ACTIVE
-            if not editable and cell.work is None:
-                QMessageBox.information(self, TEXT["app"], TEXT["read_only"])
-                return
-            if not editable:
+            if entry.enrollment.status != EnrollmentStatus.ACTIVE:
                 self.open_matrix_history(index)
                 return
-            assessment = self.matrix_model.column(index.column()).assessment
-            from studium.domain.enums import AssessmentType
-
-            if assessment.type == AssessmentType.CONTROL_WORK:
-                self.open_matrix_history(index)
-                return
-            dialog = QuickAttemptDialog(self.service, entry.student, assessment, self)
-            if dialog.exec() == QDialog.DialogCode.Accepted:
-                self.load_roster()
-                self.matrix_view.setCurrentIndex(
-                    self.matrix_model.index(index.row(), index.column())
-                )
+            self.open_matrix_history(index)
 
     def open_journal_attendance(self, index, column):
         from studium.presentation.desktop.learning import AttendanceForm, LessonForm
@@ -764,7 +795,18 @@ class GroupsPage(QWidget):
             form = LessonForm(self.service, self.context(), parent=self)
             program = self.matrix_model.snapshot.program
             if program:
-                first, _ = program.week_dates(column.week)
+                if hasattr(program, "week_dates"):
+                    first, _ = program.week_dates(column.week)
+                else:
+                    from datetime import date, timedelta
+
+                    from studium.domain.value_objects import LocalDate
+
+                    start = program.first_week_start
+                    day = date(start.year, start.month, start.day) + timedelta(
+                        weeks=column.week - 1
+                    )
+                    first = LocalDate(day.year, day.month, day.day)
                 from PySide6.QtCore import QDate
 
                 form.date.setDate(QDate(first.year, first.month, first.day))
@@ -816,6 +858,7 @@ class WorksPage(QWidget):
         super().__init__()
         self.window = window
         self.context_provider = context_provider
+        self.plan_snapshot, self.planned, self.rules = None, {}, {}
         layout = QVBoxLayout(self)
         self.contexts = QComboBox()
         layout.addWidget(self.contexts)
@@ -824,23 +867,30 @@ class WorksPage(QWidget):
         toolbar(
             layout,
             [
-                (TEXT["new_assessment"], lambda: run_action(self, self.create)),
+                ("+ Добавить", lambda: run_action(self, self.create)),
                 (TEXT["edit"], lambda: run_action(self, self.edit)),
                 (TEXT["hide"], lambda: run_action(self, self.hide)),
                 (TEXT["open"], lambda: run_action(self, self.open)),
                 (TEXT["assessment_content"], lambda: run_action(self, self.content)),
             ],
         )
+        self.categories = QTabBar()
+        for label in ("ДЗ", "Контрольные", "Экзамены", "Другие"):
+            self.categories.addTab(label)
+        layout.addWidget(self.categories)
+        self.categories.currentChanged.connect(lambda _: self.load())
         self.model = TableModel(
             [
                 (TEXT["assessment_title"], lambda a: a.title),
                 (TEXT["type"], lambda a: ASSESSMENT_LABELS[a.type]),
                 (TEXT["work_number"], lambda a: a.number or "—"),
-                (TEXT["due_at"], lambda a: display_time(a.due_at)),
-                (TEXT["max_score"], lambda a: display_score(a.max_score)),
+                ("Текущий срок", self.deadline),
+                ("Минимум / максимум", self.bounds),
             ]
         )
         self.view = table(self.model)
+        self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.view.customContextMenuRequested.connect(self.menu)
         self.view.doubleClicked.connect(lambda _: run_action(self, self.open))
         layout.addWidget(self.view)
         self.empty = hint(layout, TEXT["empty_assessments"])
@@ -862,32 +912,87 @@ class WorksPage(QWidget):
 
     def load(self):
         context = self.contexts.currentData()
+        self.plan_snapshot, self.planned, self.rules = (
+            self.service.work_settings(context.offering.id) if context else (None, {}, {})
+        )
         rows = self.service.list_assessments(context.offering.id) if context else []
+        kinds = (AssessmentType.HOMEWORK, AssessmentType.CONTROL_WORK, AssessmentType.EXAM)
+        category = self.categories.currentIndex()
+        rows = [
+            a for a in rows if (a.type == kinds[category] if category < 3 else a.type not in kinds)
+        ]
         self.model.replace_rows(rows)
         self.empty.setText(TEXT["empty_assessments"] if context else TEXT["choose_offering"])
         self.empty.setVisible(not rows)
 
+    def deadline(self, assessment):
+        work = self.planned.get(assessment.id)
+        if not work:
+            return display_time(assessment.due_at)
+        if work.deadline_kind == "WEEK_ONLY":
+            return f"Неделя {work.due_week}"
+        return (
+            display_time(work.exact_due_at)
+            if work.deadline_kind == "EXACT_INCLUSIVE"
+            else str(work.due_date or "—")
+        )
+
+    def bounds(self, assessment):
+        from studium.domain.qa import score_text
+
+        rule = self.rules.get(assessment.id)
+        return (
+            f"{score_text(rule.min_cents)} / {score_text(rule.max_cents)}"
+            if rule
+            else "— / " + display_score(assessment.max_score)
+        )
+
+    def menu(self, point):
+        index = self.view.indexAt(point)
+        if index.isValid():
+            self.view.setCurrentIndex(index)
+        menu = QMenu(self)
+        menu.addAction("+ Добавить", lambda: run_action(self, self.create))
+        if selected(self.view):
+            for title, action in (
+                ("Открыть", self.open),
+                ("Задачи и варианты", self.content),
+                ("Правило баллов", self.rule),
+                ("Изменить", self.edit),
+                ("Скрыть", self.hide),
+            ):
+                menu.addAction(title, lambda checked=False, action=action: run_action(self, action))
+        menu.exec(self.view.viewport().mapToGlobal(point))
+
+    def rule(self):
+        from studium.presentation.desktop.qa_workflow import RuleForm
+
+        assessment = selected(self.view)
+        if assessment and RuleForm(self.service, assessment.id, self).exec():
+            self.load()
+
     def create(self):
         context = self.contexts.currentData()
         if not context:
-            QMessageBox.information(self, TEXT["app"], TEXT["choose_offering"])
             return
-        if (
-            present_detail(
-                AssessmentDialog(
-                    lambda v: self.service.create_assessment(context.offering.id, **v),
-                    parent=self,
-                    program=self.service.program_for_offering(context.offering.id),
-                ),
-                self,
-                refresh=getattr(self, "refresh", None),
-            )
-            == QDialog.DialogCode.Accepted
-        ):
-            self.window.refresh()
+        from studium.presentation.desktop.qa_plans import SemesterPlanWidget
+
+        page = SemesterPlanWidget(self.window, lambda: context, self)
+        self.window.router.push(page, "План семестра · добавление работы")
+        page.refresh()
+        page.add_work()
 
     def edit(self):
         assessment = selected(self.view)
+        work = self.planned.get(assessment.id) if assessment else None
+        if work:
+            from studium.presentation.desktop.qa_plans import PlannedWorkForm
+
+            if PlannedWorkForm(
+                self.service, self.contexts.currentData(), self.plan_snapshot, work, self
+            ).exec():
+                self.window.refresh()
+            return
         if (
             assessment
             and present_detail(

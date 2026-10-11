@@ -81,10 +81,10 @@ def test_group_workspace_context_survives_navigation_and_refresh(desktop):
         "Журнал",
         "Студенты",
         "Работы",
+        "План семестра",
         "Занятия",
         "Аналитика",
         "Вопросы",
-        "Варианты",
         "Настройки группы",
     ]
 
@@ -166,14 +166,18 @@ def test_journal_enter_save_and_arrow_keys(desktop):
     )
     view.setCurrentIndex(page.matrix_model.index(0, work_column))
 
-    def save():
-        dialog = QApplication.activeModalWidget()
-        assert isinstance(dialog, QuickAttemptDialog)
-        dialog.result_combo.setCurrentIndex(dialog.result_combo.findData(AttemptResult.ACCEPTED))
-        QTest.mouseClick(dialog.save_button, Qt.MouseButton.LeftButton)
-
-    QTimer.singleShot(0, save)
     QTest.keyClick(view, Qt.Key.Key_Return)
+    from studium.presentation.desktop.qa_workflow import SubmissionForm
+
+    form = window.pages.currentWidget()
+    assert isinstance(form, SubmissionForm) and not form.isWindow()
+    assert runtime.service.find_student_work(student.id, assessment.id) is None
+    form.submit()
+    wait_until(lambda: not form.busy)
+    assert window.pages.currentWidget() is page
+    assert form.saved_value.id is not None
+    runtime.service.review_submission(form.saved_value.id, AttemptResult.ACCEPTED)
+    page.load_roster()
     assert page.matrix_model.data(page.matrix_model.index(0, work_column)) == "✓"
     assert view.currentIndex().column() == work_column
     work = runtime.service.get_or_create_work(student.id, assessment.id)

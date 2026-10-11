@@ -72,7 +72,7 @@ def test_mainwindow_navigation_and_settings(desktop):
         assert window.pages.currentIndex() == index
     QTest.mouseClick(window.settings_button, Qt.MouseButton.LeftButton)
     assert window.pages.currentWidget() is window.settings_page
-    assert runtime.diagnostics.schema_version == "0009_daily_workflow"
+    assert runtime.diagnostics.schema_version == "0010_qa_package"
     assert str(runtime.diagnostics.database_path).endswith("studium.sqlite")
 
 

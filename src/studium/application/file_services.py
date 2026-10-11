@@ -79,6 +79,16 @@ class AttachmentService:
             raise ApplicationError("file_open_failed")
         self._file_opener.open(path)
 
+    def open_working_copy(self, file_asset_id):
+        asset = self.get_file_asset(file_asset_id, include_deleted=True)
+        if Path(asset.original_filename).suffix.lower() not in OPEN_EXTENSIONS:
+            raise ApplicationError("file_open_blocked")
+        if self._file_opener is None:
+            raise ApplicationError("file_open_failed")
+        path = self._file_adapters().working_copy(asset)
+        self._file_opener.open(path)
+        return path
+
     def image_preview(self, file_asset_id, *, maximum=1400):
         asset = self.get_file_asset(file_asset_id, include_deleted=True)
         if not asset.mime_type.startswith("image/"):

@@ -107,7 +107,18 @@ def repository_set(sessions):
                         {"row_type": row, "_insert": insert, "_compare_and_swap": compare},
                     )
                 _cache[bind] = classes
-    return replace(result, **{name: cls(sessions) for name, cls in _cache[bind].items()})
+    from studium.infrastructure.database.repositories.qa import ADAPTERS
+
+    with bind.connect() as connection:
+        present = set(inspect(connection).get_table_names())
+    unavailable = {
+        name: None
+        for name in ADAPTERS
+        if getattr(result, name).row_type.__table__.name not in present
+    }
+    return replace(
+        result, **unavailable, **{name: cls(sessions) for name, cls in _cache[bind].items()}
+    )
 
 
 def transaction_factory(sessions):

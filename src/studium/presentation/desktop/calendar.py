@@ -1,6 +1,6 @@
 """A palette-aware calendar retaining Qt's month/year and keyboard controls."""
 
-from PySide6.QtCore import QDate, Qt
+from PySide6.QtCore import QDate, Qt, QTimer
 from PySide6.QtGui import QColor, QPen, QTextCharFormat
 from PySide6.QtWidgets import QApplication, QCalendarWidget, QToolButton
 
@@ -17,6 +17,25 @@ class StudyCalendar(QCalendarWidget):
         self.setHorizontalHeaderFormat(QCalendarWidget.HorizontalHeaderFormat.ShortDayNames)
         self.setMinimumSize(320, 260)
         self.refresh_visual_theme()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        QTimer.singleShot(0, self.fit_popup)
+
+    def fit_popup(self):
+        popup = self.window()
+        if popup is self or not popup.windowFlags() & Qt.WindowType.Popup:
+            return
+        screen = popup.screen() or QApplication.primaryScreen()
+        bounds = screen.availableGeometry()
+        rect = popup.frameGeometry()
+        if rect.width() > bounds.width() or rect.height() > bounds.height():
+            popup.resize(min(rect.width(), bounds.width()), min(rect.height(), bounds.height()))
+            rect = popup.frameGeometry()
+        popup.move(
+            max(bounds.left(), min(rect.left(), bounds.right() - rect.width() + 1)),
+            max(bounds.top(), min(rect.top(), bounds.bottom() - rect.height() + 1)),
+        )
 
     def refresh_visual_theme(self):
         c = colors(QApplication.instance().property("studiumTheme"))

@@ -78,7 +78,8 @@ def test_student_categories_three_attempts_files_and_progress_are_readonly(
         settle(qt_app)
         assert card.works.files.model.rows[0].asset.id == link.file_asset_id
         card.progress.refresh()
-        assert [card.progress.tabs.tabText(i) for i in range(3)] == [
+        assert [card.progress.tabs.tabText(i) for i in range(4)] == [
+            "Сводка",
             "Домашнее задание",
             "Рубежный контроль",
             "Экзамен",
