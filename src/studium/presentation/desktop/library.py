@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QSplitter,
     QStyledItemDelegate,
     QTabWidget,
@@ -311,6 +312,9 @@ class ContentEditor(QWidget):
             )
         self.tabs = QTabWidget()
         self.tabs.setMinimumHeight(180)
+        # Pages scroll independently; the tallest page must not force the outer
+        # form to its preferred height when a short page is selected.
+        self.tabs.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Ignored)
         body_layout.addWidget(self.tabs, 1)
         if kind == "problems":
             if self.family:

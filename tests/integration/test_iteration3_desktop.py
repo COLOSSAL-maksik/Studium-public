@@ -12,6 +12,7 @@ from studium.presentation.desktop.library import LIBRARY_LABELS, ContentEditor
 from studium.presentation.desktop.programs import ModuleForm, ProgramForm, ProgramWorkForm
 from studium.presentation.desktop.quick_attempt import QuickAttemptDialog
 from studium.presentation.desktop.theme import apply_theme
+from studium.presentation.desktop.visuals import Disclosure
 from tests.integration.test_desktop import desktop as desktop
 from tests.integration.test_desktop import qt_app as qt_app
 
@@ -248,8 +249,10 @@ def test_material_advanced_scroll_and_save_at_small_window(desktop):
     window.router.push(editor, "New Material")
     window.resize(960, 620)
     window.show()
-    assert not editor.fields["difficulty"].isHidden()
+    disclosure = editor.findChild(Disclosure)
+    QTest.mouseClick(disclosure.toggle, Qt.MouseButton.LeftButton)
     QApplication.processEvents()
+    assert editor.fields["difficulty"].isVisibleTo(editor)
     assert editor.scroll.verticalScrollBar().maximum() > 0
     editor.scroll.ensureWidgetVisible(editor.fields["difficulty"])
     QApplication.processEvents()

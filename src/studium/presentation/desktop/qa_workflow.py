@@ -98,7 +98,7 @@ class SubmissionForm(AsyncForm):
         self.offset = QSpinBox()
         self.offset.setRange(-840, 840)
         self.offset.setValue(180)
-        self.form.addRow("Часовой пояс SLA: смещение UTC, минут", self.offset)
+        self.form.addRow("Часовой пояс SLA (UTC, минуты)", self.offset)
         self.comment = self.notes("comment")
         self.files = StagedAttachmentPicker(self)
         self.body_layout.addWidget(self.files)
