@@ -1,5 +1,15 @@
 # Реализованные компоненты Studium
 
+## Пакет принят как рабочая база — 2026-10-12
+
+Этап ST-QA-001–030 завершён и принят владельцем с остаточными замечаниями,
+включая четыре review fixes и frozen taxonomy ([ADR-053](decisions.md#adr-053)).
+[Матрица](management/QA_ALL_30_IMPLEMENTATION.md) сохраняет реализацию и automated
+mapping; ручные результаты отдельно, массового manual PASS нет. Дальше выполняются
+ограниченные module tasks по [ROADMAP](management/ROADMAP.md).
+
+## История выполненного и прежних проверок
+
 ## Дополнение ST-PR3-002 — frozen taxonomy
 
 На базе `67986fd` archive Topic/Skill, используемых сохранённой версией/назначением,

@@ -1,5 +1,32 @@
 # Состояние Studium
 
+## Рабочая база принята — 2026-10-12, Europe/Moscow
+
+Владелец принял ST-QA-001–030 с остаточными замечаниями на проверенном HEAD
+`3eff0293f8540fa848a3175dd15ad34994268235` [PR #3](https://github.com/COLOSSAL-maksik/Studium-public/pull/3).
+Единый этап завершён; принятие и разрешение squash merge — [ADR-053](../decisions.md#adr-053).
+Реализация/evidence каждого ID — [матрица](QA_ALL_30_IMPLEMENTATION.md).
+Индивидуальные manual результаты остаются PENDING/NOT RUN; общего manual PASS
+нет, и checklist не новый блокер принятия. Остатки — только [BACKLOG](BACKLOG.md),
+следующий подход — [ROADMAP](ROADMAP.md); первый модуль выбирает владелец.
+
+### Прежние автоматические проверки принятого code HEAD
+
+Исходные runs/jobs прочитаны повторно, а не запущены заново этой задачей:
+
+| Run / job | HEAD и подтверждённый результат |
+|---|---|
+| [Quality 38134982090](https://github.com/COLOSSAL-maksik/Studium-public/actions/runs/38134982090) | `3eff029…`, completed/success; fast job 114456923021: 310 PASS; full job 114457062918: 830 PASS / 3 native-only SKIP, 833 tests / 48 modules; Linux total 1140 PASS / 3 SKIP, 1143 collected |
+| [Native Windows job 114457062952](https://github.com/COLOSSAL-maksik/Studium-public/actions/runs/38134982090/job/114457062952) | Тот же HEAD; 17 PASS, build/payload, install/launch/repair/uninstall и synthetic two-version upgrade/downgrade/recovery PASS |
+| [Repository safety 38134981827](https://github.com/COLOSSAL-maksik/Studium-public/actions/runs/38134981827) | Тот же HEAD; completed/success |
+
+Full Windows pytest/full_windows — NOT RUN; ручные Windows/DPI/PDF и non-admin
+client VM acceptance — PENDING/NOT RUN. Новые ordinary required checks последнего
+документационного HEAD фиксируются отдельно в PR; code/migration tree прежний.
+Merge outcome и main SHA определяются по GitHub PR, а не по обещанию merge.
+
+## История состояния и проверок до принятия базы
+
 ## Дополнение ST-PR3-002 — frozen taxonomy
 
 На базе `67986fd` archive Topic/Skill, используемых сохранённой версией/назначением,

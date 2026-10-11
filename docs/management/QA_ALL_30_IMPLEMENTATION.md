@@ -1,13 +1,23 @@
 # Реализация единого пакета 30 требований
 
+## Статус пакета — 2026-10-12
+
+**Принято владельцем с остаточными замечаниями**, проверенная рабочая база
+`3eff0293f8540fa848a3175dd15ad34994268235` / PR #3; [ADR-053](../decisions.md#adr-053).
+Этап реализации всех 30 завершён. Принятие пакета отдельно от Manual каждой
+строки ниже: индивидуальные PENDING не заменены PASS и не являются новым gate.
+Остатки учитываются в [BACKLOG](BACKLOG.md), следующие итерации — [по модулям](ROADMAP.md).
+Контекст прежних 1140 Linux PASS / 3 SKIP и 17 native Windows PASS —
+[PROJECT_STATUS](PROJECT_STATUS.md); новые checks docs HEAD отражаются в PR.
+
 База: `d23eee39fcb0f3bd463c2868459fa48d0778925a`. Ветка:
 `agent/codex/qa-a-contracts`. PR #2/B1–B6/QA-A-REV-01/02 сохранены.
-Один пакет/PR, без промежуточной manual acceptance и без merge.
+Один implementation-пакет/PR; squash merge разрешён решением владельца ADR-053.
 Implementation QA-A–D выполнена; проверки текущего содержания — ниже.
 Текущий code candidate: `cf808353d8b94ed710a77534284f2151e243625a`;
 последующее дополнение изменяет только документы. Точный PR HEAD и результаты
 его required checks указываются в итоговом PR.
-Manual acceptance всех 30 ID — PENDING.
+Ручные проверки конкретных сценариев всех 30 ID — PENDING; пакет уже принят.
 
 Имена UI файлов ниже относятся к `src/studium/presentation/desktop/`,
 application/domain/infrastructure явно указаны. Базовые ссылки:
