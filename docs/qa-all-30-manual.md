@@ -3,7 +3,7 @@
 Все 30 пунктов передаются одним пакетом. Каждый пункт ниже — **PENDING**;
 автоматические проверки и осмотр разработчика не заменяют приёмку владельцем.
 База: `d23eee39fcb0f3bd463c2868459fa48d0778925a`.
-Точный code candidate: `0ace4f8b33af0a0f0e083596ba5c90bda14d49d5`.
+Точный code candidate: `c50bd5538623aaade1f135815180556d623041db`.
 Итоговый PR HEAD добавляет документы к этому содержимому и указан в PR вместе
 с проверками. Сверяйте SHA перед сборкой. PR #2 и его договорённости сохранены.
 
@@ -15,7 +15,7 @@
 
 ```powershell
 git fetch origin agent/codex/qa-a-contracts
-git switch --detach 0ace4f8b33af0a0f0e083596ba5c90bda14d49d5
+git switch --detach c50bd5538623aaade1f135815180556d623041db
 git rev-parse HEAD
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.lock -r requirements-build.lock

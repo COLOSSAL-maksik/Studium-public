@@ -10,6 +10,8 @@ staged picker и общий GUI включены одним пакетом. Addi
 [ADR-050](decisions.md#adr-050--qa-all-30-implementation).
 Full local regression: 1080 PASS / 3 предусмотренных Windows SKIP, 58 modules;
 synthetic scale, Ruff/dependencies/safety и isolated wheel/GUI smoke прошли.
+После обновления Help исправлен устаревший запрос installed-app smoke;
+PowerShell query проверяется actual GUI regression, targeted Help/installer: 68 PASS.
 Exact code candidate и evidence — в матрице, CI конкретного PR HEAD — в PR.
 Общая [manual acceptance](qa-all-30-manual.md) PENDING.
 Ниже — история предыдущего документационного этапа.

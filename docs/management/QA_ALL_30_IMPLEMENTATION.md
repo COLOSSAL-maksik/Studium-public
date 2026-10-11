@@ -4,7 +4,7 @@
 `agent/codex/qa-a-contracts`. PR #2/B1–B6/QA-A-REV-01/02 сохранены.
 Один пакет/PR, без промежуточной manual acceptance и без merge.
 Implementation QA-A–D выполнена; полная локальная регрессия прошла.
-Проверенный code candidate: `0ace4f8b33af0a0f0e083596ba5c90bda14d49d5`;
+Проверенный code candidate: `c50bd5538623aaade1f135815180556d623041db`;
 последующее дополнение изменяет только документы. Точный PR HEAD и результаты
 его required checks указываются в итоговом PR.
 Manual acceptance всех 30 ID — PENDING.
@@ -54,9 +54,14 @@ application/domain/infrastructure явно указаны. Базовые ссы
 
 ## Проверки и совместимость
 
-- Полный module-isolated runner на code candidate: **1080 PASS, 3 SKIP**, 1083
+- Полный module-isolated runner на `0ace4f8` до корректировки Help/probe:
+  **1080 PASS, 3 SKIP**, 1083
   collected tests / 58 modules, 695.83 s. Пропуски только предусмотренные Windows
   sharing lock и два junction contracts; unexpected/collection skips запрещены.
+  Python-код приложения с тех пор не менялся. На финальном candidate исправлен
+  устаревший поисковый запрос native installer smoke и инструкции Help;
+  actual PowerShell query → packaged Help проверяется GUI regression: 68 PASS
+  вместе с installer unit contracts. Полная проверка final PR HEAD — в CI PR.
 - Target DB/repositories/reporting/migration: 50 PASS; финальные GUI формы и
   редактор: 35 PASS; отдельная строгая ORM/DDL comparison: PASS.
 - Synthetic scale: две группы, 60 студентов, 18 недель, 72 работы,
@@ -69,7 +74,8 @@ application/domain/infrastructure явно указаны. Базовые ссы
 - Wheel 0.2.0: isolated install, synthetic fresh/reopen/GUI, Help и четыре
   встроенных SVG ресурса: PASS; 128 Python files совпадают с source, DB/logs
   отсутствуют. SHA-256:
-  `8b1ae57eedf75699f7eb2edf6511024bf990b6cf10bd329bca57e0e6485acd88`.
+  `b62333bee9e4b566dacd2cf0fbefc8650d738bcb9fb1ef511393d6fc5e49416b`.
+  Запрос native installer probe находит актуальную статью в изолированном wheel.
 - Developer Qt offscreen осмотр: Light/Dark, 100/125/150%, 960×620 и HD;
   формы/план/сводка/главная, стрелки и адаптивная вкладка «Коллекции» проверены.
   Это Linux evidence, не Windows/user acceptance.
