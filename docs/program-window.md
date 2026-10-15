@@ -3,12 +3,15 @@
 Дата работы: 2026-10-16, Europe/Moscow. Ветка `agent/codex/program-window`.
 Принятая база: `dffa9bdd7cb8a786b07b013dce7387482b9a5847`, актуальный
 `COLOSSAL-maksik/Studium-public/main` при начале работы. Открытых PR не было.
-Итоговый SHA и PR фиксируются в итоговом сообщении и самом PR; merge/release
+Code SHA: `3afdc8c4879ae7639255e35ce3b2280cf55bc3ea`.
+Итоговый documentation HEAD и PR фиксируются в итоговом сообщении и самом PR; merge/release
 не входят в работу. Внешние агенты, Bender и реальные учебные материалы не используются.
 
 ## Пользовательский сценарий
 
-1. Открыть «Дисциплины», создать дисциплину; период, группы и студенты не нужны.
+1. Открыть «Дисциплины» → «Создать учебную программу». На пустом профиле
+   дисциплина создаётся прямо в этом сценарии, атомарно с черновиком; период,
+   группы и студенты не нужны. Можно также выбрать ранее созданную дисциплину.
 2. В дисциплине открыть «Учебные программы» → «Создать учебную программу».
    На пустом профиле также доступен «Импортировать программу».
 3. Заполнить паспорт: название, редакцию, необязательный учебный год, описание,
@@ -21,7 +24,7 @@
 5. Заполнить знания, умения, компетенции и предварительную подготовку.
    Связи результатов с темами, навыками, модулями и работами необязательны.
    Предшествующая дисциплина может отсутствовать в местном справочнике.
-6. В «Объёме дисциплины» проверить часы по видам, семестрам и за год.
+6. В «Объёме дисциплины» проверить часы по видам, модулям, семестрам и за год.
    Лекции/семинары/лабораторные считаются по занятиям. Для других видов
    строка модуля описывает его нагрузку; строка без модуля — **остаток семестра
    вне модулей**, а не повторный итог модулей. Норматив вводится отдельно.
@@ -112,7 +115,8 @@ v1–v12 Python/SQL payloads не меняются; backfill выдуманны�
 - `manifest.json`: format=`studium-program`, integer version=1, origin
   `urn:uuid:<переносимая редакция>`, SHA-256 UTF-8 program.json, список файлов
   (portable id, оригинальное имя, размер, SHA-256), число исключённых файлов;
-- `program.json`: паспорт дисциплины и whitelist структурированного содержания:
+- `program.json`: паспорт дисциплины, номер/обозначение исходной редакции
+  (отдельно от format version) и whitelist структурированного содержания:
   annual, снимки тем/их родителей/навыков, связи тем и навыков, определения работ,
   зависимости, frozen effective задачи/семейства/варианты, structured answers и
   встроенные answer template schemas, материалы/литература и выбранные file links;
@@ -126,7 +130,9 @@ ID; все внутренние ссылки и словарные ключи п
 показываются в preview. Местный справочник не перезаписывается, входящее имя
 сохраняется в паспорте версии. Повтор определяется парой origin + fingerprint
 (program JSON и дескрипторы файлов с hashes). Можно открыть существующую редакцию
-или явно создать независимую копию. Другая редакция не переключает группу.
+или явно создать независимую копию. Другая редакция не переключает группу. Повторный экспорт импортированного
+неизменённого содержания сохраняет portable IDs и fingerprint, поэтому
+передача через промежуточный профиль не создаёт новую редакцию молча.
 
 Переносятся только известные учебные поля. Произвольные extension JSON,
 локальные source paths/storage keys, настройки/credentials, студенты, группы,
@@ -176,9 +182,31 @@ replace, с защитой рабочей БД и managed files от замен�
 Среда: Linux, CPython 3.12.14, PySide6 6.11.2, SQLAlchemy 2.1.1,
 Alembic 1.20.0, только временные synthetic profiles вне Git.
 
-- Целевой domain/application/GUI/migration набор: 25 PASS.
-- Остальной финальный regression, compatibility, safety и package evidence:
-  результаты будут внесены после окончания фактических запусков.
+- Окончательный набор на code SHA выше: **81 PASS**, 48.16 s:
+  `python -m pytest -q -p no:cacheprovider tests/integration/test_annual_program*.py tests/unit/test_annual_program.py tests/integration/test_qa_desktop.py tests/integration/test_program_desktop.py tests/integration/test_pr3_review.py`.
+  Это 43 новых случая плюс связанные прежние GUI/PR3 regressions. Включён реальный
+  GUI-путь от пустого профиля и реальная выдача импортированного шаблона/варианта.
+- Полный module-isolated local runner до заключительных UI/import уточнений:
+  **1181 PASS / 3 предусмотренных Windows-only SKIP**, 1184 collected / 65 modules,
+  656.86 s. Команда: `python scripts/run_ci_tests.py --phase all`.
+  Полный повтор на окончательном code SHA и exact-HEAD CI отражаются в PR.
+- `ruff check src tests scripts` и `ruff format --check src tests scripts`:
+  PASS, 262 files; `git diff --check`: PASS.
+- Repository safety worktree: 665 checked, staged: 40 checked, history:
+  835 path versions на первом implementation commit; последующие actual-index
+  проверки также без замечаний. Везде 0 errors / 0 manual-review signals. Identity —
+  утверждённый public-safe noreply, обязательный pre-commit hook включён.
+- Все 24 published v1–v12 Python/SQL payloads побайтово совпадают с базой.
+- Wheel: 176 source/resource files побайтово сверены; isolated install,
+  fresh v13, draft/version, GUI, reopen и обмен между профилями PASS;
+  `uv pip check` PASS. SHA-256:
+  `7970417ff52b5a0ed4b2773c1011574f42baebbfd1e26255dc14c7ac889b7f96`.
+- Help targeted regression: 1 PASS / 8 deselected. Relay identity, sidebar guard,
+  direct first-run creation, preview domain validation и imported issuance
+  покрыты окончательным набором 81 PASS.
+- Developer Qt offscreen inspection: Light/Dark, 960×620; исправлено сжатие
+  таблиц, проверены прокрутка вкладок и доступность таблиц/дерева в режиме
+  просмотра. Это developer evidence; ручная Windows/DPI-проверка не выполнена.
 - Qt offscreen — developer/automatic evidence. Native Windows manual — PENDING.
 - CI links и финальный SHA фиксируются в PR. Прежние зелёные runs базы не являются
   проверкой нового окна. Никакой workflow_dispatch/full_windows не запускался.
