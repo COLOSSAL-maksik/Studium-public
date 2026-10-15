@@ -268,6 +268,17 @@ def test_template_family_dependencies_and_files_roundtrip(runtime, tmp_path):
     draft = s.save_program_draft(draft, data)
     draft = s.attach_program_documents(draft, [source])
     version = s.publish_program_draft(draft)
+    term = s.create_term(
+        "Synthetic library application", LocalDate(2026, 9, 1), LocalDate(2027, 1, 31)
+    )
+    group = s.create_group("SYN-LIBRARY")
+    offering = s.create_offering(
+        term.id, course.id, group.id, course_version_id=version.id, course_semester=1
+    )
+    work = s.semester_plan(offering.id).works[0]
+    binding = next(v for v in s.plan_content_bindings(offering.id) if v.planned_work_id == work.id)
+    assert json.loads(binding.snapshot_json)["program_work"]["rules"] == "Criteria"
+    assert "Criteria" in s.issue_planned_work(work.id).description
     archive = tmp_path / "files.studium-program"
     s.export_program(version.id, archive, include_files=True)
     with create_profile(tmp_path / "receiver-files") as target:
@@ -295,6 +306,24 @@ def test_template_family_dependencies_and_files_roundtrip(runtime, tmp_path):
         )
         assert relayed.content_hash == preview.package.content_hash
         assert relayed.files == preview.package.files
+        imported_program = target.get_course_program(imported.course_program_id)
+        term = target.create_term(
+            "Synthetic imported use", LocalDate(2026, 9, 1), LocalDate(2027, 1, 31)
+        )
+        group = target.create_group("SYN-IMPORTED")
+        offering = target.create_offering(
+            term.id,
+            imported_program.course_id,
+            group.id,
+            course_version_id=imported.id,
+            course_semester=1,
+        )
+        planned_work = target.semester_plan(offering.id).works[0]
+        issued = target.issue_planned_work(planned_work.id)
+        assert "Criteria" in issued.description
+        items = [item for item in target._r.items.list() if item.assessment_id == issued.id]
+        assert len(items) == 1
+        assert len(target._r.assessment_problems.for_owner(items[0].id)) == 1
     empty = tmp_path / "without-files.studium-program"
     s.export_program(version.id, empty, include_files=False)
     preview = s.preview_program_import(empty)
@@ -359,6 +388,7 @@ def test_repeat_code_conflict_same_name_and_distinct_editions(runtime, tmp_path)
         s.export_program(second.id, tmp_path / "edition2.studium-program")
         preview2 = target.preview_program_import(tmp_path / "edition2.studium-program")
         assert not preview2.matches
+        assert json.loads(preview2.package.payload_json)["edition"]["number"] == 2
         target.commit_program_import(preview2, course_id=local.id)
         assert target.get_program_version(imported.id).content_json == imported.content_json
 

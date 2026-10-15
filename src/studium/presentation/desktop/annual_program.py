@@ -758,14 +758,7 @@ class ProgramEditor(QWidget):
         self.scoring.addItem("Используется балльная система", "POINTS")
         self.scoring.addItem("Балльная система не используется", "NONE")
         self.scoring.setCurrentIndex(max(0, self.scoring.findData(self.annual["scoring"])))
-        self.scoring.currentIndexChanged.connect(
-            lambda _: run_action(
-                self,
-                lambda: self.change(
-                    lambda annual: annual.update(scoring=self.scoring.currentData())
-                ),
-            )
-        )
+        self.scoring.currentIndexChanged.connect(lambda _: run_action(self, self.change_scoring))
         layout.addWidget(self.scoring)
         self.fractional = QCheckBox("Дробный ввод баллов: до двух знаков")
         self.fractional.setChecked(self.service.fractional_scores_enabled())
@@ -801,6 +794,16 @@ class ProgramEditor(QWidget):
         self.score_summary = hint(layout, "")
         self.legacy_works = readonly_table(["Прежний модуль", "Работа", "Семестр курса"])
         layout.addWidget(self.legacy_works)
+
+    def change_scoring(self):
+        previous = self.annual["scoring"]
+        try:
+            self.change(lambda annual: annual.update(scoring=self.scoring.currentData()))
+        except Exception:
+            self.scoring.blockSignals(True)
+            self.scoring.setCurrentIndex(self.scoring.findData(previous))
+            self.scoring.blockSignals(False)
+            raise
 
     def module_values(self):
         return [
@@ -1259,7 +1262,8 @@ class ProgramEditor(QWidget):
         self.heading.setText(
             self.annual["passport"]["title"]
             + " · "
-            + (self.annual["passport"]["label"] or "Редакция без обозначения")
+            + (f"Версия {self.version.version_no}" if self.version else "Черновик")
+            + (" · " + self.annual["passport"]["label"] if self.annual["passport"]["label"] else "")
         )
         self.status.setText(
             "Черновик · " + ("есть изменения" if self.dirty else "сохранён")
@@ -1461,7 +1465,7 @@ class ImportPreviewForm(RowForm):
             self.course_field.setCurrentIndex(max(0, self.course_field.findData(course.id)))
         summary = [
             annual["passport"]["title"],
-            "Редакция: " + annual["passport"]["label"],
+            f"Редакция {data['edition']['number']}: " + annual["passport"]["label"],
             "Направления: " + ", ".join(d["code"] for d in annual["passport"]["directions"]),
             f"Семестров: {len(annual['semesters'])}; модулей: {sum(len(s['modules']) for s in annual['semesters'])}",
             "Академических часов: "

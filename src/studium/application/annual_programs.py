@@ -9,6 +9,7 @@ from studium.application.qa_services import document, record, stale
 from studium.domain import annual_program as a
 from studium.domain import content as c
 from studium.domain import qa as q
+from studium.domain.entities import Course
 from studium.domain.enums import AssessmentType
 from studium.domain.value_objects import EntityId
 
@@ -22,6 +23,27 @@ class ProgramUsage:
 
 
 class AnnualProgramService:
+    def create_program_for_new_course(self, name, short_name="", description=""):
+        with self._transaction() as r:
+            course = Course(
+                metadata=self._meta(),
+                name=name.strip(),
+                short_name=short_name.strip(),
+                description=description,
+            )
+            r.courses.insert(course)
+            program = q.CourseProgram(
+                metadata=self._meta(), course_id=course.id, title="Новая программа"
+            )
+            r.course_programs.insert(program)
+            draft = a.ProgramDraft(
+                metadata=self._meta(),
+                course_program_id=program.id,
+                content_json=document({"annual": a.new_annual(program.title)}),
+            )
+            r.program_drafts.insert(draft)
+            return course, draft
+
     def list_program_drafts(self, course_id=None):
         programs = {p.id for p in self.list_course_programs(course_id)}
         return tuple(d for d in self._r.program_drafts.list() if d.course_program_id in programs)
@@ -370,6 +392,7 @@ class AnnualProgramService:
             incoming = json.loads(draft.content_json)
             incoming.pop("exchange_origin", None)
             incoming.pop("exchange_local_ids", None)
+            incoming.pop("exchange_version_no", None)
             data = self._freeze_annual(r, program.course_id, incoming)
             version = self._insert_annual_version(r, program, data)
             r.program_drafts.soft_delete(

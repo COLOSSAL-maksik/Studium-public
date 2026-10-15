@@ -475,7 +475,12 @@ class QAPackageService(QAContentSources, QASummary):
                 number=definition.get("label", ""),
             )
             r.planned_works.insert(value)
-            self._save_content_source(r, plan, work=value, content=data)
+            self._save_content_source(
+                r,
+                plan,
+                work=value,
+                content=dict(data, program_work=source) if "annual" in data else data,
+            )
         for semester in data.get("annual", {}).get("semesters", []):
             if semester["number"] != plan.course_semester:
                 continue
@@ -774,7 +779,13 @@ class QAPackageService(QAContentSources, QASummary):
                 type=work.type,
                 title=work.title,
                 number=work.number,
-                description=definition.get("description", ""),
+                description=definition.get("description", "")
+                + (
+                    "\n\nПравила программы: " + content["program_work"]["rules"]
+                    if content.get("program_work", {}).get("rules")
+                    and content["program_work"]["rules"] != definition.get("description", "")
+                    else ""
+                ),
                 issued_at=issued_at,
                 due_at=None,
                 homework_definition_id=work.definition_id,
@@ -804,8 +815,9 @@ class QAPackageService(QAContentSources, QASummary):
                                 )
                             )
                 problems = {v["source"]["id"]: v for v in frozen.get("problem_snapshots", [])}
-                for source in sorted(
-                    frozen.get("definition_problems", []), key=lambda v: (v["sort_order"], v["id"])
+                for _, source in sorted(
+                    enumerate(frozen.get("definition_problems", [])),
+                    key=lambda pair: (pair[1]["sort_order"], pair[1].get("id", f"{pair[0]:036d}")),
                 ):
                     if source["definition_id"] != str(work.definition_id):
                         continue

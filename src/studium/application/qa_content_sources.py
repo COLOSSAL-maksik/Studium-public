@@ -192,6 +192,8 @@ class QAContentSources:
             }
             if "problem_snapshots" not in content:
                 selected.pop("problem_snapshots")
+            if "program_work" in content:
+                selected["program_work"] = content["program_work"]
             content = selected
         source = q.PlanContentSource(
             metadata=self._meta(),

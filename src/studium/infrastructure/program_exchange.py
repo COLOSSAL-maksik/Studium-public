@@ -148,7 +148,7 @@ class LocalProgramExchange:
                 if hashlib.sha256(raw).hexdigest() != manifest["content_hash"]:
                     raise ValueError("Контрольная сумма программы не совпадает")
                 payload = load(raw)
-                if set(payload) != {"course", "content"} or set(payload["course"]) != {
+                if set(payload) != {"course", "content", "edition"} or set(payload["course"]) != {
                     "name",
                     "short_name",
                     "description",
@@ -159,6 +159,14 @@ class LocalProgramExchange:
                     or not payload["course"]["name"].strip()
                 ):
                     raise ValueError("Некорректная дисциплина")
+                edition = payload["edition"]
+                if (
+                    set(edition) != {"number", "label"}
+                    or type(edition["number"]) is not int
+                    or edition["number"] < 1
+                    or not isinstance(edition["label"], str)
+                ):
+                    raise ValueError("Некорректный номер редакции программы")
                 if payload["content"] != content_allowlist(payload["content"], include_files=True):
                     raise ValueError("Формат содержит неподдерживаемые поля")
                 validate_portable(payload["content"])

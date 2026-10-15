@@ -565,6 +565,7 @@ class DisciplinesPage(QWidget):
             layout,
             [
                 ("Создать дисциплину", window.create_course),
+                ("Создать учебную программу", lambda: run_action(self, self.create_program)),
                 ("Открыть", lambda: run_action(self, self.open)),
                 ("Импортировать программу", lambda: self.import_program()),
                 ("Удалить", lambda: run_action(self, self.delete)),
@@ -585,6 +586,33 @@ class DisciplinesPage(QWidget):
         if course:
             self.window.service.remember_course(course.id)
             self.window.router.push(DisciplinePage(self.window, course), course.name)
+
+    def create_program(self):
+        from PySide6.QtWidgets import QDialog
+
+        from studium.presentation.desktop.annual_program import ProgramEditor
+        from studium.presentation.desktop.dialogs import CourseDialog
+
+        index = self.view.currentIndex()
+        course = self.model.rows[index.row()] if index.isValid() else None
+        if course:
+            draft = self.window.service.create_program_draft(course.id)
+        else:
+            created = []
+            form = CourseDialog(
+                lambda values: created.append(
+                    self.window.service.create_program_for_new_course(**values)
+                ),
+                parent=self,
+            )
+            if form.exec() != QDialog.DialogCode.Accepted:
+                return
+            course, draft = created[0]
+        self.window.open_sidebar_course(course)
+        self.window.router.routes[-1].refresh = self.window.router.routes[-1].page.refresh
+        self.window.router.push(
+            ProgramEditor(self.window, course, draft=draft), "Учебная программа"
+        )
 
     def delete(self):
         course = selected(self.view)

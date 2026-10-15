@@ -4,7 +4,7 @@ import hashlib
 import json
 from contextlib import nullcontext
 from copy import deepcopy
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, fields, replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from uuid import NAMESPACE_URL, uuid5
@@ -16,7 +16,7 @@ from studium.domain import entities as e
 from studium.domain import program as p
 from studium.domain import qa as q
 from studium.domain.enums import AssessmentType, LessonType
-from studium.domain.value_objects import EntityId
+from studium.domain.value_objects import EntityId, EntityMetadata, UtcInstant
 
 # These are program/library fields only. Metadata, facts and arbitrary extension JSON are excluded.
 ENTITY_FIELDS = {
@@ -121,6 +121,43 @@ def safe_entity(value, kind):
                 pick(details, ("structured_answers",)) | {"answer_template_snapshot": snap}
             )
     return result
+
+
+def snapshot_entity(cls, row, course_id, meta, **overrides):
+    if "revision" in row and (type(row["revision"]) is not int or row["revision"] < 1):
+        raise ValueError("Некорректная revision библиотечного снимка")
+    values = {
+        f.name: row[f.name]
+        for f in fields(cls)
+        if f.name in row and f.name not in {"metadata", "course_id"}
+    }
+    for name, enum in (
+        (
+            "type",
+            AssessmentType
+            if cls is c.HomeworkDefinition
+            else LessonType
+            if cls is c.SeminarMaterial
+            else c.LiteratureType,
+        ),
+        ("role", c.MaterialFileRole),
+    ):
+        if name in values:
+            values[name] = enum(values[name])
+    if cls is c.Problem:
+        values["family_id"] = EntityId(values["family_id"]) if values.get("family_id") else None
+    if cls is e.Topic:
+        values["parent_topic_id"] = (
+            EntityId(values["parent_topic_id"]) if values.get("parent_topic_id") else None
+        )
+    for k in list(values):
+        if k.endswith("_id") and values[k] is not None and not isinstance(values[k], EntityId):
+            values[k] = EntityId(values[k])
+    if any(f.name == "course_id" for f in fields(cls)):
+        values["course_id"] = course_id
+    if "id" in row:
+        meta = replace(meta, id=EntityId(row["id"]))
+    return cls(metadata=meta, **(values | overrides))
 
 
 def remap_tree(value, mapping):
@@ -297,6 +334,56 @@ def validate_portable(data):
         raise ValueError("Отсутствует документ программы")
     if q.snapshot_file_ids(data) - files:
         raise ValueError("Отсутствуют обязательные файлы")
+    validate_library_values(data)
+
+
+def validate_library_values(data):
+    course_id = EntityId("00000000-0000-4000-8000-000000000000")
+    meta = EntityMetadata.create(UtcInstant.now())
+
+    def check(cls, row, **overrides):
+        try:
+            return snapshot_entity(cls, row, course_id, meta, **overrides)
+        except (ValueError, TypeError, KeyError, AttributeError) as error:
+            raise ValueError("Некорректные поля библиотечной зависимости программы") from error
+
+    for name, cls in (
+        ("topic_ids_snapshots", e.Topic),
+        ("skill_ids_snapshots", e.Skill),
+        ("definitions", c.HomeworkDefinition),
+        ("seminar_material_ids_snapshots", c.SeminarMaterial),
+        ("literature_item_ids_snapshots", c.LiteratureItem),
+    ):
+        for row in data[name]:
+            check(cls, row)
+    for problem in data["problem_snapshots"]:
+        check(c.Problem, problem["source"])
+        if problem.get("family"):
+            check(c.Problem, problem["family"])
+        for name in ("title", "statement", "correct_answer", "solution"):
+            if not isinstance(problem[name], str):
+                raise ValueError("Некорректный текст снимка задачи")
+    for name, cls in (
+        ("definition_topics", p.DefinitionTopic),
+        ("definition_skills", p.DefinitionSkill),
+        ("definition_problems", p.DefinitionProblem),
+        ("topic_skill_links", e.TopicSkill),
+    ):
+        for row in data.get(name, []):
+            check(cls, row)
+    for owner, links in data["definition_files"].items():
+        for row in links:
+            check(c.HomeworkAttachment, row, homework_definition_id=EntityId(owner))
+    for problem in data["problem_snapshots"]:
+        for row in problem["files"]:
+            check(c.ProblemAttachment, row, problem_id=EntityId(problem["source"]["id"]))
+    for kind, cls, fk in (
+        ("seminars", c.SeminarAttachment, "seminar_material_id"),
+        ("literature", c.LiteratureAttachment, "literature_item_id"),
+    ):
+        for owner, links in data["material_files"].get(kind, {}).items():
+            for row in links:
+                check(cls, row, **{fk: EntityId(owner)})
 
 
 @dataclass(frozen=True)
@@ -366,7 +453,14 @@ class ProgramExchangeService:
             file_values.append(entry)
             sources[entry["id"]] = self.accessible_file_path(asset.id)
         payload = document(
-            {"course": pick(record(course), ("name", "short_name", "description")), "content": data}
+            {
+                "course": pick(record(course), ("name", "short_name", "description")),
+                "edition": {
+                    "number": original.get("exchange_version_no", version.version_no),
+                    "label": version.label,
+                },
+                "content": data,
+            }
         )
         package = ProgramPackage(
             origin,
@@ -450,6 +544,7 @@ class ProgramExchangeService:
                     )
                     r.course_programs.insert(program)
                     imported_data["exchange_origin"] = verified.package.origin
+                    imported_data["exchange_version_no"] = data["edition"]["number"]
                     imported_data["exchange_local_ids"] = {
                         local: portable for portable, local in mapping.items()
                     }
@@ -467,48 +562,11 @@ class ProgramExchangeService:
 
     def _hydrate_program_content(self, r, course_id, data):
         def insert(repo, cls, row, **overrides):
-            values = {
-                f.name: row[f.name]
-                for f in fields(cls)
-                if f.name in row and f.name not in {"metadata", "course_id"}
-            }
-            for name, enum in (
-                (
-                    "type",
-                    AssessmentType
-                    if cls is c.HomeworkDefinition
-                    else LessonType
-                    if cls is c.SeminarMaterial
-                    else c.LiteratureType,
-                ),
-                ("role", c.MaterialFileRole),
-            ):
-                if name in values:
-                    values[name] = enum(values[name])
-            if cls is c.Problem:
-                values["family_id"] = (
-                    EntityId(values["family_id"]) if values.get("family_id") else None
-                )
-            if cls is e.Topic:
-                values["parent_topic_id"] = (
-                    EntityId(values["parent_topic_id"]) if values.get("parent_topic_id") else None
-                )
-            for k in list(values):
-                if (
-                    k.endswith("_id")
-                    and values[k] is not None
-                    and not isinstance(values[k], EntityId)
-                ):
-                    values[k] = EntityId(values[k])
-            if any(f.name == "course_id" for f in fields(cls)):
-                values["course_id"] = course_id
-            meta = self._meta()
-            if "id" in row:
-                from dataclasses import replace
-
-                meta = replace(meta, id=EntityId(row["id"]))
-            value = cls(metadata=meta, **(values | overrides))
+            value = snapshot_entity(cls, row, course_id, self._meta(), **overrides)
             repo.insert(value)
+            if any(field.name == "course_id" for field in fields(cls)):
+                row["course_id"] = str(course_id)
+            return value
 
         pending = list(data["topic_ids_snapshots"])
         inserted = set()

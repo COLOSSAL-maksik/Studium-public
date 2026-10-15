@@ -55,6 +55,7 @@ def rewrite(
         "hash",
         "huge",
         "extra_field",
+        "bad_library",
     ],
 )
 def test_invalid_package_refused_before_preview_without_writes(runtime, tmp_path, mutation):
@@ -93,6 +94,10 @@ def test_invalid_package_refused_before_preview_without_writes(runtime, tmp_path
         )
     elif mutation == "hash":
         kwargs["mutate_manifest"] = lambda m: m.update(content_hash="0" * 64)
+    elif mutation == "bad_library":
+        kwargs["mutate_content"] = lambda payload: payload["content"]["definitions"][0].update(
+            title=""
+        )
     elif mutation == "extra_field":
         kwargs["mutate_content"] = lambda p: p["content"].update(students=[{"name": "Secret"}])
     rewrite(valid, bad, **kwargs)

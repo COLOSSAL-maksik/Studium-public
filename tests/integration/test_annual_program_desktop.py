@@ -18,11 +18,18 @@ def wait_workers(qt_app):
         qt_app.processEvents()
 
 
-def test_editor_real_save_topic_totals_publish_and_revision(desktop, qt_app):
+def test_editor_real_save_topic_totals_publish_and_revision(desktop, qt_app, monkeypatch):
     window, runtime, *_ = desktop
     course, draft = filled(runtime.service)
     page = ProgramEditor(window, course, draft=draft)
     window.router.push(page, "Annual")
+    validation = []
+    monkeypatch.setattr(
+        QMessageBox, "warning", lambda parent, title, message: validation.append(message)
+    )
+    page.scoring.setCurrentIndex(page.scoring.findData("NONE"))
+    assert validation and "балльн" in validation[0]
+    assert page.scoring.currentData() == page.annual["scoring"] == "POINTS"
     window.resize(960, 620)
     window.show()
     page.tabs.setCurrentIndex(1)
@@ -155,13 +162,12 @@ def test_empty_profile_gui_create_discipline_module_bulk_topics_and_reopen(qt_ap
         form.submit()
 
     QTimer.singleShot(0, course_form)
-    window.create_course()
+    window.disciplines_page.create_program()
     course = runtime.service.list_courses()[0]
+    assert course.name == "Synthetic GUI discipline"
     assert not runtime.service.list_terms() and not runtime.service.list_students()
-    window.open_sidebar_course(course)
-    parent = window.pages.currentWidget()
-    parent.course_programs.create()
     page = window.pages.currentWidget()
+    parent = window.router.routes[-2].page
     page.passport_fields["title"].setText("Created entirely in GUI")
     page.tabs.setCurrentIndex(1)
     page.tree.setCurrentItem(page.tree.topLevelItem(0))
