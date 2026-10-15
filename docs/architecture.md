@@ -1,5 +1,16 @@
 # Архитектура Studium
 
+## Годовая учебная программа — v13
+
+AnnualProgramService расширяет существующий CourseProgram/ProgramVersion:
+редактируемый ProgramDraft отдельно от immutable версии. Domain annual_program
+централизует схему/целостность/полноту/Decimal-часы/cents-бюджеты; application
+program_exchange задаёт переносимый allowlist и transaction/file orchestration;
+LocalProgramExchange — bounded ZIP/staging. ProgramEditor, RowForm и
+AnnualPlanLessons разделяют UI; используются прежние router/BackgroundCall.
+PlanLesson хранит baseline/current и nullable Lesson; назначения не создают фактов.
+[Подробный контракт и проверки](program-window.md), [ADR-054](decisions.md#adr-054).
+
 ## Frozen taxonomy — дополнение v12
 
 Архивирование темы/навыка проверяет immutable snapshots и concrete bindings до

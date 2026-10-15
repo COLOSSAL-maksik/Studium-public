@@ -5,6 +5,7 @@ from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from typing import Protocol
 
+from studium.domain import annual_program as annual
 from studium.domain import content as c
 from studium.domain import program as p
 from studium.domain import qa as q
@@ -139,6 +140,9 @@ class Repositories:
     knowledge_topics: ContentLinkRepository[p.KnowledgeTopic]
     knowledge_skills: ContentLinkRepository[p.KnowledgeSkill]
 
+    program_drafts: ContentRepository[annual.ProgramDraft] | None = None
+    program_imports: ContentRepository[annual.ProgramImport] | None = None
+    plan_lessons: ContentRepository[annual.PlanLesson] | None = None
     directions: ContentRepository[q.Direction] | None = None
     course_programs: ContentRepository[q.CourseProgram] | None = None
     program_versions: ContentRepository[q.ProgramVersion] | None = None

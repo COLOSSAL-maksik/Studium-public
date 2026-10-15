@@ -192,6 +192,8 @@ class QAContentSources:
             }
             if "problem_snapshots" not in content:
                 selected.pop("problem_snapshots")
+            if "program_work" in content:
+                selected["program_work"] = content["program_work"]
             content = selected
         source = q.PlanContentSource(
             metadata=self._meta(),
@@ -285,15 +287,22 @@ class QAContentSources:
             retained_works = tuple(
                 w for w in snapshot.works if mode == "retain" or w.id in issued_ids
             )
-            retained_module_ids = {w.module_id for w in retained_works} | {
-                v.module_id for v in required
-            }
+            planned_lessons = tuple(r.plan_lessons.for_owner(snapshot.plan.id))
+            retained_module_ids = (
+                {v.plan_module_id for v in planned_lessons if v.lesson_id}
+                | {w.module_id for w in retained_works}
+                | {v.module_id for v in required}
+            )
             retained_modules = tuple(
                 m for m in snapshot.modules if mode == "retain" or m.id in retained_module_ids
             )
             retired_works = tuple(w for w in snapshot.works if w not in retained_works)
             retired_modules = tuple(m for m in snapshot.modules if m not in retained_modules)
             data = json.loads(version.content_json)
+            if "annual" in data and not any(
+                s["number"] == course_semester for s in data["annual"]["semesters"]
+            ):
+                raise ValueError("В программе нет выбранного семестра курса")
             unchanged = (snapshot.plan.program_version_id, snapshot.plan.course_semester) == (
                 version_id,
                 course_semester,
@@ -378,6 +387,7 @@ class QAContentSources:
                     "attempts": [record(v) for v in attempts],
                     "submissions": [record(v) for v in submissions],
                     "reviews": [record(v) for v in reviews],
+                    "planned_lessons": [record(v) for v in planned_lessons],
                     "sources": [
                         record(v) for v in r.plan_content_sources.for_owner(snapshot.plan.id)
                     ],
@@ -445,6 +455,11 @@ class QAContentSources:
                 r.planned_works.soft_delete(
                     work.id, expected_revision=work.revision, at=self._clock()
                 )
+            for lesson in r.plan_lessons.for_owner(plan.id):
+                if lesson.plan_module_id in {m.id for m in preview.retired_modules}:
+                    r.plan_lessons.soft_delete(
+                        lesson.id, expected_revision=lesson.revision, at=self._clock()
+                    )
             for module in preview.retired_modules:
                 r.plan_modules.soft_delete(
                     module.id, expected_revision=module.revision, at=self._clock()

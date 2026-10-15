@@ -30,3 +30,9 @@ Native Windows installer/manual acceptance выполняются отдельн
 `test_qa_desktop` и `test_qa_scale`: exact scores/SLA, реальные транзакции и файлы,
 v9→v10/late DDL rollback/new-head restore, UI save/cancel и 60 студентов с
 120 сдачами и 300 вложениями. Они входят в общий runner без выборочного skip.
+
+Набор ST-PROG: unit/test_annual_program, integration/test_annual_program,
+test_annual_program_desktop, test_annual_program_exchange и
+test_annual_program_migration проверяет реальные synthetic DB/Qt/file/ZIP,
+семантический round-trip, CAS, поздний rollback, v12→v13 и backup/recovery.
+Новые модули автоматически включаются общим runner. [Матрица](../docs/program-window.md).

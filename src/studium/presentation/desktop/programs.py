@@ -151,11 +151,17 @@ class OfferingProgramForm(FormDialog):
         self.save_button.setEnabled(course is not None)
 
     def create_program(self):
-        from studium.presentation.desktop.qa_plans import CourseVersionForm
+        from studium.presentation.desktop.annual_program import ProgramEditor
+        from studium.presentation.desktop.navigation import main_window
 
         course = self.course.currentData()
-        if course and CourseVersionForm(self.service, course, parent=self).exec():
-            self.reload_programs()
+        window = main_window(self)
+        if course and window:
+            draft = self.service.create_program_draft(course.id)
+            self.reject()
+            window.router.push(ProgramEditor(window, course, draft=draft), "Учебная программа")
+        elif course:
+            raise ValueError("Откройте дисциплину и окно «Учебная программа» в основном приложении")
 
     def values(self):
         return dict(
@@ -559,7 +565,9 @@ class DisciplinesPage(QWidget):
             layout,
             [
                 ("Создать дисциплину", window.create_course),
+                ("Создать учебную программу", lambda: run_action(self, self.create_program)),
                 ("Открыть", lambda: run_action(self, self.open)),
+                ("Импортировать программу", lambda: self.import_program()),
                 ("Удалить", lambda: run_action(self, self.delete)),
             ],
         )
@@ -579,11 +587,43 @@ class DisciplinesPage(QWidget):
             self.window.service.remember_course(course.id)
             self.window.router.push(DisciplinePage(self.window, course), course.name)
 
+    def create_program(self):
+        from PySide6.QtWidgets import QDialog
+
+        from studium.presentation.desktop.annual_program import ProgramEditor
+        from studium.presentation.desktop.dialogs import CourseDialog
+
+        index = self.view.currentIndex()
+        course = self.model.rows[index.row()] if index.isValid() else None
+        if course:
+            draft = self.window.service.create_program_draft(course.id)
+        else:
+            created = []
+            form = CourseDialog(
+                lambda values: created.append(
+                    self.window.service.create_program_for_new_course(**values)
+                ),
+                parent=self,
+            )
+            if form.exec() != QDialog.DialogCode.Accepted:
+                return
+            course, draft = created[0]
+        self.window.open_sidebar_course(course)
+        self.window.router.routes[-1].refresh = self.window.router.routes[-1].page.refresh
+        self.window.router.push(
+            ProgramEditor(self.window, course, draft=draft), "Учебная программа"
+        )
+
     def delete(self):
         course = selected(self.view)
         if course and confirm_delete(self, self.window.service, "course", course):
             self.window.service.safe_delete("course", course)
             self.window.refresh()
+
+    def import_program(self):
+        from studium.presentation.desktop.annual_program import import_program
+
+        import_program(self.window)
 
 
 class DisciplinePage(QWidget):
@@ -607,7 +647,7 @@ class DisciplinePage(QWidget):
             or "Сформируйте рабочую программу и используйте общий каталог тем, навыков и материалов дисциплины.",
         )
         toolbar(
-            body, [("Создать рабочую программу", lambda: run_action(self, self.create_program))]
+            body, [("Создать учебную программу", lambda: run_action(self, self.create_program))]
         )
         body.addSpacing(16)
         self.program_count = text_label("", "hint")
@@ -617,7 +657,7 @@ class DisciplinePage(QWidget):
         body.addLayout(sections)
         for position, (title, description, index) in enumerate(
             (
-                ("Рабочие программы", "План семестра, модули и группы", 1),
+                ("Учебные программы", "Годовой план, версии и использование", 1),
                 ("Темы и навыки", "Общее содержание дисциплины", 2),
                 ("Банк задач", "Условия, решения и наборы задач", 3),
                 ("Методические материалы", "Материалы для преподавания", 4),
@@ -643,7 +683,7 @@ class DisciplinePage(QWidget):
             self.course_programs.model,
             self.course_programs.view,
         )
-        tabs.addTab(self.course_programs, "Рабочие программы")
+        tabs.addTab(self.course_programs, "Учебные программы")
         tabs.addTab(
             embed(LearningCatalogueDialog(window.service, course, self), tabs), "Темы и навыки"
         )
