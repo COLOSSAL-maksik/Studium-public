@@ -10,6 +10,7 @@ from pathlib import Path
 from studium.application.errors import ApplicationError
 from studium.application.qa_content_sources import QAContentSources
 from studium.application.qa_summary import QASummary
+from studium.domain import annual_program as annual
 from studium.domain import entities as e
 from studium.domain import qa as q
 from studium.domain.enums import AssessmentType, AttemptResult, GradeKind, StudentWorkStatus
@@ -401,13 +402,25 @@ class QAPackageService(QAContentSources, QASummary):
         if type(course_semester) is not int or course_semester < 1:
             raise ValueError("Укажите явный номер семестра курса")
         term = self._require(r.terms, offering.term_id)
+        version = self._require(r.program_versions, version_id, historical=True)
+        content = json.loads(version.content_json)
+        semester = next(
+            (
+                s
+                for s in content.get("annual", {}).get("semesters", [])
+                if s["number"] == course_semester
+            ),
+            None,
+        )
+        if "annual" in content and semester is None:
+            raise ValueError("В программе нет выбранного семестра курса")
         plan = q.SemesterPlan(
             metadata=self._meta(),
             offering_id=offering.id,
             program_version_id=version_id,
             course_semester=course_semester,
             first_week_start=term.starts_on,
-            weeks=17,
+            weeks=semester["weeks"] if semester else 17,
             week_utc_offset_minutes=term.week_utc_offset_minutes,
             configured=True,
         )
@@ -426,6 +439,10 @@ class QAPackageService(QAContentSources, QASummary):
         if program.course_id != offering.course_id:
             raise ApplicationError("learning_course_mismatch")
         data, modules = json.loads(version.content_json), {}
+        if "annual" in data and not any(
+            s["number"] == plan.course_semester for s in data["annual"]["semesters"]
+        ):
+            raise ValueError("В программе нет выбранного семестра курса")
         for source in data.get("modules", []):
             if source.get("course_semester") != plan.course_semester:
                 continue
@@ -450,12 +467,32 @@ class QAPackageService(QAContentSources, QASummary):
                 semester_plan_id=plan.id,
                 definition_id=EntityId(source["definition_id"]),
                 module_id=modules.get(source.get("module_key")),
-                title=definition.get("title", source.get("title", "Работа")),
-                type=AssessmentType(definition.get("type", "HOMEWORK")),
+                title=source.get("title", definition.get("title", "Работа")),
+                type=AssessmentType(source.get("category", definition.get("type", "HOMEWORK"))),
+                min_cents=source.get("min_cents"),
+                max_cents=source.get("max_cents"),
+                sort_order=source.get("sort_order", 0),
                 number=definition.get("label", ""),
             )
             r.planned_works.insert(value)
             self._save_content_source(r, plan, work=value, content=data)
+        for semester in data.get("annual", {}).get("semesters", []):
+            if semester["number"] != plan.course_semester:
+                continue
+            for module in semester["modules"]:
+                for position, lesson in enumerate(module["lessons"]):
+                    frozen = dict(lesson, position=position)
+                    r.plan_lessons.insert(
+                        annual.PlanLesson(
+                            metadata=self._meta(),
+                            semester_plan_id=plan.id,
+                            plan_module_id=modules[module["key"]],
+                            program_version_id=version.id,
+                            source_key=lesson["key"],
+                            baseline_json=document(frozen),
+                            current_json=document(frozen),
+                        )
+                    )
 
     def semester_plan(self, offering_id):
         with self._transaction() as r:
@@ -484,6 +521,13 @@ class QAPackageService(QAContentSources, QASummary):
             "works": [record(w) for w in snapshot.works],
             "content_sources": [record(v) for v in r.plan_content_sources.for_owner(plan.id)],
         }
+        annual_source = plan.program_version_id and "annual" in json.loads(
+            self._require(r.program_versions, plan.program_version_id, historical=True).content_json
+        )
+        if annual_source or any(
+            json.loads(h.snapshot_json).get("lessons") for h in snapshot.history
+        ):
+            data["lessons"] = [record(v) for v in r.plan_lessons.for_owner(plan.id)]
         r.plan_history.insert(
             q.PlanHistory(
                 metadata=self._meta(),

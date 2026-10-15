@@ -18,6 +18,7 @@ from studium.infrastructure.database.session import create_database_engine, crea
 from studium.infrastructure.database.unit_of_work import repository_set, transaction_factory
 from studium.infrastructure.file_preview import QtFileOpener, QtThumbnailCache
 from studium.infrastructure.file_storage import LocalFileStorage
+from studium.infrastructure.program_exchange import LocalProgramExchange
 from studium.infrastructure.user_data import AppPaths, JsonPreferences
 
 
@@ -55,6 +56,7 @@ def create_runtime(override: Path | None = None) -> Runtime:
             file_opener=QtFileOpener(),
             thumbnails=QtThumbnailCache(storage),
             backups=BackupService(LocalBackup(paths)),
+            program_exchange=LocalProgramExchange(paths.root),
         )
         return Runtime(
             service,

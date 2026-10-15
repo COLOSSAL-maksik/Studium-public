@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from types import MappingProxyType
 
 from studium.application.analytics import AnalyticsService
+from studium.application.annual_programs import AnnualProgramService
 from studium.application.backup import BackupService
 from studium.application.communication_services import CommunicationService
 from studium.application.content_services import ContentService
@@ -17,6 +18,7 @@ from studium.application.item_result_services import ItemResultService
 from studium.application.journal import JournalService
 from studium.application.learning_services import LearningService
 from studium.application.ports import Preferences, Repositories, Transaction
+from studium.application.program_exchange import ProgramExchangeService
 from studium.application.program_services import ProgramService
 from studium.application.progress_charts import ProgressChartsService
 from studium.application.qa_services import QAPackageService
@@ -46,6 +48,8 @@ class GradeInput:
 
 
 class StudiumService(
+    AnnualProgramService,
+    ProgramExchangeService,
     QAPackageService,
     ReportingService,
     DeletionService,
@@ -71,6 +75,7 @@ class StudiumService(
         file_opener: FileOpener | None = None,
         thumbnails: ThumbnailCache | None = None,
         backups: BackupService | None = None,
+        program_exchange=None,
     ):
         self._r = repositories
         self._transaction = transaction
@@ -80,6 +85,7 @@ class StudiumService(
         self._file_opener = file_opener
         self._thumbnails = thumbnails
         self.backups = backups
+        self._program_exchange = program_exchange
 
     def _meta(self):
         return EntityMetadata.create(self._clock())

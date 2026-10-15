@@ -36,7 +36,14 @@ class NavigationStack(QWidget):
         self.shortcut = QShortcut(QKeySequence("Alt+Left"), parent)
         self.shortcut.activated.connect(self.back)
 
+    def can_leave(self):
+        return all(
+            getattr(route.page, "can_leave", lambda: True)() for route in reversed(self.routes)
+        )
+
     def root(self, page, title):
+        if not self.can_leave():
+            return False
         for route in reversed(self.routes):
             if route.leave:
                 route.leave()
@@ -51,6 +58,9 @@ class NavigationStack(QWidget):
         self.changed.emit()
 
     def push(self, page, title, *, refresh=None, leave=None, transient=True):
+        if self.routes and not getattr(self.routes[-1].page, "can_leave", lambda: True)():
+            page.deleteLater()
+            return False
         if self.routes and self.routes[-1].page is not page:
             current = self.routes[-1]
             capture = getattr(current.page, "navigation_state", None)
@@ -67,6 +77,8 @@ class NavigationStack(QWidget):
 
     def back(self):
         if len(self.routes) < 2:
+            return
+        if not getattr(self.routes[-1].page, "can_leave", lambda: True)():
             return
         route = self.routes.pop()
         cleanup = getattr(route.page, "on_navigation_leave", None)

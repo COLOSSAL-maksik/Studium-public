@@ -306,37 +306,73 @@ class CourseProgramsWidget(QWidget):
         self.window, self.course = window, course
         layout = QVBoxLayout(self)
         self.model = TableModel(
-            [("Программа", lambda v: self.names.get(v.id, "")), ("Версия", lambda v: v.version_no)]
+            [
+                ("Учебная программа", lambda v: self.row_title(v)),
+                (
+                    "Состояние",
+                    lambda v: (
+                        "Черновик" if hasattr(v, "base_version_id") else f"Версия {v.version_no}"
+                    ),
+                ),
+            ]
         )
         self.view = table(self.model)
         layout.addWidget(self.view, 1)
         toolbar(
             layout,
             [
-                ("+ Программа целого курса", lambda: run_action(self, self.create)),
-                ("Просмотр / новая версия", lambda: run_action(self, self.next_version)),
+                ("Создать учебную программу", lambda: run_action(self, self.create)),
+                ("Открыть", lambda: run_action(self, self.next_version)),
+                ("Импортировать", lambda: self.import_program()),
             ],
         )
         self.view.doubleClicked.connect(lambda _: run_action(self, self.next_version))
         self.empty = hint(
-            layout,
-            "Программ пока нет. Создайте содержание курса; календарь группы настраивается отдельно.",
+            layout, "Создайте годовую программу. Группы, студенты и календарь для этого не нужны."
         )
         self.refresh()
 
+    def row_title(self, value):
+        data = json.loads(value.content_json)
+        passport = data.get("annual", {}).get("passport")
+        return (
+            passport["title"] + (" · " + passport["label"] if passport["label"] else "")
+            if passport
+            else self.names.get(value.id, "Прежняя программа")
+        )
+
     def refresh(self):
         self.names = self.window.service.program_display_names(self.course.id)
-        self.model.replace_rows(self.window.service.program_versions(self.course.id))
+        self.model.replace_rows(
+            [
+                *self.window.service.list_program_drafts(self.course.id),
+                *self.window.service.program_versions(self.course.id),
+            ]
+        )
         self.empty.setVisible(not self.model.rows)
 
     def create(self):
-        if CourseVersionForm(self.window.service, self.course, parent=self).exec():
-            self.refresh()
+        from studium.presentation.desktop.annual_program import ProgramEditor
+
+        draft = self.window.service.create_program_draft(self.course.id)
+        self.window.router.push(
+            ProgramEditor(self.window, self.course, draft=draft), "Учебная программа"
+        )
 
     def next_version(self):
-        version = selected(self.view)
-        if version and CourseVersionForm(self.window.service, self.course, version, self).exec():
-            self.refresh()
+        from studium.presentation.desktop.annual_program import ProgramEditor
+
+        value = selected(self.view)
+        if value:
+            kwargs = {"draft": value} if hasattr(value, "base_version_id") else {"version": value}
+            self.window.router.push(
+                ProgramEditor(self.window, self.course, **kwargs), "Учебная программа"
+            )
+
+    def import_program(self):
+        from studium.presentation.desktop.annual_program import import_program
+
+        import_program(self.window, self.course)
 
 
 class PlanSetupForm(FormDialog):
@@ -690,6 +726,10 @@ class SemesterPlanWidget(QWidget):
         self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.view.customContextMenuRequested.connect(self.menu)
         self.view.doubleClicked.connect(lambda _: run_action(self, self.edit_work))
+        from studium.presentation.desktop.annual_plan_lessons import AnnualPlanLessons
+
+        self.lesson_plan = AnnualPlanLessons(window.service, context, self)
+        layout.addWidget(self.lesson_plan, 1)
         self.snapshot = None
         self.issued = {}
         self.source_names = {}
@@ -724,6 +764,7 @@ class SemesterPlanWidget(QWidget):
             if v.planned_work_id
         }
         self.model.replace_rows(self.snapshot.works if self.snapshot else [])
+        self.lesson_plan.refresh()
         self.caption.setText(
             "Настройте план семестра или отложите настройку. Открытие не создаёт записей."
             if not self.snapshot

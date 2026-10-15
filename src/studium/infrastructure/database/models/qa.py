@@ -2,6 +2,7 @@
 
 from sqlalchemy import CheckConstraint, Column, ForeignKey, Index, Integer, Text, UniqueConstraint
 
+from studium.domain import annual_program as annual
 from studium.domain import qa as e
 from studium.infrastructure.database.models.base import Base
 from studium.infrastructure.database.models.learning import record, reference
@@ -387,4 +388,42 @@ mapping(
         )
     ),
     immutable=True,
+)
+
+# Annual content extends the existing immutable version; drafts are separate.
+
+mapping(
+    "program_drafts",
+    annual.ProgramDraft,
+    "course_program_id",
+    "id",
+    reference("course_program_id", "course_programs"),
+    reference("base_version_id", "program_versions", nullable=True),
+    *document("content_json"),
+)
+mapping(
+    "program_imports",
+    annual.ProgramImport,
+    "program_version_id",
+    "id",
+    reference("program_version_id", "program_versions"),
+    prose("origin"),
+    prose("content_hash"),
+    UniqueConstraint("program_version_id"),
+    immutable=True,
+)
+mapping(
+    "plan_lessons",
+    annual.PlanLesson,
+    "semester_plan_id",
+    "id",
+    reference("semester_plan_id", "semester_plans"),
+    reference("plan_module_id", "plan_modules"),
+    reference("program_version_id", "program_versions"),
+    reference("lesson_id", "lessons", nullable=True),
+    prose("source_key"),
+    *document("baseline_json"),
+    *document("current_json"),
+    UniqueConstraint("semester_plan_id", "program_version_id", "source_key"),
+    UniqueConstraint("lesson_id"),
 )

@@ -298,7 +298,13 @@ class MainWindow(QMainWindow):
 
     def navigate(self, index):
         if index >= 0:
-            self.router.root(self.pages.widget(index), self.navigation.topLevelItem(index).text(0))
+            if (
+                self.router.root(
+                    self.pages.widget(index), self.navigation.topLevelItem(index).text(0)
+                )
+                is False
+            ):
+                return
             self.settings_button.setChecked(False)
             if index == 1:
                 self.groups_page.back()
@@ -333,7 +339,8 @@ class MainWindow(QMainWindow):
         self.breadcrumb.setText("  /  ".join(titles))
 
     def open_sidebar_group(self, context):
-        self.router.root(self.groups_page, TEXT["groups"])
+        if self.router.root(self.groups_page, TEXT["groups"]) is False:
+            return
         self.open_group_context(context)
 
     def open_group_context(self, context):
@@ -349,12 +356,14 @@ class MainWindow(QMainWindow):
     def open_sidebar_course(self, course):
         from studium.presentation.desktop.programs import DisciplinePage
 
-        self.router.root(self.disciplines_page, "Дисциплины")
+        if self.router.root(self.disciplines_page, "Дисциплины") is False:
+            return
         self.service.remember_course(course.id)
         self.router.push(DisciplinePage(self, course), course.name)
 
     def open_sidebar_library(self, kind):
-        self.router.root(self.library_page, "Библиотека")
+        if self.router.root(self.library_page, "Библиотека") is False:
+            return
         self.library_page.select_section(kind)
 
     def save_sidebar_state(self):
@@ -364,18 +373,23 @@ class MainWindow(QMainWindow):
             )
 
     def show_settings(self):
+        if self.router.root(self.settings_page, TEXT["settings"]) is False:
+            return
         self.navigation.setCurrentRow(-1)
-        self.router.root(self.settings_page, TEXT["settings"])
         self.settings_button.setChecked(True)
 
     def closeEvent(self, event):
+        if not self.router.can_leave():
+            event.ignore()
+            return
         self.backup_panel.cancel_active()
         super().closeEvent(event)
 
     def open_help(self, article_id="getting-started"):
+        if self.router.root(self.help_page, "Справка") is False:
+            return
         self.navigation.setCurrentRow(-1)
         self.settings_button.setChecked(False)
-        self.router.root(self.help_page, "Справка")
         self.help_page.open_article(article_id)
 
     def open_review_queue(self):

@@ -1,5 +1,15 @@
 # Модель данных Studium
 
+## Текущий head v13 — annual program
+
+`0013_annual_program` добавляет program_drafts, program_imports, plan_lessons:
+105 user tables / 106 вместе с Alembic. Старые rows/UUID/payloads не меняются.
+Annual JSON schema 1 хранится в draft/version; modules/works — вычисляемая
+compatibility projection при публикации. Новые immutable source/baseline/scope
+и actual binding guards дополняют прежние frozen guards. SCHEMA_REVISION и
+динамический strict backup fingerprint включают v13.
+[Поля, смысл, формат и проверки](program-window.md#модель-и-совместимость).
+
 ## Текущий head v12 — frozen taxonomy
 
 `0012_frozen_taxonomy` добавляет только topics_frozen_content_archive и

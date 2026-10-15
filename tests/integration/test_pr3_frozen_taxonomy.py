@@ -386,9 +386,13 @@ def test_populated_v11_additive_guards_preserve_rows_and_rollback(tmp_path, fail
     upgrade_database(engine)
     with engine.connect() as db:
         after, new_objects = snapshot(db)
-        assert after == before
+        for table, rows in before.items():
+            assert after[table] == rows
+        assert set(after) - set(before) == {"program_drafts", "program_imports", "plan_lessons"}
+        assert all(not after[table] for table in set(after) - set(before))
         assert set(objects).issubset(set(new_objects))
-        assert len(new_objects) == len(objects) + 2
+        # v12 adds two guards; v13 adds 3 tables, 7 indexes and 14 guards.
+        assert len(new_objects) == len(objects) + 26
         assert (
             db.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
             == SCHEMA_REVISION
