@@ -3,6 +3,7 @@
 import json
 from contextlib import contextmanager
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 
@@ -131,21 +132,23 @@ def test_incomplete_draft_reopen_and_integrity(runtime):
     data = json.loads(draft.content_json)
     data["annual"]["passport"]["notes"] = "Continue later"
     draft = s.save_program_draft(draft, data)
-    root = (
-        runtime.diagnostics.data_directory
-        if hasattr(runtime.diagnostics, "data_directory")
-        else None
-    )
-    assert (
-        json.loads(s.get_program_draft(draft.id).content_json)["annual"]["passport"]["notes"]
-        == "Continue later"
-    )
-    assert root is None or root
-    broken = deepcopy(data)
-    broken["annual"]["semesters"][0]["weeks"] = -1
-    with pytest.raises(ValueError):
-        s.save_program_draft(draft, broken)
-    assert s.get_program_draft(draft.id) == draft
+    root = Path(runtime.diagnostics.database_path).parent
+    runtime.close()
+    reopened = create_runtime(root)
+    try:
+        s = reopened.service
+        assert s.get_program_draft(draft.id) == draft
+        assert (
+            json.loads(s.get_program_draft(draft.id).content_json)["annual"]["passport"]["notes"]
+            == "Continue later"
+        )
+        broken = deepcopy(data)
+        broken["annual"]["semesters"][0]["weeks"] = -1
+        with pytest.raises(ValueError):
+            s.save_program_draft(draft, broken)
+        assert s.get_program_draft(draft.id) == draft
+    finally:
+        reopened.close()
 
 
 def test_two_groups_independent_planned_lessons_and_no_facts(runtime):

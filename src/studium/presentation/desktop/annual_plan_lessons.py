@@ -6,8 +6,9 @@ from PySide6.QtWidgets import QVBoxLayout, QWidget
 
 from studium.domain import annual_program as a
 from studium.presentation.desktop.annual_forms import RowForm
+from studium.presentation.desktop.annual_forms import run_program_action as run_action
 from studium.presentation.desktop.annual_program import fill, readonly_table
-from studium.presentation.desktop.components import hint, run_action, toolbar
+from studium.presentation.desktop.components import hint, toolbar
 
 
 class AnnualPlanLessons(QWidget):

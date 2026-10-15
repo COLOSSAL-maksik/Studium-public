@@ -31,8 +31,9 @@ from studium.domain import annual_program as a
 from studium.domain.qa import direction_identity, score_text
 from studium.domain.value_objects import EntityId
 from studium.presentation.desktop.annual_forms import RowForm, lesson_form
+from studium.presentation.desktop.annual_forms import run_program_action as run_action
 from studium.presentation.desktop.background import BackgroundCall
-from studium.presentation.desktop.components import hint, run_action, toolbar
+from studium.presentation.desktop.components import hint, toolbar
 from studium.presentation.desktop.messages import ASSESSMENT_LABELS
 
 
@@ -41,6 +42,7 @@ def readonly_table(labels):
 
     view = QTableWidget(0, len(labels))
     view.setHorizontalHeaderLabels(labels)
+    view.setMinimumHeight(180)
     view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
     view.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
     view.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -122,8 +124,7 @@ class ProgramEditor(QWidget):
         self.shortcut.activated.connect(lambda: run_action(self, self.save))
         self.refresh_all()
         if not draft:
-            for page in self.editable_pages:
-                page.setEnabled(False)
+            self.lock_editor()
             self.status.setText(
                 "Готовая версия · режим просмотра. Для изменений создайте новую редакцию."
                 + (" Номер семестра старых модулей может быть неизвестен." if self.legacy else "")
@@ -136,7 +137,11 @@ class ProgramEditor(QWidget):
     def page(self, label, *, editable=True):
         page = QWidget()
         layout = QVBoxLayout(page)
-        self.tabs.addTab(page, label)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        scroll.setWidget(page)
+        self.tabs.addTab(scroll, label)
         if not hasattr(self, "editable_pages"):
             self.editable_pages = []
         if editable:
@@ -217,6 +222,8 @@ class ProgramEditor(QWidget):
         return data
 
     def change(self, action):
+        if not self.draft:
+            raise ValueError("Готовая версия доступна только для просмотра")
         data = self.collect()
         action(data["annual"])
         a.validate(data["annual"])
@@ -281,7 +288,8 @@ class ProgramEditor(QWidget):
 
     def refresh_tree(self):
         s, m = self.nodes()
-        selected = m["key"] if m else s["key"] if s else self.selected_key
+        selected = self.selected_key or (m["key"] if m else s["key"] if s else None)
+        self.selected_key = None
         self.tree.blockSignals(True)
         self.tree.clear()
         current = None
@@ -1276,6 +1284,20 @@ class ProgramEditor(QWidget):
         self.refresh_materials()
         self.refresh_usage()
 
+    def lock_editor(self):
+        from PySide6.QtWidgets import QPushButton
+
+        for page in self.editable_pages:
+            for kind in (QLineEdit, QPlainTextEdit):
+                for field in page.findChildren(kind):
+                    field.setReadOnly(True)
+            for kind in (QComboBox, QSpinBox, QCheckBox, QPushButton):
+                for field in page.findChildren(kind):
+                    field.setEnabled(False)
+        for view in (self.lessons, self.outcomes_table, self.prerequisites_table):
+            view.doubleClicked.disconnect()
+        self.shortcut.setEnabled(False)
+
     def save(self):
         if not self.draft:
             raise ValueError("Версия доступна только для просмотра")
@@ -1309,8 +1331,7 @@ class ProgramEditor(QWidget):
         self.data = json.loads(version.content_json)
         self.actions.hide()
         self.material_actions.hide()
-        for page in self.editable_pages:
-            page.setEnabled(False)
+        self.lock_editor()
         self.refresh_all()
 
     def next_revision(self, independent=False):

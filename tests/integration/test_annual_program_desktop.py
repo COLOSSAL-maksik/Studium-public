@@ -23,7 +23,12 @@ def test_editor_real_save_topic_totals_publish_and_revision(desktop, qt_app):
     course, draft = filled(runtime.service)
     page = ProgramEditor(window, course, draft=draft)
     window.router.push(page, "Annual")
+    window.resize(960, 620)
+    window.show()
+    page.tabs.setCurrentIndex(1)
     page.show()
+    qt_app.processEvents()
+    assert page.lessons.viewport().height() >= page.lessons.rowHeight(0) * 2
     page.tree.setCurrentItem(page.tree.topLevelItem(0).child(0))
     assert page.lessons.rowCount() == 2
     before = page.annual["semesters"][0]["modules"][0]["lessons"][0]
@@ -52,7 +57,9 @@ def test_editor_real_save_topic_totals_publish_and_revision(desktop, qt_app):
     reopened.deleteLater()
     page.publish()
     assert page.version and page.draft is None
-    assert all(not widget.isEnabled() for widget in page.editable_pages)
+    assert page.passport_fields["title"].isReadOnly()
+    assert page.tree.isEnabled() and page.lessons.isEnabled()
+    assert page.actions.isHidden()
     assert "режим просмотра" in page.status.text()
     page.next_revision()
     next_page = window.pages.currentWidget()
@@ -126,3 +133,91 @@ def test_gui_async_export_preview_cancel_import(desktop, qt_app, tmp_path, monke
     for widget in (page, cancelled, form):
         widget.close()
         widget.deleteLater()
+
+
+def test_empty_profile_gui_create_discipline_module_bulk_topics_and_reopen(qt_app, tmp_path):
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QSpinBox
+
+    from studium.composition import create_runtime
+    from studium.presentation.desktop.main_window import MainWindow
+    from studium.presentation.desktop.qa_content import TopicTreePicker
+
+    runtime = create_runtime(tmp_path)
+    window = MainWindow()
+    window.initialize(runtime.service, runtime.diagnostics)
+    window.resize(960, 620)
+    window.show()
+
+    def course_form():
+        form = QApplication.activeModalWidget()
+        form.name.setText("Synthetic GUI discipline")
+        form.submit()
+
+    QTimer.singleShot(0, course_form)
+    window.create_course()
+    course = runtime.service.list_courses()[0]
+    assert not runtime.service.list_terms() and not runtime.service.list_students()
+    window.open_sidebar_course(course)
+    parent = window.pages.currentWidget()
+    parent.course_programs.create()
+    page = window.pages.currentWidget()
+    page.passport_fields["title"].setText("Created entirely in GUI")
+    page.tabs.setCurrentIndex(1)
+    page.tree.setCurrentItem(page.tree.topLevelItem(0))
+
+    def module_form():
+        form = QApplication.activeModalWidget()
+        form.readers["title"].__self__.setText("Module created in GUI")
+        form.submit()
+
+    QTimer.singleShot(0, module_form)
+    page.edit_module()
+
+    def bulk_form():
+        form = QApplication.activeModalWidget()
+        form.findChildren(QSpinBox)[0].setValue(3)
+        form.submit()
+
+    QTimer.singleShot(0, bulk_form)
+    page.bulk_lessons()
+    assert page.lessons.rowCount() == 3
+    page.lessons.selectRow(0)
+
+    def lesson_form():
+        from PySide6.QtWidgets import QPushButton
+
+        form = QApplication.activeModalWidget()
+        form.readers["title"].__self__.setText("Lesson created in GUI")
+        form.readers["hours"].__self__.setText("1.5")
+
+        def topic_form():
+            dialog = QApplication.activeModalWidget()
+            dialog.readers["title"].__self__.setText("Topic created in program")
+            dialog.submit()
+
+        QTimer.singleShot(0, topic_form)
+        next(b for b in form.findChildren(QPushButton) if b.text() == "Создать тему").click()
+        picker = form.findChild(TopicTreePicker)
+        next(iter(picker.nodes.values())).setCheckState(0, Qt.CheckState.Checked)
+        form.submit()
+
+    QTimer.singleShot(0, lesson_form)
+    page.edit_lesson(edit=True)
+    page.save()
+    draft_id = page.draft.id
+    window.router.back()
+    assert window.pages.currentWidget() is parent
+    assert parent.course_programs.model.rowCount() == 1
+    parent.course_programs.view.selectRow(0)
+    parent.course_programs.next_version()
+    reopened = window.pages.currentWidget()
+    assert reopened.draft.id == draft_id
+    module = reopened.annual["semesters"][0]["modules"][0]
+    assert len(module["lessons"]) == 3 and module["lessons"][0]["topic_ids"]
+    assert module["lessons"][0]["hours"] == "1.5"
+    assert not runtime.service._r.lessons.list()
+    window.close()
+    window.deleteLater()
+    qt_app.processEvents()
+    runtime.close()

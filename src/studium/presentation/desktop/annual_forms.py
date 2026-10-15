@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 
-from PySide6.QtWidgets import QComboBox, QLineEdit, QPlainTextEdit, QSpinBox
+from PySide6.QtWidgets import QComboBox, QLineEdit, QMessageBox, QPlainTextEdit, QSpinBox
 
 from studium.domain import annual_program as a
 from studium.domain.qa import score_cents, score_text
@@ -11,10 +11,35 @@ from studium.presentation.desktop.learning import CheckList
 from studium.presentation.desktop.qa_content import TopicTreePicker
 
 
+def run_program_action(parent, action):
+    from studium.presentation.desktop.components import run_action
+
+    def command():
+        try:
+            return action()
+        except ValueError as error:
+            QMessageBox.warning(parent, "Учебная программа", str(error))
+            return None
+
+    return run_action(parent, command)
+
+
 class RowForm(FormDialog):
     def __init__(self, title, source, callback, parent=None):
         super().__init__(title, callback, parent)
         self.source, self.readers = deepcopy(source), {}
+
+    def submit(self):
+        from studium.presentation.desktop.messages import error_message
+
+        try:
+            self.on_save(self.values())
+        except Exception as error:
+            self.error_label.setText(
+                str(error) if isinstance(error, ValueError) else error_message(error)
+            )
+        else:
+            self.accept()
 
     def text(self, name, label, *, multiline=False):
         field = (

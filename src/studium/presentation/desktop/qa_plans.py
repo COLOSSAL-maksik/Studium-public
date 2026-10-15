@@ -355,6 +355,7 @@ class CourseProgramsWidget(QWidget):
         from studium.presentation.desktop.annual_program import ProgramEditor
 
         draft = self.window.service.create_program_draft(self.course.id)
+        self.window.router.routes[-1].refresh = self.window.router.routes[-1].page.refresh
         self.window.router.push(
             ProgramEditor(self.window, self.course, draft=draft), "Учебная программа"
         )
@@ -364,6 +365,7 @@ class CourseProgramsWidget(QWidget):
 
         value = selected(self.view)
         if value:
+            self.window.router.routes[-1].refresh = self.window.router.routes[-1].page.refresh
             kwargs = {"draft": value} if hasattr(value, "base_version_id") else {"version": value}
             self.window.router.push(
                 ProgramEditor(self.window, self.course, **kwargs), "Учебная программа"
